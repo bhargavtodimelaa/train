@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Train Live Tracker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f5f7fa;
+  --card: #ffffff;
+  --ink: #1a1a2e;
+  --sub: #64748b;
+  --rail: #e2e8f0;
+  --accent: #e84a3a;
+  --blue: #2563eb;
+  --green: #16a34a;
+  --green-bg: #dcfce7;
+  --red-bg: #fee2e2;
+  --border: #e2e8f0;
+  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.05);
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
+}
+
+.dark {
+  --bg: #0f172a;
+  --card: #1e293b;
+  --ink: #f1f5f9;
+  --sub: #94a3b8;
+  --rail: #334155;
+  --border: #334155;
+  --shadow: 0 1px 3px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.2);
+  --green-bg: #14532d;
+  --red-bg: #7f1d1d;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  transition: background .3s, color .3s;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  background: var(--ink);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+}
+.brand { font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.brand span { color: #f97316; }
+.topbar-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.icon-btn {
+  background: rgba(255,255,255,.1);
+  border: none;
+  color: #fff;
+  border-radius: 8px;
+  width: 36px; height: 36px;
+  cursor: pointer;
+  display: grid; place-items: center;
+  font-size: 16px;
+  transition: background .18s;
+}
+.icon-btn:hover { background: rgba(255,255,255,.2); }
+
+.search-bar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 8px;
+  padding: 8px 12px;
+  gap: 8px;
+  max-width: 360px;
+}
+.search-bar input {
+  background: none; border: none; outline: none;
+  color: #fff; font-family: var(--font); font-size: 14px; width: 100%;
+}
+.search-bar input::placeholder { color: rgba(255,255,255,.45); }
+
+/* ── MAIN ── */
+.main { max-width: 840px; margin: 0 auto; padding: 24px 16px; }
+.loader { color: var(--sub); font-size: 14px; padding: 24px 0; display: flex; align-items: center; gap: 8px; }
+.spinner { width: 16px; height: 16px; border: 2px solid var(--rail); border-top-color: var(--blue); border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── SEARCH RESULTS ── */
+.result-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: var(--shadow);
+  transition: transform .15s, box-shadow .15s;
+}
+.result-card:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,0,0,.1); }
+.rnum { font-size: 18px; font-weight: 700; color: var(--accent); font-family: var(--mono); }
+.rname { font-size: 14px; font-weight: 600; margin-top: 1px; }
+.rroute { font-size: 12px; color: var(--sub); margin-top: 2px; font-family: var(--mono); }
+.track-btn {
+  background: var(--blue);
+  color: #fff; border: none; border-radius: 8px;
+  padding: 8px 16px; font-size: 13px; font-weight: 600;
+  cursor: pointer; white-space: nowrap; font-family: var(--font);
+  transition: background .18s, transform .1s;
+}
+.track-btn:hover { background: #1d4ed8; }
+.track-btn:active { transform: scale(.97); }
+
+/* ── LIVE PANEL ── */
+.live-panel { border-radius: 16px; overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow); }
+
+/* Head */
+.lp-head { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #fff; padding: 20px; }
+.lp-badge-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.lp-num { font-family: var(--mono); font-size: 12px; color: #94a3b8; background: rgba(255,255,255,.08); padding: 3px 10px; border-radius: 20px; }
+.lp-src { font-size: 11px; color: #64748b; font-family: var(--mono); background: rgba(255,255,255,.05); padding: 3px 8px; border-radius: 10px; }
+.lp-title { font-size: 20px; font-weight: 700; letter-spacing: -.2px; }
+.lp-route-line { font-size: 13px; color: #94a3b8; margin-top: 4px; display: flex; align-items: center; gap: 6px; }
+.lp-route-line .ar { color: #f97316; }
+
+.lp-meta { display: flex; flex-wrap: wrap; gap: 0; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,.08); }
+.lp-meta-item { padding-right: 24px; margin-bottom: 4px; }
+.mlabel { font-size: 10px; color: #64748b; letter-spacing: .8px; text-transform: uppercase; }
+.mval { font-size: 15px; font-weight: 600; margin-top: 2px; }
+
+/* Badge */
+.badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.badge.late { background: var(--red-bg); color: #dc2626; }
+.badge.ok   { background: var(--green-bg); color: var(--green); }
+.blink { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: bl 1.4s ease-in-out infinite; }
+@keyframes bl { 0%,100%{opacity:1} 50%{opacity:.2} }
+
+/* Progress */
+.lp-progress { background: var(--card); padding: 14px 20px; border-bottom: 1px solid var(--border); }
+.prog-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.prog-from-to { font-size: 12px; color: var(--sub); font-weight: 500; }
+.prog-pct { font-size: 12px; font-weight: 700; color: var(--blue); font-family: var(--mono); }
+.prog-bg { background: var(--rail); height: 6px; border-radius: 4px; overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--blue), #6366f1); transition: width 1.2s cubic-bezier(.4,0,.2,1); }
+.prog-stops { display: flex; justify-content: space-between; margin-top: 6px; }
+.prog-stop-lbl { font-size: 10px; color: var(--sub); font-family: var(--mono); }
+
+/* Stats row */
+.stats-row { background: var(--card); display: flex; gap: 0; border-bottom: 1px solid var(--border); overflow-x: auto; }
+.stat-item { flex: 1; min-width: 100px; padding: 14px 16px; border-right: 1px solid var(--border); text-align: center; }
+.stat-item:last-child { border-right: none; }
+.stat-val { font-size: 18px; font-weight: 700; font-family: var(--mono); color: var(--ink); }
+.stat-lbl { font-size: 11px; color: var(--sub); margin-top: 2px; }
+.stat-val.green { color: var(--green); }
+.stat-val.red   { color: #dc2626; }
+.stat-val.blue  { color: var(--blue); }
+
+/* Current station */
+.lp-cur {
+  background: linear-gradient(90deg, #eff6ff, #f5f3ff);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.dark .lp-cur { background: linear-gradient(90deg, #1e3a5f22, #1e1b4b22); }
+.cur-dot { width: 40px; height: 40px; border-radius: 50%; background: var(--blue); display: grid; place-items: center; font-size: 18px; flex-shrink: 0; }
+.cur-label { font-size: 10px; text-transform: uppercase; letter-spacing: .8px; color: var(--sub); font-weight: 600; }
+.cur-name { font-size: 17px; font-weight: 700; color: var(--ink); }
+.cur-sub { font-size: 12px; color: var(--sub); margin-top: 2px; font-family: var(--mono); }
+.cur-right { margin-left: auto; text-align: right; flex-shrink: 0; }
+.next-badge { background: var(--blue); color: #fff; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 8px; display: inline-block; }
+.next-name { font-size: 13px; font-weight: 600; margin-top: 4px; }
+.next-lbl { font-size: 10px; color: var(--sub); }
+
+/* Countdown */
+.countdown-bar {
+  background: var(--card);
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.countdown-label { font-size: 12px; color: var(--sub); font-weight: 500; }
+.countdown-val { font-family: var(--mono); font-size: 22px; font-weight: 700; color: var(--blue); letter-spacing: 2px; }
+.countdown-station { font-size: 13px; font-weight: 600; }
+.countdown-right { margin-left: auto; text-align: right; }
+.eta-label { font-size: 10px; color: var(--sub); }
+.eta-val { font-size: 14px; font-weight: 700; font-family: var(--mono); }
+
+/* Map preview */
+.map-wrap {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+}
+.map-wrap iframe { width: 100%; height: 200px; border: none; display: block; }
+.map-toggle-btn {
+  width: 100%; padding: 10px 20px; background: var(--card); border: none;
+  border-bottom: 1px solid var(--border); color: var(--blue); font-size: 13px;
+  font-weight: 600; cursor: pointer; text-align: left; font-family: var(--font);
+  display: flex; align-items: center; gap: 6px;
+  transition: background .15s;
+}
+.map-toggle-btn:hover { background: #f0f4ff; }
+.dark .map-toggle-btn:hover { background: #1e293b; }
+
+/* Share bar */
+.share-bar {
+  background: var(--card);
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.share-label { font-size: 12px; color: var(--sub); font-weight: 500; margin-right: 4px; }
+.share-btn {
+  background: var(--rail);
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font);
+  color: var(--ink);
+  display: flex; align-items: center; gap: 5px;
+  transition: background .15s;
+}
+.share-btn:hover { background: #dbeafe; color: var(--blue); }
+.dark .share-btn:hover { background: #1e3a5f; }
+.share-btn.copied { background: var(--green-bg); color: var(--green); }
+
+/* Tabs */
+.tabs { background: var(--card); border-bottom: 1px solid var(--border); display: flex; }
+.tab-btn {
+  flex: 1; padding: 11px; border: none; background: none; font-family: var(--font);
+  font-size: 13px; font-weight: 600; cursor: pointer; color: var(--sub);
+  border-bottom: 2px solid transparent; transition: color .15s, border-color .15s;
+}
+.tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Timeline */
+.lp-timeline { background: var(--card); padding: 20px; }
+.sec-title { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--sub); margin-bottom: 16px; }
+.tl-list { position: relative; padding-left: 28px; }
+.tl-list::before { content: ''; position: absolute; left: 6px; top: 10px; bottom: 10px; width: 2px; background: var(--rail); }
+
+.stop { position: relative; padding-bottom: 18px; }
+.stop:last-child { padding-bottom: 0; }
+.stop-dot { position: absolute; left: -23px; top: 5px; width: 13px; height: 13px; border-radius: 50%; background: var(--rail); border: 2px solid var(--bg); z-index: 1; }
+.stop.past .stop-dot { background: var(--green); }
+.stop.current .stop-dot {
+  background: var(--blue);
+  width: 17px; height: 17px; left: -25px; top: 3px;
+  border: 2px solid var(--card);
+  box-shadow: 0 0 0 4px rgba(37,99,235,.25);
+  animation: glow 1.6s ease-in-out infinite;
+}
+.stop.future { opacity: .45; }
+@keyframes glow { 0%,100%{box-shadow:0 0 0 4px rgba(37,99,235,.22)} 50%{box-shadow:0 0 0 9px rgba(37,99,235,.06)} }
+
+.stop-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.sname { font-size: 14px; font-weight: 600; }
+.stop.current .sname { color: var(--blue); font-weight: 700; }
+.scode { font-size: 11px; color: var(--sub); margin-top: 1px; font-family: var(--mono); }
+.pf-tag { display: inline-block; background: #dbeafe; color: var(--blue); font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; margin-top: 4px; font-family: var(--mono); }
+.stop.current .pf-tag { background: var(--blue); color: #fff; }
+.stop.past .pf-tag { background: var(--green-bg); color: var(--green); }
+
+.stop-times { display: flex; gap: 14px; text-align: right; flex-shrink: 0; }
+.t-lbl { font-size: 9px; color: var(--sub); letter-spacing: .8px; text-transform: uppercase; }
+.t-val { font-size: 13px; font-weight: 600; font-family: var(--mono); }
+.t-val.g { color: var(--green); }
+.t-val.r { color: #dc2626; }
+.t-val.d { color: var(--sub); }
+.dpill { font-size: 9px; background: var(--red-bg); color: #dc2626; padding: 1px 5px; border-radius: 4px; margin-top: 2px; display: inline-block; font-weight: 600; }
+.sdiv { border: none; border-top: 1px solid var(--rail); margin: 0 0 18px; }
+
+/* All Stops table */
+.stops-table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; padding: 8px 12px; font-size: 10px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--sub); border-bottom: 2px solid var(--rail); white-space: nowrap; }
+td { padding: 10px 12px; border-bottom: 1px solid var(--rail); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr.row-past td { color: var(--sub); }
+tr.row-current td { background: #eff6ff; font-weight: 600; }
+.dark tr.row-current td { background: #1e3a5f22; }
+tr.row-future td { opacity: .5; }
+.td-name { font-weight: 600; }
+.td-code { font-family: var(--mono); font-size: 11px; color: var(--sub); }
+.td-time { font-family: var(--mono); white-space: nowrap; }
+.td-delay { font-family: var(--mono); font-size: 11px; }
+.td-delay.late { color: #dc2626; }
+.td-delay.ok { color: var(--green); }
+.td-pf { font-family: var(--mono); text-align: center; }
+.row-current .cur-marker { color: var(--blue); font-weight: 700; }
+
+/* IST Clock */
+.ist-clock {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: rgba(255,255,255,.7);
+  background: rgba(255,255,255,.08);
+  border-radius: 7px;
+  padding: 5px 10px;
+  letter-spacing: .5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Refresh button */
+.refresh-btn {
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.2);
+  color: #fff;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: background .18s;
+  white-space: nowrap;
+}
+.refresh-btn:hover { background: rgba(255,255,255,.2); }
+.refresh-btn:disabled { opacity: .5; cursor: not-allowed; }
+.refresh-btn .rspin { display: inline-block; }
+.refresh-btn.spinning .rspin { animation: spin .7s linear infinite; }
+
+/* Auto-refresh bar */
+.auto-refresh-bar {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.ar-left { display: flex; align-items: center; gap: 8px; }
+.ar-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: bl 1.4s ease-in-out infinite; flex-shrink: 0; }
+.ar-text { font-size: 12px; color: var(--sub); }
+.ar-text b { color: var(--ink); }
+.ar-progress-bg { flex: 1; max-width: 120px; height: 3px; background: var(--rail); border-radius: 2px; overflow: hidden; }
+.ar-progress-fill { height: 100%; background: var(--blue); border-radius: 2px; transition: width 1s linear; }
+.ar-right { font-size: 11px; color: var(--sub); font-family: var(--mono); }
+
+/* Footer */
+.site-footer {
+  text-align: center;
+  padding: 28px 16px 20px;
+  font-size: 12px;
+  color: var(--sub);
+  line-height: 1.8;
+}
+.site-footer a { color: var(--blue); text-decoration: none; }
+.site-footer a:hover { text-decoration: underline; }
+.beta-tag {
+  display: inline-block;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: .5px;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+.dark .beta-tag { background: #451a03; color: #fbbf24; }
+
+/* Toast */
+#toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: #1e293b; color: #fff; padding: 10px 20px; border-radius: 10px;
+  font-size: 13px; font-weight: 600; z-index: 999; transition: transform .3s ease;
+  pointer-events: none;
+}
+#toast.show { transform: translateX(-50%) translateY(0); }
+
+@media(max-width:520px){
+  .topbar { flex-wrap: wrap; padding: 10px 14px; }
+  .search-bar { max-width: 100%; }
+  .lp-meta-item { padding-right: 16px; }
+  .stop-times { gap: 8px; }
+  .cur-right { display: none; }
+  .stats-row { }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">🚆 <span>Track</span>It</div>
+  <div class="search-bar">
+    <span style="color:rgba(255,255,255,.5);font-size:15px;">🔍</span>
+    <input id="searchInput" placeholder="Search train number or name…" oninput="onSearch(this.value)">
+  </div>
+  <div class="topbar-actions">
+    <div class="ist-clock" id="istClock">--:--:-- IST</div>
+    <button class="refresh-btn" id="refreshBtn" onclick="manualRefresh()" style="display:none;" title="Refresh live status">
+      <span class="rspin">🔄</span> Refresh
+    </button>
+    <button class="icon-btn" onclick="toggleDark()" title="Toggle dark mode">🌙</button>
+  </div>
+</div>
+
+<div class="main">
+  <div id="searchResults"></div>
+  <div id="liveView"></div>
+</div>
+
+<div class="site-footer">
+  <div>
+    <strong>TrackIt</strong> <span class="beta-tag">BETA</span>
+  </div>
+  <div style="margin-top:4px;">
+    Made with ❤️ by <strong>Bhargav Todimela</strong>
+  </div>
+  <div style="margin-top:4px;">
+    This website is in beta stage. Found a bug or have a feature request?
+    <a href="https://github.com" target="_blank">Report an issue →</a>
+  </div>
+  <div style="margin-top:8px; font-size:11px; opacity:.6;">
+    Auto-refreshes every 45 seconds when tracking a train · Data source: Indian Railways (OFFICIAL)
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const BASE = "https://sujith.bhargavtodimela4.workers.dev";
+let searchTimer, countdownInterval;
+let autoRefreshInterval, autoRefreshTick, autoRefreshSecsLeft = 45;
+let currentTrainNo = null, currentTrainName = null;
+let lastRefreshedTs = null;
+
+// ── IST Clock ────────────────────────────────────────────────────────────────
+function updateISTClock() {
+  const el = document.getElementById('istClock');
+  if (!el) return;
+  const now = new Date();
+  const ist = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+  const h = String(ist.getHours()).padStart(2,'0');
+  const m = String(ist.getMinutes()).padStart(2,'0');
+  const s = String(ist.getSeconds()).padStart(2,'0');
+  el.textContent = `${h}:${m}:${s} IST`;
+}
+updateISTClock();
+setInterval(updateISTClock, 1000);
+
+// ── Auto-refresh logic ───────────────────────────────────────────────────────
+function startAutoRefresh() {
+  stopAutoRefresh();
+  autoRefreshSecsLeft = 45;
+  updateARBar();
+  autoRefreshTick = setInterval(() => {
+    autoRefreshSecsLeft--;
+    updateARBar();
+    if (autoRefreshSecsLeft <= 0) {
+      autoRefreshSecsLeft = 45;
+      silentRefresh();
+    }
+  }, 1000);
+}
+
+function stopAutoRefresh() {
+  clearInterval(autoRefreshTick);
+  clearInterval(autoRefreshInterval);
+}
+
+function updateARBar() {
+  const fill = document.getElementById('arFill');
+  const countdown = document.getElementById('arCountdown');
+  if (fill) fill.style.width = ((45 - autoRefreshSecsLeft) / 45 * 100) + '%';
+  if (countdown) countdown.textContent = `Next refresh in ${autoRefreshSecsLeft}s`;
+}
+
+function silentRefresh() {
+  if (!currentTrainNo) return;
+  fetch(`${BASE}/live-status?trainNo=${currentTrainNo}`)
+    .then(r => r.json())
+    .then(d => {
+      lastRefreshedTs = new Date();
+      renderLive(d.data, currentTrainNo, currentTrainName);
+      updateLastRefreshed();
+      showToast('🔄 Live data refreshed!');
+    })
+    .catch(() => showToast('⚠️ Auto-refresh failed'));
+}
+
+function manualRefresh() {
+  if (!currentTrainNo) return;
+  const btn = document.getElementById('refreshBtn');
+  if (btn) { btn.classList.add('spinning'); btn.disabled = true; }
+  autoRefreshSecsLeft = 45;
+  updateARBar();
+  fetch(`${BASE}/live-status?trainNo=${currentTrainNo}`)
+    .then(r => r.json())
+    .then(d => {
+      lastRefreshedTs = new Date();
+      renderLive(d.data, currentTrainNo, currentTrainName);
+      updateLastRefreshed();
+      showToast('✅ Refreshed from server!');
+    })
+    .catch(() => showToast('⚠️ Refresh failed'))
+    .finally(() => {
+      const b = document.getElementById('refreshBtn');
+      if (b) { b.classList.remove('spinning'); b.disabled = false; }
+    });
+}
+
+function updateLastRefreshed() {
+  const el = document.getElementById('lastRefreshedTime');
+  if (el && lastRefreshedTs) {
+    const ist = new Date(lastRefreshedTs.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    const h = String(ist.getHours()).padStart(2,'0');
+    const m = String(ist.getMinutes()).padStart(2,'0');
+    const s = String(ist.getSeconds()).padStart(2,'0');
+    el.textContent = `${h}:${m}:${s} IST`;
+  }
+}
+
+
+// Dark mode
+function toggleDark() {
+  document.body.classList.toggle('dark');
+  localStorage.setItem('dark', document.body.classList.contains('dark') ? '1' : '0');
+}
+if (localStorage.getItem('dark') === '1') document.body.classList.add('dark');
+
+// Search
+function onSearch(q) {
+  clearTimeout(searchTimer);
+  if (q.length < 2) { document.getElementById('searchResults').innerHTML = ''; return; }
+  searchTimer = setTimeout(() => doSearch(q), 320);
+}
+function doSearch(q) {
+  const sr = document.getElementById('searchResults');
+  sr.innerHTML = '<div class="loader"><div class="spinner"></div> Searching…</div>';
+  document.getElementById('liveView').innerHTML = '';
+  clearInterval(countdownInterval);
+  stopAutoRefresh();
+  currentTrainNo = null; currentTrainName = null;
+  document.getElementById('refreshBtn').style.display = 'none';
+  fetch(`${BASE}/search?q=${encodeURIComponent(q)}`)
+    .then(r => r.json())
+    .then(d => renderSearch(d.data || []))
+    .catch(() => sr.innerHTML = '<div class="loader">Search failed.</div>');
+}
+function renderSearch(trains) {
+  const sr = document.getElementById('searchResults');
+  if (!trains.length) { sr.innerHTML = '<div class="loader">No trains found.</div>'; return; }
+  sr.innerHTML = trains.map(t => `
+    <div class="result-card">
+      <div>
+        <div class="rnum">${t.number}</div>
+        <div class="rname">${t.name}</div>
+        <div class="rroute">${t.fromStnCode} → ${t.toStnCode}</div>
+      </div>
+      <button class="track-btn" onclick="doLive('${t.number}','${esc(t.name)}')">📍 Track</button>
+    </div>`).join('');
+}
+
+// Live fetch
+function doLive(num, name) {
+  document.getElementById('searchResults').innerHTML = '';
+  document.getElementById('liveView').innerHTML = '<div class="loader"><div class="spinner"></div> Fetching live status…</div>';
+  clearInterval(countdownInterval);
+  stopAutoRefresh();
+  currentTrainNo = num;
+  currentTrainName = name || num;
+  document.getElementById('refreshBtn').style.display = 'flex';
+  fetch(`${BASE}/live-status?trainNo=${num}`)
+    .then(r => r.json())
+    .then(d => {
+      lastRefreshedTs = new Date();
+      renderLive(d.data, num, name || num);
+      updateLastRefreshed();
+      startAutoRefresh();
+    })
+    .catch(() => document.getElementById('liveView').innerHTML = '<div class="loader">Failed to load.</div>');
+}
+
+// ── MAIN RENDERER ─────────────────────────────────────────────────────────────
+function renderLive(data, trainNo, trainName) {
+  if (!data || !data.route || !data.route.length) {
+    document.getElementById('liveView').innerHTML = '<div class="loader">No route data.</div>'; return;
+  }
+
+  const route      = data.route;
+  const curCode    = data.currentPosition?.stationCode;
+  const curIdx     = route.findIndex(s => s.stationCode === curCode);
+  const delayMins  = Math.round((data.delayInSecs || 0) / 60);
+  const isLate     = delayMins > 1;
+  const progress   = curIdx >= 0 ? Math.round((curIdx / Math.max(route.length - 1, 1)) * 100) : 0;
+  const distOrig   = data.currentPosition?.distanceFromOriginKm?.toFixed(1) ?? '—';
+  const distLast   = data.currentPosition?.distanceFromLastStationKm?.toFixed(1) ?? '—';
+  const updated    = fmt(data.lastUpdatedTimestamp);
+  const origin     = route[0];
+  const dest       = route[route.length - 1];
+  const curStation = curIdx >= 0 ? route[curIdx] : null;
+  const nextStop   = curIdx >= 0 && curIdx < route.length - 1 ? route[curIdx + 1] : null;
+  const lat        = data.currentPosition?.latLng?.latitude;
+  const lng        = data.currentPosition?.latLng?.longitude;
+  const mapUrl     = lat && lng ? `https://maps.google.com/maps?q=${lat},${lng}&z=13&output=embed` : null;
+
+  // Remaining stops count
+  const remainingStops = route.length - 1 - curIdx;
+
+  // Build share text
+  const shareText = `🚆 ${trainNo} - ${trainName}\n📍 At: ${curStation?.station_name || curCode}\n⏱ Delay: ${isLate ? '+' + delayMins + ' min' : 'On time'}\n🏁 Destination: ${dest?.station_name}\n📊 Progress: ${progress}%`;
+
+  let html = `<div class="live-panel">`;
+
+  // ── Head ──
+  html += `
+    <div class="lp-head">
+      <div class="lp-badge-row">
+        <div class="lp-num">${trainNo}</div>
+        <div class="lp-src">${data.dataSource || 'LIVE'}</div>
+        <span class="badge ${isLate ? 'late' : 'ok'}">
+          <span class="blink"></span>
+          ${isLate ? `+${delayMins} min late` : 'On Time'}
+        </span>
+      </div>
+      <div class="lp-title">${trainName}</div>
+      <div class="lp-route-line">
+        <span>${origin?.station_name || '—'}</span>
+        <span class="ar">⟶</span>
+        <span>${dest?.station_name || '—'}</span>
+      </div>
+      <div class="lp-meta">
+        <div class="lp-meta-item">
+          <div class="mlabel">Updated</div>
+          <div class="mval">${updated}</div>
+        </div>
+        <div class="lp-meta-item">
+          <div class="mlabel">Covered</div>
+          <div class="mval">${distOrig} km</div>
+        </div>
+        <div class="lp-meta-item">
+          <div class="mlabel">Stops left</div>
+          <div class="mval">${remainingStops}</div>
+        </div>
+        <div class="lp-meta-item">
+          <div class="mlabel">Total stops</div>
+          <div class="mval">${route.length}</div>
+        </div>
+      </div>
+    </div>`;
+
+  // ── Progress ──
+  html += `
+    <div class="lp-progress">
+      <div class="prog-top">
+        <span class="prog-from-to">${origin?.stationCode} → ${dest?.stationCode}</span>
+        <span class="prog-pct">${progress}% complete</span>
+      </div>
+      <div class="prog-bg"><div class="prog-fill" id="pf" style="width:0%"></div></div>
+      <div class="prog-stops">
+        <span class="prog-stop-lbl">${origin?.station_name}</span>
+        <span class="prog-stop-lbl">${dest?.station_name}</span>
+      </div>
+    </div>`;
+
+  // ── Stats row ──
+  const eta = nextStop?.scheduledArrivalTime
+    ? new Date((nextStop.scheduledArrivalTime + (data.delayInSecs || 0)) * 1000)
+        .toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+    : '—';
+  html += `
+    <div class="stats-row">
+      <div class="stat-item">
+        <div class="stat-val ${isLate ? 'red' : 'green'}">${isLate ? '+' + delayMins : '0'}</div>
+        <div class="stat-lbl">Min delay</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val blue">${distOrig}</div>
+        <div class="stat-lbl">km covered</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val">${distLast}</div>
+        <div class="stat-lbl">km from last stop</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val blue">${eta}</div>
+        <div class="stat-lbl">ETA next stop</div>
+      </div>
+    </div>`;
+
+  // ── Current station ──
+  if (curStation) {
+    html += `
+      <div class="lp-cur">
+        <div class="cur-dot">📍</div>
+        <div>
+          <div class="cur-label">Currently at</div>
+          <div class="cur-name">${curStation.station_name}</div>
+          <div class="cur-sub">${curStation.stationCode} · Platform ${curStation.platformNumber || '—'}</div>
+        </div>
+        <div class="cur-right">
+          ${nextStop ? `
+          <div class="next-lbl">Next stop</div>
+          <div class="next-name">${nextStop.station_name}</div>
+          <div class="next-badge" id="etaBadge">ETA ${eta}</div>` : '<div class="next-badge">🏁 Final destination</div>'}
+        </div>
+      </div>`;
+  }
+
+  // ── Countdown ──
+  if (nextStop?.scheduledArrivalTime) {
+    const etaTs = (nextStop.scheduledArrivalTime + (data.delayInSecs || 0)) * 1000;
+    html += `
+      <div class="countdown-bar">
+        <div>
+          <div class="countdown-label">⏱ Next stop in</div>
+          <div class="countdown-val" id="cdVal">--:--</div>
+        </div>
+        <div style="flex:1;padding:0 16px;">
+          <div class="countdown-station">${nextStop.station_name}</div>
+          <div style="font-size:11px;color:var(--sub);font-family:var(--mono);margin-top:2px;">${nextStop.stationCode} · PF ${nextStop.platformNumber || '—'}</div>
+        </div>
+        <div class="countdown-right">
+          <div class="eta-label">Scheduled</div>
+          <div class="eta-val">${fmt(nextStop.scheduledArrivalTime)}</div>
+        </div>
+      </div>`;
+    // Start countdown
+    clearInterval(countdownInterval);
+    function updateCountdown() {
+      const el = document.getElementById('cdVal');
+      if (!el) { clearInterval(countdownInterval); return; }
+      const diff = etaTs - Date.now();
+      if (diff <= 0) { el.textContent = 'Arriving'; el.style.color = '#16a34a'; clearInterval(countdownInterval); return; }
+      const m = Math.floor(diff / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      if (m < 5) el.style.color = '#dc2626';
+    }
+    updateCountdown();
+    countdownInterval = setInterval(updateCountdown, 1000);
+  }
+
+  // ── Map toggle ──
+  if (mapUrl) {
+    html += `
+      <button class="map-toggle-btn" onclick="toggleMap(this)" data-url="${mapUrl}">
+        🗺️ Show current location on map ▼
+      </button>
+      <div class="map-wrap" id="mapWrap" style="display:none;"></div>`;
+  }
+
+  // ── Share bar ──
+  html += `
+    <div class="share-bar">
+      <span class="share-label">Share:</span>
+      <button class="share-btn" onclick="copyStatus(\`${shareText.replace(/`/g,'\\`')}\`)">📋 Copy status</button>
+      <button class="share-btn" onclick="shareWhatsApp(\`${encodeURIComponent(shareText)}\`)">💬 WhatsApp</button>
+      <button class="share-btn" onclick="downloadStatus('${trainNo}')">⬇️ Download</button>
+    </div>`;
+
+  // ── Auto-refresh bar ──
+  html += `
+    <div class="auto-refresh-bar">
+      <div class="ar-left">
+        <div class="ar-dot"></div>
+        <span class="ar-text">Live · Auto-refreshing</span>
+        <div class="ar-progress-bg"><div class="ar-progress-fill" id="arFill" style="width:0%"></div></div>
+      </div>
+      <div class="ar-right" id="arCountdown">Next refresh in 45s</div>
+    </div>`;
+
+  // ── Tabs ──
+  html += `
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab(this,'tab-timeline')">Timeline</button>
+      <button class="tab-btn" onclick="switchTab(this,'tab-table')">All Stops Table</button>
+    </div>`;
+
+  // ── Tab: Timeline ──
+  html += `<div id="tab-timeline" class="tab-content active">
+    <div class="lp-timeline">
+      <div class="sec-title">Journey Timeline</div>
+      <div class="tl-list">`;
+  route.forEach((s, i) => {
+    const isCur  = i === curIdx;
+    const isPast = i < curIdx;
+    const cls    = isCur ? 'current' : isPast ? 'past' : 'future';
+    const aA = s.actualArrivalTime, aD = s.actualDepartureTime;
+    const aDelay = s.scheduledArrivalDelaySecs || 0;
+    const dDelay = s.scheduledDepartureDelaySecs || 0;
+    const aCls = aA ? (aDelay > 120 ? 'r' : 'g') : 'd';
+    const dCls = aD ? (dDelay > 120 ? 'r' : 'g') : 'd';
+    html += `
+      <div class="stop ${cls}">
+        <div class="stop-dot"></div>
+        <div class="stop-row">
+          <div>
+            <div class="sname">${s.station_name}</div>
+            <div class="scode">${s.stationCode} · stop #${s.stopIndex}</div>
+            ${s.platformNumber ? `<div class="pf-tag">PF ${s.platformNumber}</div>` : ''}
+          </div>
+          <div class="stop-times">
+            <div>
+              <div class="t-lbl">Arr</div>
+              <div class="t-val ${aCls}">${fmt(aA || s.scheduledArrivalTime)}</div>
+              ${aDelay > 60 ? `<div class="dpill">+${Math.round(aDelay/60)}m</div>` : ''}
+            </div>
+            <div>
+              <div class="t-lbl">Dep</div>
+              <div class="t-val ${dCls}">${fmt(aD || s.scheduledDepartureTime)}</div>
+              ${dDelay > 60 ? `<div class="dpill">+${Math.round(dDelay/60)}m</div>` : ''}
+            </div>
+          </div>
+        </div>
+      </div>
+      ${i < route.length - 1 ? '<hr class="sdiv">' : ''}`;
+  });
+  html += `</div></div></div>`;
+
+  // ── Tab: Table ──
+  html += `<div id="tab-table" class="tab-content">
+    <div style="background:var(--card);padding:16px 20px 20px;">
+      <div class="sec-title">All Stops</div>
+      <div class="stops-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Station</th>
+              <th>Code</th>
+              <th>PF</th>
+              <th>Arr (Sched)</th>
+              <th>Arr (Actual)</th>
+              <th>Dep (Sched)</th>
+              <th>Dep (Actual)</th>
+              <th>Delay</th>
+            </tr>
+          </thead>
+          <tbody>`;
+  route.forEach((s, i) => {
+    const isCur  = i === curIdx;
+    const isPast = i < curIdx;
+    const rowCls = isCur ? 'row-current' : isPast ? 'row-past' : 'row-future';
+    const aDelay = s.scheduledArrivalDelaySecs || 0;
+    const dDelay = s.scheduledDepartureDelaySecs || 0;
+    const maxDelay = Math.max(aDelay, dDelay);
+    const delayCls = maxDelay > 120 ? 'late' : 'ok';
+    const delayStr = maxDelay > 60 ? `+${Math.round(maxDelay/60)}m` : '—';
+    html += `
+      <tr class="${rowCls}">
+        <td>${i + 1}${isCur ? ' <span class="cur-marker">◀</span>' : ''}</td>
+        <td class="td-name">${s.station_name}</td>
+        <td class="td-code">${s.stationCode}</td>
+        <td class="td-pf">${s.platformNumber || '—'}</td>
+        <td class="td-time">${fmt(s.scheduledArrivalTime)}</td>
+        <td class="td-time">${fmt(s.actualArrivalTime)}</td>
+        <td class="td-time">${fmt(s.scheduledDepartureTime)}</td>
+        <td class="td-time">${fmt(s.actualDepartureTime)}</td>
+        <td class="td-delay ${delayCls}">${delayStr}</td>
+      </tr>`;
+  });
+  html += `</tbody></table></div></div></div>`;
+
+  html += `</div>`; // close .live-panel
+
+  // Last refreshed line below panel
+  html += `
+    <div style="text-align:center;padding:10px 0 4px;font-size:11px;color:var(--sub);font-family:var(--mono);">
+      🕐 Last refreshed from server: <span id="lastRefreshedTime">—</span>
+    </div>`;
+  document.getElementById('liveView').innerHTML = html;
+
+  // Animate progress bar
+  requestAnimationFrame(() => {
+    const pf = document.getElementById('pf');
+    if (pf) { setTimeout(() => pf.style.width = progress + '%', 50); }
+  });
+}
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
+function fmt(ts) {
+  if (!ts) return '—';
+  return new Date(ts * 1000).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+}
+function esc(s) { return (s || '').replace(/'/g, "\\'"); }
+
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id)?.classList.add('active');
+}
+
+function toggleMap(btn) {
+  const wrap = document.getElementById('mapWrap');
+  if (wrap.style.display === 'none') {
+    wrap.style.display = 'block';
+    if (!wrap.querySelector('iframe')) {
+      wrap.innerHTML = `<iframe src="${btn.dataset.url}" loading="lazy" allowfullscreen></iframe>`;
+    }
+    btn.textContent = '🗺️ Hide map ▲';
+  } else {
+    wrap.style.display = 'none';
+    btn.textContent = '🗺️ Show current location on map ▼';
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function copyStatus(text) {
+  navigator.clipboard.writeText(text)
+    .then(() => showToast('✅ Status copied to clipboard!'))
+    .catch(() => showToast('Copy failed'));
+}
+
+function shareWhatsApp(encoded) {
+  window.open(`https://wa.me/?text=${encoded}`, '_blank');
+}
+
+function downloadStatus(trainNo) {
+  const content = document.querySelector('.live-panel')?.innerText || '';
+  const blob = new Blob([content], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `train-${trainNo}-status.txt`;
+  a.click();
+  showToast('⬇️ Downloaded!');
+}
+
+// ── Recent searches (localStorage) ──────────────────────────────────────────
+function getRecent() {
+  try { return JSON.parse(localStorage.getItem('recentTrains') || '[]'); } catch { return []; }
+}
+function saveRecent(num, name) {
+  let r = getRecent().filter(x => x.num !== num);
+  r.unshift({ num, name });
+  if (r.length > 6) r = r.slice(0, 6);
+  try { localStorage.setItem('recentTrains', JSON.stringify(r)); } catch {}
+}
+function clearRecent() {
+  try { localStorage.removeItem('recentTrains'); } catch {}
+  showWelcome();
+  showToast('🗑️ Recent searches cleared');
+}
+
+// ── Welcome / home screen ────────────────────────────────────────────────────
+function showWelcome() {
+  const recent = getRecent();
+  let html = `
+    <div style="text-align:center;padding:40px 20px 24px;">
+      <div style="font-size:48px;margin-bottom:12px;">🚆</div>
+      <div style="font-size:22px;font-weight:700;margin-bottom:6px;">Track any Indian train, live.</div>
+      <div style="font-size:14px;color:var(--sub);margin-bottom:24px;">Type a train number or name in the search bar above to get started.</div>
+    </div>`;
+
+  if (recent.length) {
+    html += `
+      <div style="margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--sub);">🕓 Recent Searches</div>
+        <button onclick="clearRecent()" style="background:none;border:none;font-size:11px;color:var(--sub);cursor:pointer;font-family:var(--font);">Clear all</button>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px;">
+        ${recent.map(r => `
+          <button onclick="doLive('${r.num}','${esc(r.name)}')" style="
+            background:var(--card);border:1px solid var(--border);border-radius:10px;
+            padding:8px 14px;font-family:var(--font);font-size:13px;font-weight:600;
+            cursor:pointer;color:var(--ink);display:flex;align-items:center;gap:7px;
+            transition:box-shadow .15s;box-shadow:var(--shadow);"
+            onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,.12)'"
+            onmouseout="this.style.boxShadow='var(--shadow)'">
+            <span style="font-family:var(--mono);color:var(--accent);font-size:12px;">${r.num}</span>
+            <span>${r.name}</span>
+          </button>`).join('')}
+      </div>`;
+  }
+
+  html += `
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow);">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--sub);margin-bottom:14px;">ℹ️ How to use</div>
+      <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;color:var(--sub);">
+        <div>🔍 <strong style="color:var(--ink);">Search</strong> — type a train number (e.g. 12728) or name in the topbar</div>
+        <div>📍 <strong style="color:var(--ink);">Track</strong> — click Track to load real-time position, platform & delay info</div>
+        <div>🔄 <strong style="color:var(--ink);">Auto-refresh</strong> — live data updates every 45 seconds automatically</div>
+        <div>🗺️ <strong style="color:var(--ink);">Map</strong> — see the train's GPS location on Google Maps</div>
+        <div>📋 <strong style="color:var(--ink);">Share</strong> — copy, WhatsApp, or download the live status report</div>
+      </div>
+    </div>`;
+
+  document.getElementById('searchResults').innerHTML = html;
+  document.getElementById('liveView').innerHTML = '';
+}
+
+// ── Patch doLive to save recent + show back button ───────────────────────────
+const _origDoLive = doLive;
+// Override doLive to save to recent after render
+function doLiveWithRecent(num, name) {
+  doLive(num, name);
+  // save after slight delay so name is confirmed
+  setTimeout(() => saveRecent(num, name || num), 300);
+}
+
+// Expose back button
+function goHome() {
+  stopAutoRefresh();
+  clearInterval(countdownInterval);
+  currentTrainNo = null; currentTrainName = null;
+  document.getElementById('refreshBtn').style.display = 'none';
+  document.getElementById('searchInput').value = '';
+  showWelcome();
+}
+
+// ── Back button in topbar ────────────────────────────────────────────────────
+document.querySelector('.brand').style.cursor = 'pointer';
+document.querySelector('.brand').title = 'Back to home';
+document.querySelector('.brand').onclick = goHome;
+
+// ── Patch renderSearch to use doLiveWithRecent ───────────────────────────────
+const _origRenderSearch = renderSearch;
+function renderSearch(trains) {
+  const sr = document.getElementById('searchResults');
+  if (!trains.length) { sr.innerHTML = '<div class="loader">No trains found.</div>'; return; }
+  sr.innerHTML = trains.map(t => `
+    <div class="result-card">
+      <div>
+        <div class="rnum">${t.number}</div>
+        <div class="rname">${t.name}</div>
+        <div class="rroute">${t.fromStnCode} → ${t.toStnCode}</div>
+      </div>
+      <button class="track-btn" onclick="doLiveWithRecent('${t.number}','${esc(t.name)}')">📍 Track</button>
+    </div>`).join('');
+}
+
+// ── Show welcome on load ─────────────────────────────────────────────────────
+showWelcome();
+</script>
+</body>
+</html>
