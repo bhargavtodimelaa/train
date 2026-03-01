@@ -1,432 +1,643 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Train Live Tracker</title>
+<title>TrackIt — Live Train Tracker</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Google+Sans+Display:wght@400;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #f5f7fa;
-  --card: #ffffff;
-  --ink: #1a1a2e;
-  --sub: #64748b;
-  --rail: #e2e8f0;
-  --accent: #e84a3a;
-  --blue: #2563eb;
-  --green: #16a34a;
-  --green-bg: #dcfce7;
-  --red-bg: #fee2e2;
-  --border: #e2e8f0;
-  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.05);
-  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
+  --md-primary: #1a73e8;
+  --md-primary-container: #d3e3fd;
+  --md-on-primary: #fff;
+  --md-secondary: #ea4335;
+  --md-tertiary: #34a853;
+  --md-surface: #f8faff;
+  --md-surface-1: #ffffff;
+  --md-surface-2: #f1f3f9;
+  --md-surface-3: #e8eaf6;
+  --md-on-surface: #1c1b1f;
+  --md-on-surface-variant: #49454f;
+  --md-outline: #cac4d0;
+  --md-outline-variant: #e7e0ec;
+  --md-error: #b3261e;
+  --md-shadow-1: 0 1px 2px rgba(0,0,0,.1), 0 1px 3px rgba(0,0,0,.08);
+  --md-shadow-2: 0 1px 2px rgba(0,0,0,.1), 0 2px 6px rgba(0,0,0,.1);
+  --md-shadow-3: 0 4px 8px rgba(0,0,0,.1), 0 1px 3px rgba(0,0,0,.1);
+  --md-ripple: rgba(26,115,232,.12);
+  --font: 'Google Sans', -apple-system, sans-serif;
+  --font-display: 'Google Sans Display', sans-serif;
+  --mono: 'Roboto Mono', monospace;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+  --easing: cubic-bezier(.2, 0, 0, 1);
 }
 
 .dark {
-  --bg: #0f172a;
-  --card: #1e293b;
-  --ink: #f1f5f9;
-  --sub: #94a3b8;
-  --rail: #334155;
-  --border: #334155;
-  --shadow: 0 1px 3px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.2);
-  --green-bg: #14532d;
-  --red-bg: #7f1d1d;
+  --md-primary: #a8c7fa;
+  --md-primary-container: #004a99;
+  --md-surface: #1c1b1f;
+  --md-surface-1: #242329;
+  --md-surface-2: #2c2b31;
+  --md-surface-3: #36343b;
+  --md-on-surface: #e6e1e5;
+  --md-on-surface-variant: #cac4d0;
+  --md-outline: #938f99;
+  --md-outline-variant: #49454f;
+  --md-shadow-1: 0 1px 2px rgba(0,0,0,.3);
+  --md-shadow-2: 0 2px 6px rgba(0,0,0,.3);
+  --md-shadow-3: 0 4px 12px rgba(0,0,0,.4);
+  --md-ripple: rgba(168,199,250,.12);
 }
 
+html { scroll-behavior: smooth; }
 body {
   font-family: var(--font);
-  background: var(--bg);
-  color: var(--ink);
+  background: var(--md-surface);
+  color: var(--md-on-surface);
   min-height: 100vh;
-  transition: background .3s, color .3s;
-  font-size: 15px;
+  transition: background .3s var(--easing), color .3s var(--easing);
+  font-size: 14px;
   line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* ── TOPBAR ── */
-.topbar {
-  background: var(--ink);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 20px;
-  position: sticky;
-  top: 0;
-  z-index: 200;
-}
-.brand { font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-.brand span { color: #f97316; }
-.topbar-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
-.icon-btn {
-  background: rgba(255,255,255,.1);
-  border: none;
-  color: #fff;
-  border-radius: 8px;
-  width: 36px; height: 36px;
-  cursor: pointer;
-  display: grid; place-items: center;
-  font-size: 16px;
-  transition: background .18s;
-}
-.icon-btn:hover { background: rgba(255,255,255,.2); }
-
-.search-bar {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  background: rgba(255,255,255,.1);
-  border: 1px solid rgba(255,255,255,.15);
-  border-radius: 8px;
-  padding: 8px 12px;
-  gap: 8px;
-  max-width: 360px;
-}
-.search-bar input {
-  background: none; border: none; outline: none;
-  color: #fff; font-family: var(--font); font-size: 14px; width: 100%;
-}
-.search-bar input::placeholder { color: rgba(255,255,255,.45); }
-
-/* ── MAIN ── */
-.main { max-width: 840px; margin: 0 auto; padding: 24px 16px; }
-.loader { color: var(--sub); font-size: 14px; padding: 24px 0; display: flex; align-items: center; gap: 8px; }
-.spinner { width: 16px; height: 16px; border: 2px solid var(--rail); border-top-color: var(--blue); border-radius: 50%; animation: spin .7s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* ── SEARCH RESULTS ── */
-.result-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 14px 16px;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  box-shadow: var(--shadow);
-  transition: transform .15s, box-shadow .15s;
-}
-.result-card:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,0,0,.1); }
-.rnum { font-size: 18px; font-weight: 700; color: var(--accent); font-family: var(--mono); }
-.rname { font-size: 14px; font-weight: 600; margin-top: 1px; }
-.rroute { font-size: 12px; color: var(--sub); margin-top: 2px; font-family: var(--mono); }
-.track-btn {
-  background: var(--blue);
-  color: #fff; border: none; border-radius: 8px;
-  padding: 8px 16px; font-size: 13px; font-weight: 600;
-  cursor: pointer; white-space: nowrap; font-family: var(--font);
-  transition: background .18s, transform .1s;
-}
-.track-btn:hover { background: #1d4ed8; }
-.track-btn:active { transform: scale(.97); }
-
-/* ── LIVE PANEL ── */
-.live-panel { border-radius: 16px; overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow); }
-
-/* Head */
-.lp-head { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #fff; padding: 20px; }
-.lp-badge-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
-.lp-num { font-family: var(--mono); font-size: 12px; color: #94a3b8; background: rgba(255,255,255,.08); padding: 3px 10px; border-radius: 20px; }
-.lp-src { font-size: 11px; color: #64748b; font-family: var(--mono); background: rgba(255,255,255,.05); padding: 3px 8px; border-radius: 10px; }
-.lp-title { font-size: 20px; font-weight: 700; letter-spacing: -.2px; }
-.lp-route-line { font-size: 13px; color: #94a3b8; margin-top: 4px; display: flex; align-items: center; gap: 6px; }
-.lp-route-line .ar { color: #f97316; }
-
-.lp-meta { display: flex; flex-wrap: wrap; gap: 0; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,.08); }
-.lp-meta-item { padding-right: 24px; margin-bottom: 4px; }
-.mlabel { font-size: 10px; color: #64748b; letter-spacing: .8px; text-transform: uppercase; }
-.mval { font-size: 15px; font-weight: 600; margin-top: 2px; }
-
-/* Badge */
-.badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-.badge.late { background: var(--red-bg); color: #dc2626; }
-.badge.ok   { background: var(--green-bg); color: var(--green); }
-.blink { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: bl 1.4s ease-in-out infinite; }
-@keyframes bl { 0%,100%{opacity:1} 50%{opacity:.2} }
-
-/* Progress */
-.lp-progress { background: var(--card); padding: 14px 20px; border-bottom: 1px solid var(--border); }
-.prog-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.prog-from-to { font-size: 12px; color: var(--sub); font-weight: 500; }
-.prog-pct { font-size: 12px; font-weight: 700; color: var(--blue); font-family: var(--mono); }
-.prog-bg { background: var(--rail); height: 6px; border-radius: 4px; overflow: hidden; }
-.prog-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--blue), #6366f1); transition: width 1.2s cubic-bezier(.4,0,.2,1); }
-.prog-stops { display: flex; justify-content: space-between; margin-top: 6px; }
-.prog-stop-lbl { font-size: 10px; color: var(--sub); font-family: var(--mono); }
-
-/* Stats row */
-.stats-row { background: var(--card); display: flex; gap: 0; border-bottom: 1px solid var(--border); overflow-x: auto; }
-.stat-item { flex: 1; min-width: 100px; padding: 14px 16px; border-right: 1px solid var(--border); text-align: center; }
-.stat-item:last-child { border-right: none; }
-.stat-val { font-size: 18px; font-weight: 700; font-family: var(--mono); color: var(--ink); }
-.stat-lbl { font-size: 11px; color: var(--sub); margin-top: 2px; }
-.stat-val.green { color: var(--green); }
-.stat-val.red   { color: #dc2626; }
-.stat-val.blue  { color: var(--blue); }
-
-/* Current station */
-.lp-cur {
-  background: linear-gradient(90deg, #eff6ff, #f5f3ff);
-  padding: 14px 20px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border-bottom: 1px solid var(--border);
-}
-.dark .lp-cur { background: linear-gradient(90deg, #1e3a5f22, #1e1b4b22); }
-.cur-dot { width: 40px; height: 40px; border-radius: 50%; background: var(--blue); display: grid; place-items: center; font-size: 18px; flex-shrink: 0; }
-.cur-label { font-size: 10px; text-transform: uppercase; letter-spacing: .8px; color: var(--sub); font-weight: 600; }
-.cur-name { font-size: 17px; font-weight: 700; color: var(--ink); }
-.cur-sub { font-size: 12px; color: var(--sub); margin-top: 2px; font-family: var(--mono); }
-.cur-right { margin-left: auto; text-align: right; flex-shrink: 0; }
-.next-badge { background: var(--blue); color: #fff; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 8px; display: inline-block; }
-.next-name { font-size: 13px; font-weight: 600; margin-top: 4px; }
-.next-lbl { font-size: 10px; color: var(--sub); }
-
-/* Countdown */
-.countdown-bar {
-  background: var(--card);
-  padding: 12px 20px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-.countdown-label { font-size: 12px; color: var(--sub); font-weight: 500; }
-.countdown-val { font-family: var(--mono); font-size: 22px; font-weight: 700; color: var(--blue); letter-spacing: 2px; }
-.countdown-station { font-size: 13px; font-weight: 600; }
-.countdown-right { margin-left: auto; text-align: right; }
-.eta-label { font-size: 10px; color: var(--sub); }
-.eta-val { font-size: 14px; font-weight: 700; font-family: var(--mono); }
-
-/* Map preview */
-.map-wrap {
-  background: var(--card);
-  border-bottom: 1px solid var(--border);
-  overflow: hidden;
-}
-.map-wrap iframe { width: 100%; height: 200px; border: none; display: block; }
-.map-toggle-btn {
-  width: 100%; padding: 10px 20px; background: var(--card); border: none;
-  border-bottom: 1px solid var(--border); color: var(--blue); font-size: 13px;
-  font-weight: 600; cursor: pointer; text-align: left; font-family: var(--font);
-  display: flex; align-items: center; gap: 6px;
-  transition: background .15s;
-}
-.map-toggle-btn:hover { background: #f0f4ff; }
-.dark .map-toggle-btn:hover { background: #1e293b; }
-
-/* Share bar */
-.share-bar {
-  background: var(--card);
-  padding: 10px 20px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.share-label { font-size: 12px; color: var(--sub); font-weight: 500; margin-right: 4px; }
-.share-btn {
-  background: var(--rail);
-  border: none;
-  border-radius: 8px;
-  padding: 6px 12px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: var(--font);
-  color: var(--ink);
-  display: flex; align-items: center; gap: 5px;
-  transition: background .15s;
-}
-.share-btn:hover { background: #dbeafe; color: var(--blue); }
-.dark .share-btn:hover { background: #1e3a5f; }
-.share-btn.copied { background: var(--green-bg); color: var(--green); }
-
-/* Tabs */
-.tabs { background: var(--card); border-bottom: 1px solid var(--border); display: flex; }
-.tab-btn {
-  flex: 1; padding: 11px; border: none; background: none; font-family: var(--font);
-  font-size: 13px; font-weight: 600; cursor: pointer; color: var(--sub);
-  border-bottom: 2px solid transparent; transition: color .15s, border-color .15s;
-}
-.tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
-.tab-content { display: none; }
-.tab-content.active { display: block; }
-
-/* Timeline */
-.lp-timeline { background: var(--card); padding: 20px; }
-.sec-title { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--sub); margin-bottom: 16px; }
-.tl-list { position: relative; padding-left: 28px; }
-.tl-list::before { content: ''; position: absolute; left: 6px; top: 10px; bottom: 10px; width: 2px; background: var(--rail); }
-
-.stop { position: relative; padding-bottom: 18px; }
-.stop:last-child { padding-bottom: 0; }
-.stop-dot { position: absolute; left: -23px; top: 5px; width: 13px; height: 13px; border-radius: 50%; background: var(--rail); border: 2px solid var(--bg); z-index: 1; }
-.stop.past .stop-dot { background: var(--green); }
-.stop.current .stop-dot {
-  background: var(--blue);
-  width: 17px; height: 17px; left: -25px; top: 3px;
-  border: 2px solid var(--card);
-  box-shadow: 0 0 0 4px rgba(37,99,235,.25);
-  animation: glow 1.6s ease-in-out infinite;
-}
-.stop.future { opacity: .45; }
-@keyframes glow { 0%,100%{box-shadow:0 0 0 4px rgba(37,99,235,.22)} 50%{box-shadow:0 0 0 9px rgba(37,99,235,.06)} }
-
-.stop-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-.sname { font-size: 14px; font-weight: 600; }
-.stop.current .sname { color: var(--blue); font-weight: 700; }
-.scode { font-size: 11px; color: var(--sub); margin-top: 1px; font-family: var(--mono); }
-.pf-tag { display: inline-block; background: #dbeafe; color: var(--blue); font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; margin-top: 4px; font-family: var(--mono); }
-.stop.current .pf-tag { background: var(--blue); color: #fff; }
-.stop.past .pf-tag { background: var(--green-bg); color: var(--green); }
-
-.stop-times { display: flex; gap: 14px; text-align: right; flex-shrink: 0; }
-.t-lbl { font-size: 9px; color: var(--sub); letter-spacing: .8px; text-transform: uppercase; }
-.t-val { font-size: 13px; font-weight: 600; font-family: var(--mono); }
-.t-val.g { color: var(--green); }
-.t-val.r { color: #dc2626; }
-.t-val.d { color: var(--sub); }
-.dpill { font-size: 9px; background: var(--red-bg); color: #dc2626; padding: 1px 5px; border-radius: 4px; margin-top: 2px; display: inline-block; font-weight: 600; }
-.sdiv { border: none; border-top: 1px solid var(--rail); margin: 0 0 18px; }
-
-/* All Stops table */
-.stops-table-wrap { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th { text-align: left; padding: 8px 12px; font-size: 10px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--sub); border-bottom: 2px solid var(--rail); white-space: nowrap; }
-td { padding: 10px 12px; border-bottom: 1px solid var(--rail); vertical-align: middle; }
-tr:last-child td { border-bottom: none; }
-tr.row-past td { color: var(--sub); }
-tr.row-current td { background: #eff6ff; font-weight: 600; }
-.dark tr.row-current td { background: #1e3a5f22; }
-tr.row-future td { opacity: .5; }
-.td-name { font-weight: 600; }
-.td-code { font-family: var(--mono); font-size: 11px; color: var(--sub); }
-.td-time { font-family: var(--mono); white-space: nowrap; }
-.td-delay { font-family: var(--mono); font-size: 11px; }
-.td-delay.late { color: #dc2626; }
-.td-delay.ok { color: var(--green); }
-.td-pf { font-family: var(--mono); text-align: center; }
-.row-current .cur-marker { color: var(--blue); font-weight: 700; }
-
-/* IST Clock */
-.ist-clock {
-  font-family: var(--mono);
-  font-size: 13px;
-  color: rgba(255,255,255,.7);
-  background: rgba(255,255,255,.08);
-  border-radius: 7px;
-  padding: 5px 10px;
-  letter-spacing: .5px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-/* Refresh button */
-.refresh-btn {
-  background: rgba(255,255,255,.1);
-  border: 1px solid rgba(255,255,255,.2);
-  color: #fff;
-  border-radius: 8px;
-  padding: 6px 12px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: var(--font);
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  transition: background .18s;
-  white-space: nowrap;
-}
-.refresh-btn:hover { background: rgba(255,255,255,.2); }
-.refresh-btn:disabled { opacity: .5; cursor: not-allowed; }
-.refresh-btn .rspin { display: inline-block; }
-.refresh-btn.spinning .rspin { animation: spin .7s linear infinite; }
-
-/* Auto-refresh bar */
-.auto-refresh-bar {
-  background: var(--card);
-  border-bottom: 1px solid var(--border);
-  padding: 8px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.ar-left { display: flex; align-items: center; gap: 8px; }
-.ar-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: bl 1.4s ease-in-out infinite; flex-shrink: 0; }
-.ar-text { font-size: 12px; color: var(--sub); }
-.ar-text b { color: var(--ink); }
-.ar-progress-bg { flex: 1; max-width: 120px; height: 3px; background: var(--rail); border-radius: 2px; overflow: hidden; }
-.ar-progress-fill { height: 100%; background: var(--blue); border-radius: 2px; transition: width 1s linear; }
-.ar-right { font-size: 11px; color: var(--sub); font-family: var(--mono); }
-
-/* Footer */
-.site-footer {
-  text-align: center;
-  padding: 28px 16px 20px;
-  font-size: 12px;
-  color: var(--sub);
-  line-height: 1.8;
-}
-.site-footer a { color: var(--blue); text-decoration: none; }
-.site-footer a:hover { text-decoration: underline; }
-.beta-tag {
-  display: inline-block;
-  background: #fef3c7;
-  color: #92400e;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 7px;
-  border-radius: 4px;
-  letter-spacing: .5px;
-  vertical-align: middle;
-  margin-left: 4px;
-}
-.dark .beta-tag { background: #451a03; color: #fbbf24; }
-
-/* Toast */
-#toast {
-  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
-  background: #1e293b; color: #fff; padding: 10px 20px; border-radius: 10px;
-  font-size: 13px; font-weight: 600; z-index: 999; transition: transform .3s ease;
+/* ── RIPPLE ───────────────────────────────────────────────────────────────── */
+.ripple-host { position: relative; overflow: hidden; }
+.ripple-wave {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--md-ripple);
+  transform: scale(0);
+  animation: ripple-out .55s var(--easing) forwards;
   pointer-events: none;
 }
-#toast.show { transform: translateX(-50%) translateY(0); }
+@keyframes ripple-out { to { transform: scale(4); opacity: 0; } }
 
-@media(max-width:520px){
-  .topbar { flex-wrap: wrap; padding: 10px 14px; }
-  .search-bar { max-width: 100%; }
-  .lp-meta-item { padding-right: 16px; }
-  .stop-times { gap: 8px; }
-  .cur-right { display: none; }
-  .stats-row { }
+/* ── TOP APP BAR ──────────────────────────────────────────────────────────── */
+.app-bar {
+  background: var(--md-surface-1);
+  border-bottom: 1px solid var(--md-outline-variant);
+  position: sticky; top: 0; z-index: 100;
+  transition: background .3s, box-shadow .2s;
+}
+.app-bar.elevated { box-shadow: var(--md-shadow-2); }
+.bar-inner {
+  display: flex; align-items: center; gap: 4px;
+  padding: 0 8px; height: 64px;
+  max-width: 960px; margin: 0 auto;
+}
+
+.brand {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 14px 6px 8px;
+  border-radius: var(--radius-full);
+  cursor: pointer; flex-shrink: 0;
+  transition: background .2s;
+}
+.brand:hover { background: var(--md-surface-2); }
+.brand-icon {
+  width: 34px; height: 34px;
+  background: var(--md-primary);
+  border-radius: 10px;
+  display: grid; place-items: center;
+  box-shadow: 0 2px 6px rgba(26,115,232,.35);
+}
+.brand-text {
+  font-family: var(--font-display);
+  font-size: 19px; font-weight: 700;
+  letter-spacing: -.4px;
+}
+.brand-text em { color: var(--md-primary); font-style: normal; }
+
+.search-wrap { flex: 1; max-width: 460px; margin: 0 8px; }
+.search-field {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--md-surface-2);
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-full);
+  padding: 0 16px; height: 46px;
+  transition: background .2s, border-color .2s, box-shadow .2s;
+}
+.search-field:focus-within {
+  background: var(--md-surface-1);
+  border-color: var(--md-primary);
+  box-shadow: 0 0 0 3px rgba(26,115,232,.14);
+}
+.search-field svg { color: var(--md-on-surface-variant); flex-shrink: 0; }
+.search-field input {
+  flex: 1; background: none; border: none; outline: none;
+  font-family: var(--font); font-size: 15px; color: var(--md-on-surface);
+}
+.search-field input::placeholder { color: var(--md-on-surface-variant); }
+
+.bar-right { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+
+.ist-chip {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--md-primary-container);
+  color: var(--md-primary);
+  border-radius: var(--radius-full);
+  padding: 5px 12px;
+  font-family: var(--mono); font-size: 12px; font-weight: 500;
+  white-space: nowrap; flex-shrink: 0;
+}
+.dark .ist-chip { background: rgba(168,199,250,.15); }
+
+.icon-btn {
+  width: 46px; height: 46px; border: none; background: none;
+  border-radius: var(--radius-full);
+  display: grid; place-items: center;
+  cursor: pointer; color: var(--md-on-surface-variant);
+  transition: background .2s; flex-shrink: 0;
+  overflow: hidden; position: relative;
+}
+.icon-btn:hover { background: var(--md-surface-2); }
+
+.refresh-btn {
+  display: none; align-items: center; gap: 8px;
+  background: var(--md-primary); color: #fff;
+  border: none; border-radius: var(--radius-full);
+  padding: 0 18px; height: 40px;
+  font-family: var(--font); font-size: 13px; font-weight: 600;
+  cursor: pointer; overflow: hidden; position: relative;
+  box-shadow: var(--md-shadow-2);
+  transition: box-shadow .2s, transform .1s;
+}
+.refresh-btn:hover { box-shadow: var(--md-shadow-3); }
+.refresh-btn:active { transform: scale(.97); }
+.refresh-btn:disabled { opacity: .55; cursor: not-allowed; }
+.refresh-btn.spinning svg { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── MAIN ─────────────────────────────────────────────────────────────────── */
+.main { max-width: 860px; margin: 0 auto; padding: 24px 16px 60px; }
+
+/* ── MD3 CIRCULAR LOADER ──────────────────────────────────────────────────── */
+.md-loader { display: flex; align-items: center; gap: 14px; padding: 36px 4px; color: var(--md-on-surface-variant); font-size: 14px; }
+.md-spinner { width: 34px; height: 34px; flex-shrink: 0; }
+.md-spinner svg { width: 34px; height: 34px; animation: rotate 1.4s linear infinite; }
+.md-spinner circle {
+  fill: none; stroke: var(--md-primary); stroke-width: 3.6;
+  stroke-linecap: round; stroke-dasharray: 80; stroke-dashoffset: 60;
+  animation: dash 1.4s ease-in-out infinite;
+}
+@keyframes rotate { to { transform: rotate(360deg); } }
+@keyframes dash { 0%{stroke-dashoffset:80}50%{stroke-dashoffset:20}100%{stroke-dashoffset:80} }
+
+/* ── SEARCH RESULTS ───────────────────────────────────────────────────────── */
+.results-header {
+  font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
+  text-transform: uppercase; color: var(--md-on-surface-variant);
+  padding: 0 4px 12px;
+}
+.result-card {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--md-surface-1);
+  border: 1px solid var(--md-outline-variant);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px; margin-bottom: 8px;
+  box-shadow: var(--md-shadow-1);
+  transition: box-shadow .2s, transform .15s;
+  position: relative; overflow: hidden;
+}
+.result-card:hover { box-shadow: var(--md-shadow-3); transform: translateY(-1px); }
+.rnum-badge {
+  width: 54px; height: 54px; flex-shrink: 0;
+  border-radius: var(--radius-md);
+  background: var(--md-primary-container);
+  display: grid; place-items: center;
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
+  color: var(--md-primary); text-align: center; line-height: 1.3;
+}
+.dark .rnum-badge { color: var(--md-primary); }
+.rinfo { flex: 1; min-width: 0; }
+.rname { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rroute { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--md-on-surface-variant); margin-top: 3px; font-family: var(--mono); }
+.track-btn {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--md-primary); color: #fff;
+  border: none; border-radius: var(--radius-full);
+  padding: 0 20px; height: 40px;
+  font-family: var(--font); font-size: 14px; font-weight: 600;
+  cursor: pointer; white-space: nowrap;
+  position: relative; overflow: hidden;
+  box-shadow: var(--md-shadow-1);
+  transition: box-shadow .2s, transform .1s; flex-shrink: 0;
+}
+.track-btn:hover { box-shadow: var(--md-shadow-3); }
+.track-btn:active { transform: scale(.97); }
+
+/* ── LIVE PANEL ───────────────────────────────────────────────────────────── */
+.live-panel {
+  background: var(--md-surface-1);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--md-shadow-3);
+  border: 1px solid var(--md-outline-variant);
+  animation: fadeSlide .3s var(--easing);
+}
+@keyframes fadeSlide { from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none} }
+
+/* HEAD */
+.lp-head {
+  background: linear-gradient(145deg, #1557b0 0%, #1a73e8 60%, #1e88e5 100%);
+  color: #fff; padding: 24px; position: relative; overflow: hidden;
+}
+.lp-head::before {
+  content:''; position:absolute; top:-50px; right:-50px;
+  width:220px; height:220px; border-radius:50%;
+  background:rgba(255,255,255,.06);
+}
+.lp-head::after {
+  content:''; position:absolute; bottom:-70px; left:35%;
+  width:300px; height:300px; border-radius:50%;
+  background:rgba(255,255,255,.04);
+}
+.lp-chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; position:relative; z-index:1; }
+.chip {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:4px 12px; border-radius:var(--radius-full);
+  font-size:12px; font-weight:600;
+}
+.chip-num { background:rgba(255,255,255,.16); color:#fff; font-family:var(--mono); font-size:13px; }
+.chip-src { background:rgba(255,255,255,.1); color:rgba(255,255,255,.8); }
+.chip-late { background:#fce4e4; color:#c62828; }
+.chip-ok { background:#e6f4ea; color:#2e7d32; }
+.blink { width:7px; height:7px; border-radius:50%; background:currentColor; animation:bl 1.4s ease-in-out infinite; }
+@keyframes bl { 0%,100%{opacity:1}50%{opacity:.2} }
+.lp-title { font-family:var(--font-display); font-size:21px; font-weight:700; letter-spacing:-.3px; position:relative; z-index:1; }
+.lp-route { display:flex; align-items:center; gap:8px; margin-top:5px; font-size:13px; color:rgba(255,255,255,.75); position:relative; z-index:1; }
+.lp-meta-row {
+  display:flex; flex-wrap:wrap; gap:0;
+  margin-top:18px; padding-top:16px;
+  border-top:1px solid rgba(255,255,255,.12);
+  position:relative; z-index:1;
+}
+.meta-it { padding-right:26px; margin-bottom:2px; }
+.mlabel { font-size:10px; color:rgba(255,255,255,.55); letter-spacing:.8px; text-transform:uppercase; }
+.mval { font-size:15px; font-weight:600; margin-top:2px; }
+
+/* PROGRESS */
+.lp-progress { padding:20px 24px; border-bottom:1px solid var(--md-outline-variant); }
+.prog-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+.prog-endpoints { font-size:12px; font-weight:500; color:var(--md-on-surface-variant); font-family:var(--mono); }
+.prog-pct { font-size:13px; font-weight:700; color:var(--md-primary); }
+.md3-linear { height:4px; background:var(--md-outline-variant); border-radius:var(--radius-full); overflow:hidden; }
+.md3-fill {
+  height:100%; border-radius:var(--radius-full);
+  background:var(--md-primary);
+  transition:width 1.4s var(--easing);
+  position:relative; overflow:hidden;
+}
+.md3-fill::after {
+  content:''; position:absolute; top:0; left:-100%; right:0; bottom:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);
+  animation:shimmer 2.2s infinite;
+}
+@keyframes shimmer { to{left:200%;} }
+.prog-labels { display:flex; justify-content:space-between; margin-top:6px; }
+.prog-lbl { font-size:11px; color:var(--md-on-surface-variant); font-family:var(--mono); }
+
+/* STATS */
+.stats-row { display:flex; border-bottom:1px solid var(--md-outline-variant); overflow-x:auto; }
+.stat-it {
+  flex:1; min-width:90px;
+  padding:14px 12px; text-align:center;
+  border-right:1px solid var(--md-outline-variant);
+}
+.stat-it:last-child { border-right:none; }
+.stat-icon { margin-bottom:4px; }
+.sval { font-family:var(--mono); font-size:20px; font-weight:600; line-height:1; }
+.sval.green { color:#34a853; }
+.sval.red { color:#ea4335; }
+.sval.blue { color:var(--md-primary); }
+.slbl { font-size:10px; color:var(--md-on-surface-variant); margin-top:4px; }
+
+/* POSITION */
+.lp-pos {
+  display:flex; align-items:center; gap:16px;
+  padding:18px 24px;
+  background:var(--md-primary-container);
+  border-bottom:1px solid var(--md-outline-variant);
+  position:relative; overflow:hidden;
+}
+.dark .lp-pos { background:rgba(0,74,153,.2); }
+.pos-icon {
+  width:48px; height:48px;
+  background:var(--md-primary);
+  border-radius:var(--radius-full);
+  display:grid; place-items:center;
+  flex-shrink:0;
+  animation:pulse 2s ease-out infinite;
+}
+@keyframes pulse {
+  0%{box-shadow:0 0 0 0 rgba(26,115,232,.45)}
+  70%{box-shadow:0 0 0 14px rgba(26,115,232,0)}
+  100%{box-shadow:0 0 0 0 rgba(26,115,232,0)}
+}
+.pos-info { flex:1; min-width:0; }
+.pos-at { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--md-primary); margin-bottom:2px; }
+.pos-name { font-size:18px; font-weight:700; }
+.pos-sub { font-size:12px; color:var(--md-on-surface-variant); margin-top:2px; font-family:var(--mono); }
+.pos-next { flex-shrink:0; text-align:right; }
+.next-lbl { font-size:10px; color:var(--md-on-surface-variant); }
+.next-name { font-size:13px; font-weight:600; margin-top:2px; }
+.next-chip {
+  display:inline-block; background:var(--md-primary); color:#fff;
+  font-size:11px; font-weight:600;
+  padding:3px 10px; border-radius:var(--radius-full); margin-top:5px;
+}
+
+/* COUNTDOWN */
+.cd-row {
+  display:flex; align-items:center; gap:20px;
+  padding:14px 24px;
+  border-bottom:1px solid var(--md-outline-variant);
+  background:var(--md-surface-1);
+}
+.cd-lbl { font-size:11px; color:var(--md-on-surface-variant); font-weight:500; }
+.cd-val { font-family:var(--mono); font-size:28px; font-weight:600; color:var(--md-primary); letter-spacing:2px; line-height:1.1; }
+.cd-stn { font-size:14px; font-weight:600; }
+.cd-code { font-size:11px; color:var(--md-on-surface-variant); font-family:var(--mono); margin-top:2px; }
+.cd-right { margin-left:auto; text-align:right; }
+.cd-sched-lbl { font-size:10px; color:var(--md-on-surface-variant); }
+.cd-sched-val { font-size:15px; font-weight:600; font-family:var(--mono); }
+
+/* MAP */
+.map-btn {
+  width:100%; padding:12px 24px;
+  border:none; background:var(--md-surface-2);
+  color:var(--md-primary); font-family:var(--font);
+  font-size:14px; font-weight:600; cursor:pointer;
+  display:flex; align-items:center; gap:10px;
+  border-bottom:1px solid var(--md-outline-variant);
+  transition:background .2s;
+  position:relative; overflow:hidden;
+}
+.map-btn:hover { background:var(--md-surface-3); }
+.map-btn .chevron { margin-left:auto; transition:transform .3s; }
+.map-btn.open .chevron { transform:rotate(180deg); }
+.map-wrap { display:none; border-bottom:1px solid var(--md-outline-variant); }
+.map-wrap iframe { width:100%; height:240px; border:none; display:block; }
+
+/* SHARE */
+.share-row {
+  display:flex; align-items:center; gap:8px;
+  padding:12px 24px;
+  border-bottom:1px solid var(--md-outline-variant);
+  flex-wrap:wrap;
+}
+.share-lbl { font-size:12px; color:var(--md-on-surface-variant); font-weight:500; margin-right:4px; }
+.share-btn {
+  display:flex; align-items:center; gap:6px;
+  background:var(--md-surface-2);
+  border:1px solid var(--md-outline-variant);
+  border-radius:var(--radius-full);
+  padding:6px 14px;
+  font-family:var(--font); font-size:12px; font-weight:600;
+  cursor:pointer; color:var(--md-on-surface);
+  position:relative; overflow:hidden;
+  transition:background .15s, border-color .15s, color .15s;
+}
+.share-btn:hover { background:var(--md-surface-3); border-color:var(--md-primary); color:var(--md-primary); }
+.share-btn.copied { background:#e6f4ea; border-color:#34a853; color:#2e7d32; }
+
+/* AUTO-REFRESH BAR */
+.auto-bar {
+  display:flex; align-items:center; justify-content:space-between;
+  gap:12px; padding:10px 24px;
+  border-bottom:1px solid var(--md-outline-variant);
+  background:var(--md-surface-2); flex-wrap:wrap;
+}
+.auto-bar-l { display:flex; align-items:center; gap:10px; }
+.live-ind { display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:#34a853; }
+.live-dot { width:8px; height:8px; border-radius:50%; background:#34a853; animation:bl 1.4s ease-in-out infinite; }
+.ar-prog { flex:1; max-width:100px; height:4px; background:var(--md-outline-variant); border-radius:var(--radius-full); overflow:hidden; }
+.ar-fill { height:100%; background:var(--md-primary); border-radius:var(--radius-full); transition:width 1s linear; }
+.ar-lbl { font-size:11px; color:var(--md-on-surface-variant); font-family:var(--mono); }
+
+/* TABS */
+.md3-tabs { display:flex; background:var(--md-surface-1); border-bottom:1px solid var(--md-outline-variant); }
+.tab-btn {
+  flex:1; padding:13px 16px;
+  border:none; background:none;
+  font-family:var(--font); font-size:14px; font-weight:500;
+  cursor:pointer; color:var(--md-on-surface-variant);
+  border-bottom:3px solid transparent;
+  transition:color .2s, border-color .2s, background .15s;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  position:relative; overflow:hidden;
+}
+.tab-btn:hover { background:var(--md-surface-2); }
+.tab-btn.active { color:var(--md-primary); border-bottom-color:var(--md-primary); font-weight:600; }
+.tab-content { display:none; }
+.tab-content.active { display:block; }
+
+/* TIMELINE */
+.lp-timeline { padding:24px; background:var(--md-surface-1); }
+.sec-title { font-size:11px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--md-on-surface-variant); margin-bottom:20px; }
+.tl-wrap { position:relative; padding-left:32px; }
+.tl-line { position:absolute; left:7px; top:12px; bottom:12px; width:2px; background:var(--md-outline-variant); }
+
+.stop { position:relative; padding-bottom:22px; }
+.stop:last-child { padding-bottom:0; }
+.stop-dot {
+  position:absolute; left:-25px; top:4px;
+  width:14px; height:14px; border-radius:50%;
+  background:var(--md-outline-variant);
+  border:2px solid var(--md-surface-1);
+  z-index:1; transition:background .3s;
+}
+.stop.past .stop-dot { background:#34a853; }
+.stop.current .stop-dot {
+  width:20px; height:20px; left:-28px; top:1px;
+  background:var(--md-primary);
+  border:3px solid var(--md-surface-1);
+  animation:pulse 2s ease-out infinite;
+}
+.stop.future { opacity:.4; }
+
+.stop-row { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.stop-info { flex:1; }
+.sname { font-size:15px; font-weight:600; }
+.stop.current .sname { color:var(--md-primary); font-weight:700; }
+.scode { font-size:11px; color:var(--md-on-surface-variant); margin-top:2px; font-family:var(--mono); }
+.pf-chip {
+  display:inline-flex; align-items:center; gap:4px;
+  background:var(--md-surface-2); border:1px solid var(--md-outline-variant);
+  color:var(--md-on-surface-variant);
+  font-size:10px; font-weight:600; padding:2px 8px;
+  border-radius:var(--radius-full); margin-top:6px; font-family:var(--mono);
+}
+.stop.current .pf-chip { background:var(--md-primary); color:#fff; border-color:var(--md-primary); }
+.stop.past .pf-chip { background:#e6f4ea; border-color:#34a853; color:#2e7d32; }
+.stop-times { display:flex; gap:16px; flex-shrink:0; text-align:right; }
+.t-grp {}
+.t-label { font-size:9px; color:var(--md-on-surface-variant); text-transform:uppercase; letter-spacing:.8px; }
+.t-val { font-size:13px; font-weight:600; font-family:var(--mono); }
+.t-val.g { color:#34a853; }
+.t-val.r { color:#ea4335; }
+.t-val.d { color:var(--md-on-surface-variant); }
+.d-chip { display:inline-block; background:#fce4e4; color:#c62828; font-size:9px; font-weight:700; padding:1px 5px; border-radius:var(--radius-full); margin-top:2px; }
+.stop-div { border:none; border-top:1px solid var(--md-outline-variant); margin:0 0 22px; }
+
+/* TABLE */
+.stops-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th {
+  text-align:left; padding:10px 12px;
+  font-size:10px; font-weight:700; letter-spacing:.8px;
+  text-transform:uppercase; color:var(--md-on-surface-variant);
+  border-bottom:2px solid var(--md-outline-variant);
+  white-space:nowrap; background:var(--md-surface-2);
+}
+td { padding:11px 12px; border-bottom:1px solid var(--md-outline-variant); vertical-align:middle; }
+tr:last-child td { border-bottom:none; }
+tr.row-past td { color:var(--md-on-surface-variant); }
+tr.row-cur { background:rgba(26,115,232,.06); }
+tr.row-cur td { font-weight:600; }
+tr.row-fut td { opacity:.5; }
+.dark tr.row-cur { background:rgba(168,199,250,.08); }
+.td-name { font-weight:600; }
+.td-code { font-family:var(--mono); font-size:11px; color:var(--md-on-surface-variant); }
+.td-t { font-family:var(--mono); white-space:nowrap; }
+.td-d { font-family:var(--mono); font-size:11px; }
+.td-d.late { color:#ea4335; }
+.td-d.ok { color:#34a853; }
+.td-pf { text-align:center; font-family:var(--mono); }
+.cur-arrow { color:var(--md-primary); font-size:10px; }
+
+/* ── WELCOME ──────────────────────────────────────────────────────────────── */
+.welcome { padding:32px 4px; }
+.welcome-hero { text-align:center; padding-bottom:28px; }
+.welcome-icon {
+  width:80px; height:80px; border-radius:var(--radius-xl);
+  background:var(--md-primary-container);
+  display:grid; place-items:center;
+  margin:0 auto 20px;
+}
+.welcome-title { font-family:var(--font-display); font-size:26px; font-weight:700; margin-bottom:8px; }
+.welcome-sub { font-size:15px; color:var(--md-on-surface-variant); max-width:380px; margin:0 auto; }
+.recent-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.recent-title-lbl { font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--md-on-surface-variant); }
+.clear-btn {
+  background:none; border:none; font-size:12px; color:var(--md-primary);
+  cursor:pointer; font-family:var(--font); font-weight:600;
+  border-radius:var(--radius-full); padding:4px 10px;
+  transition:background .2s;
+}
+.clear-btn:hover { background:var(--md-surface-2); }
+.recent-chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:28px; }
+.r-chip {
+  display:flex; align-items:center; gap:8px;
+  background:var(--md-surface-1);
+  border:1px solid var(--md-outline-variant);
+  border-radius:var(--radius-full);
+  padding:8px 16px; cursor:pointer;
+  font-size:13px; font-weight:500;
+  box-shadow:var(--md-shadow-1);
+  transition:box-shadow .2s, transform .15s;
+  position:relative; overflow:hidden;
+}
+.r-chip:hover { box-shadow:var(--md-shadow-2); transform:translateY(-1px); }
+.r-num { font-family:var(--mono); font-size:11px; color:var(--md-primary); font-weight:600; }
+
+.howto-card {
+  background:var(--md-surface-1);
+  border:1px solid var(--md-outline-variant);
+  border-radius:var(--radius-xl);
+  padding:20px 24px; box-shadow:var(--md-shadow-1);
+}
+.howto-title { font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--md-on-surface-variant); margin-bottom:16px; }
+.howto-items { display:flex; flex-direction:column; gap:14px; }
+.howto-item { display:flex; align-items:flex-start; gap:14px; }
+.howto-icon-bg { width:36px; height:36px; border-radius:var(--radius-md); display:grid; place-items:center; flex-shrink:0; }
+.howto-item h4 { font-size:14px; font-weight:600; margin-bottom:2px; }
+.howto-item p { font-size:12px; color:var(--md-on-surface-variant); }
+
+/* ── SNACKBAR / TOAST ─────────────────────────────────────────────────────── */
+#toast {
+  position:fixed; bottom:24px; left:50%;
+  transform:translateX(-50%) translateY(80px);
+  background:#323232; color:#fff;
+  padding:12px 20px; border-radius:var(--radius-md);
+  font-size:14px; font-weight:500;
+  z-index:999;
+  transition:transform .25s var(--easing), opacity .25s;
+  pointer-events:none; white-space:nowrap;
+  display:flex; align-items:center; gap:10px;
+  box-shadow:0 3px 5px rgba(0,0,0,.2),0 6px 10px rgba(0,0,0,.14),0 1px 18px rgba(0,0,0,.12);
+}
+#toast.show { transform:translateX(-50%) translateY(0); }
+
+/* FOOTER */
+.footer {
+  text-align:center; padding:28px 16px;
+  font-size:12px; color:var(--md-on-surface-variant); line-height:2;
+}
+.footer a { color:var(--md-primary); text-decoration:none; }
+.footer a:hover { text-decoration:underline; }
+.beta {
+  display:inline-flex; align-items:center;
+  background:#fff8e1; color:#e65100;
+  font-size:10px; font-weight:700;
+  padding:2px 8px; border-radius:var(--radius-full);
+  letter-spacing:.5px; vertical-align:middle; margin-left:6px;
+}
+.dark .beta { background:#3e2723; color:#ffb74d; }
+.last-ref { text-align:center; padding:10px 0 4px; font-size:11px; color:var(--md-on-surface-variant); font-family:var(--mono); }
+
+@media(max-width:540px){
+  .lp-head,.lp-progress,.cd-row,.share-row,.auto-bar,.lp-timeline { padding-left:16px; padding-right:16px; }
+  .bar-inner { padding:0 6px; }
+  .brand-text { font-size:17px; }
+  .pos-next { display:none; }
+  .meta-it { padding-right:16px; }
 }
 </style>
 </head>
 <body>
 
-<div class="topbar">
-  <div class="brand">🚆 <span>Track</span>It</div>
-  <div class="search-bar">
-    <span style="color:rgba(255,255,255,.5);font-size:15px;">🔍</span>
-    <input id="searchInput" placeholder="Search train number or name…" oninput="onSearch(this.value)">
-  </div>
-  <div class="topbar-actions">
-    <div class="ist-clock" id="istClock">--:--:-- IST</div>
-    <button class="refresh-btn" id="refreshBtn" onclick="manualRefresh()" style="display:none;" title="Refresh live status">
-      <span class="rspin">🔄</span> Refresh
-    </button>
-    <button class="icon-btn" onclick="toggleDark()" title="Toggle dark mode">🌙</button>
+<div class="app-bar" id="appBar">
+  <div class="bar-inner">
+    <div class="brand ripple-host" onclick="goHome()">
+      <div class="brand-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M4 6v8c0 2.21 1.79 4 4 4h8c2.21 0 4-1.79 4-4V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2zm2 0h12v5H6V6zm2 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm8 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm-6 4l-2 3h8l-2-3H10z"/></svg>
+      </div>
+      <div class="brand-text">Track<em>It</em></div>
+    </div>
+
+    <div class="search-wrap">
+      <div class="search-field">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        <input id="searchInput" type="search" placeholder="Search train number or name…" oninput="onSearch(this.value)" autocomplete="off">
+      </div>
+    </div>
+
+    <div class="bar-right">
+      <div class="ist-chip">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L11 13V7h1.5v5.25l4.5 2.67L16.23 18z"/></svg>
+        <span id="istText">--:--:-- IST</span>
+      </div>
+
+      <button class="refresh-btn ripple-host" id="refreshBtn" onclick="manualRefresh()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+        Refresh
+      </button>
+
+      <button class="icon-btn ripple-host" onclick="toggleDark()" title="Toggle dark mode">
+        <svg id="themeIcon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>
+        </svg>
+      </button>
+    </div>
   </div>
 </div>
 
@@ -435,126 +646,101 @@ tr.row-future td { opacity: .5; }
   <div id="liveView"></div>
 </div>
 
-<div class="site-footer">
-  <div>
-    <strong>TrackIt</strong> <span class="beta-tag">BETA</span>
-  </div>
-  <div style="margin-top:4px;">
-    Made with ❤️ by <strong>Bhargav Todimela</strong>
-  </div>
-  <div style="margin-top:4px;">
-    This website is in beta stage. Found a bug or have a feature request?
-    <a href="https://github.com" target="_blank">Report an issue →</a>
-  </div>
-  <div style="margin-top:8px; font-size:11px; opacity:.6;">
-    Auto-refreshes every 45 seconds when tracking a train · Data source: Indian Railways (OFFICIAL)
-  </div>
+<div class="footer">
+  <div><strong>TrackIt</strong><span class="beta">BETA</span></div>
+  <div>Made with ❤️ by <strong>Bhargav Todimela</strong></div>
+  <div>Found a bug? <a href="https://github.com" target="_blank">Report an issue →</a></div>
+  <div style="margin-top:6px;font-size:11px;opacity:.6;">Auto-refreshes every 45s · Data: Indian Railways (OFFICIAL)</div>
 </div>
 
 <div id="toast"></div>
 
 <script>
 const BASE = "https://sujith.bhargavtodimela4.workers.dev";
-let searchTimer, countdownInterval;
-let autoRefreshInterval, autoRefreshTick, autoRefreshSecsLeft = 45;
+let searchTimer, countdownInterval, autoRefreshTick;
+let autoRefreshSecsLeft = 45;
 let currentTrainNo = null, currentTrainName = null;
 let lastRefreshedTs = null;
 
-// ── IST Clock ────────────────────────────────────────────────────────────────
-function updateISTClock() {
-  const el = document.getElementById('istClock');
-  if (!el) return;
-  const now = new Date();
-  const ist = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-  const h = String(ist.getHours()).padStart(2,'0');
-  const m = String(ist.getMinutes()).padStart(2,'0');
-  const s = String(ist.getSeconds()).padStart(2,'0');
-  el.textContent = `${h}:${m}:${s} IST`;
-}
-updateISTClock();
-setInterval(updateISTClock, 1000);
+/* ── RIPPLE ── */
+document.addEventListener('click', e => {
+  const host = e.target.closest('.ripple-host');
+  if (!host) return;
+  const r = host.getBoundingClientRect();
+  const size = Math.max(r.width, r.height) * 2;
+  const wave = document.createElement('span');
+  wave.className = 'ripple-wave';
+  wave.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-r.left-size/2}px;top:${e.clientY-r.top-size/2}px;`;
+  host.appendChild(wave);
+  wave.addEventListener('animationend', () => wave.remove());
+});
 
-// ── Auto-refresh logic ───────────────────────────────────────────────────────
+/* ── IST CLOCK ── */
+function tickClock() {
+  const el = document.getElementById('istText');
+  if (!el) return;
+  const d = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Kolkata'}));
+  el.textContent = `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}:${d.getSeconds().toString().padStart(2,'0')} IST`;
+}
+tickClock(); setInterval(tickClock, 1000);
+
+/* ── DARK MODE ── */
+const MOON = '<path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>';
+const SUN  = '<path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.79 1.42-1.41zm-1.98 6.16H2v2h2.76v-2zm14.46 0h-2.76v2H20v-2zm-4.62-6.33l1.79-1.79-1.41-1.41-1.79 1.79 1.41 1.41zM17.24 18.16l1.79 1.8 1.41-1.41-1.8-1.79-1.4 1.4zM12 5.5C8.97 5.5 6.5 7.97 6.5 11S8.97 16.5 12 16.5 17.5 14.03 17.5 11 15.03 5.5 12 5.5zm0 9C9.79 14.5 8 12.71 8 10.5S9.79 6.5 12 6.5s4 1.79 4 4-1.79 4-4 4zm-1 4.5h2v2.76h-2V19zm0-17h2v2.76h-2V2z"/>';
+function toggleDark() {
+  document.body.classList.toggle('dark');
+  const d = document.body.classList.contains('dark');
+  localStorage.setItem('dark', d ? '1' : '0');
+  document.getElementById('themeIcon').innerHTML = d ? SUN : MOON;
+}
+if (localStorage.getItem('dark') === '1') { document.body.classList.add('dark'); document.getElementById('themeIcon').innerHTML = SUN; }
+
+/* ── SCROLL ELEVATION ── */
+window.addEventListener('scroll', () => document.getElementById('appBar').classList.toggle('elevated', scrollY > 4));
+
+/* ── AUTO-REFRESH ── */
 function startAutoRefresh() {
-  stopAutoRefresh();
-  autoRefreshSecsLeft = 45;
-  updateARBar();
+  stopAutoRefresh(); autoRefreshSecsLeft = 45; updateARBar();
   autoRefreshTick = setInterval(() => {
     autoRefreshSecsLeft--;
     updateARBar();
-    if (autoRefreshSecsLeft <= 0) {
-      autoRefreshSecsLeft = 45;
-      silentRefresh();
-    }
+    if (autoRefreshSecsLeft <= 0) { autoRefreshSecsLeft = 45; silentRefresh(); }
   }, 1000);
 }
-
-function stopAutoRefresh() {
-  clearInterval(autoRefreshTick);
-  clearInterval(autoRefreshInterval);
-}
-
+function stopAutoRefresh() { clearInterval(autoRefreshTick); }
 function updateARBar() {
-  const fill = document.getElementById('arFill');
-  const countdown = document.getElementById('arCountdown');
-  if (fill) fill.style.width = ((45 - autoRefreshSecsLeft) / 45 * 100) + '%';
-  if (countdown) countdown.textContent = `Next refresh in ${autoRefreshSecsLeft}s`;
+  const f = document.getElementById('arFill');
+  const l = document.getElementById('arCountdown');
+  if (f) f.style.width = ((45-autoRefreshSecsLeft)/45*100)+'%';
+  if (l) l.textContent = `Next in ${autoRefreshSecsLeft}s`;
 }
-
 function silentRefresh() {
   if (!currentTrainNo) return;
-  fetch(`${BASE}/live-status?trainNo=${currentTrainNo}`)
-    .then(r => r.json())
-    .then(d => {
-      lastRefreshedTs = new Date();
-      renderLive(d.data, currentTrainNo, currentTrainName);
-      updateLastRefreshed();
-      showToast('🔄 Live data refreshed!');
-    })
-    .catch(() => showToast('⚠️ Auto-refresh failed'));
+  fetch(`${BASE}/live-status?trainNo=${currentTrainNo}`).then(r=>r.json()).then(d=>{
+    lastRefreshedTs = new Date(); renderLive(d.data, currentTrainNo, currentTrainName);
+    updateLastRef(); showToast('Live data refreshed','refresh');
+  }).catch(()=>showToast('Auto-refresh failed','error'));
 }
-
 function manualRefresh() {
   if (!currentTrainNo) return;
   const btn = document.getElementById('refreshBtn');
   if (btn) { btn.classList.add('spinning'); btn.disabled = true; }
-  autoRefreshSecsLeft = 45;
-  updateARBar();
-  fetch(`${BASE}/live-status?trainNo=${currentTrainNo}`)
-    .then(r => r.json())
-    .then(d => {
-      lastRefreshedTs = new Date();
-      renderLive(d.data, currentTrainNo, currentTrainName);
-      updateLastRefreshed();
-      showToast('✅ Refreshed from server!');
-    })
-    .catch(() => showToast('⚠️ Refresh failed'))
-    .finally(() => {
-      const b = document.getElementById('refreshBtn');
-      if (b) { b.classList.remove('spinning'); b.disabled = false; }
-    });
+  autoRefreshSecsLeft = 45; updateARBar();
+  fetch(`${BASE}/live-status?trainNo=${currentTrainNo}`).then(r=>r.json()).then(d=>{
+    lastRefreshedTs = new Date(); renderLive(d.data, currentTrainNo, currentTrainName);
+    updateLastRef(); showToast('Refreshed from server','done');
+  }).catch(()=>showToast('Refresh failed','error'))
+  .finally(()=>{ const b=document.getElementById('refreshBtn'); if(b){b.classList.remove('spinning');b.disabled=false;} });
 }
-
-function updateLastRefreshed() {
-  const el = document.getElementById('lastRefreshedTime');
+function updateLastRef() {
+  const el = document.getElementById('lastRefTime');
   if (el && lastRefreshedTs) {
-    const ist = new Date(lastRefreshedTs.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-    const h = String(ist.getHours()).padStart(2,'0');
-    const m = String(ist.getMinutes()).padStart(2,'0');
-    const s = String(ist.getSeconds()).padStart(2,'0');
-    el.textContent = `${h}:${m}:${s} IST`;
+    const d = new Date(lastRefreshedTs.toLocaleString('en-US',{timeZone:'Asia/Kolkata'}));
+    el.textContent = `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}:${d.getSeconds().toString().padStart(2,'0')} IST`;
   }
 }
 
-
-// Dark mode
-function toggleDark() {
-  document.body.classList.toggle('dark');
-  localStorage.setItem('dark', document.body.classList.contains('dark') ? '1' : '0');
-}
-if (localStorage.getItem('dark') === '1') document.body.classList.add('dark');
-
-// Search
+/* ── SEARCH ── */
 function onSearch(q) {
   clearTimeout(searchTimer);
   if (q.length < 2) { document.getElementById('searchResults').innerHTML = ''; return; }
@@ -562,508 +748,435 @@ function onSearch(q) {
 }
 function doSearch(q) {
   const sr = document.getElementById('searchResults');
-  sr.innerHTML = '<div class="loader"><div class="spinner"></div> Searching…</div>';
+  sr.innerHTML = loader('Searching trains…');
   document.getElementById('liveView').innerHTML = '';
-  clearInterval(countdownInterval);
-  stopAutoRefresh();
+  clearInterval(countdownInterval); stopAutoRefresh();
   currentTrainNo = null; currentTrainName = null;
   document.getElementById('refreshBtn').style.display = 'none';
-  fetch(`${BASE}/search?q=${encodeURIComponent(q)}`)
-    .then(r => r.json())
-    .then(d => renderSearch(d.data || []))
-    .catch(() => sr.innerHTML = '<div class="loader">Search failed.</div>');
+  fetch(`${BASE}/search?q=${encodeURIComponent(q)}`).then(r=>r.json())
+    .then(d=>renderSearch(d.data||[]))
+    .catch(()=>sr.innerHTML='<div class="md-loader">Search failed. Check your connection.</div>');
 }
 function renderSearch(trains) {
   const sr = document.getElementById('searchResults');
-  if (!trains.length) { sr.innerHTML = '<div class="loader">No trains found.</div>'; return; }
-  sr.innerHTML = trains.map(t => `
+  if (!trains.length) { sr.innerHTML='<div class="md-loader">No trains found.</div>'; return; }
+  sr.innerHTML = `<div class="results-header">${trains.length} result${trains.length>1?'s':''} found</div>` + trains.map(t=>`
     <div class="result-card">
-      <div>
-        <div class="rnum">${t.number}</div>
+      <div class="rnum-badge">${t.number}</div>
+      <div class="rinfo">
         <div class="rname">${t.name}</div>
-        <div class="rroute">${t.fromStnCode} → ${t.toStnCode}</div>
+        <div class="rroute">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+          ${t.fromStnCode} → ${t.toStnCode}
+        </div>
       </div>
-      <button class="track-btn" onclick="doLive('${t.number}','${esc(t.name)}')">📍 Track</button>
+      <button class="track-btn ripple-host" onclick="doLiveWithRecent('${t.number}','${esc(t.name)}')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+        Track
+      </button>
     </div>`).join('');
 }
 
-// Live fetch
+/* ── LIVE FETCH ── */
 function doLive(num, name) {
   document.getElementById('searchResults').innerHTML = '';
-  document.getElementById('liveView').innerHTML = '<div class="loader"><div class="spinner"></div> Fetching live status…</div>';
-  clearInterval(countdownInterval);
-  stopAutoRefresh();
-  currentTrainNo = num;
-  currentTrainName = name || num;
+  document.getElementById('liveView').innerHTML = loader(`Fetching live status for ${num}…`);
+  clearInterval(countdownInterval); stopAutoRefresh();
+  currentTrainNo = num; currentTrainName = name || num;
   document.getElementById('refreshBtn').style.display = 'flex';
-  fetch(`${BASE}/live-status?trainNo=${num}`)
-    .then(r => r.json())
-    .then(d => {
-      lastRefreshedTs = new Date();
-      renderLive(d.data, num, name || num);
-      updateLastRefreshed();
-      startAutoRefresh();
-    })
-    .catch(() => document.getElementById('liveView').innerHTML = '<div class="loader">Failed to load.</div>');
+  fetch(`${BASE}/live-status?trainNo=${num}`).then(r=>r.json()).then(d=>{
+    lastRefreshedTs = new Date();
+    renderLive(d.data, num, name || num);
+    updateLastRef(); startAutoRefresh();
+  }).catch(()=>document.getElementById('liveView').innerHTML='<div class="md-loader">Failed to load live status.</div>');
 }
 
-// ── MAIN RENDERER ─────────────────────────────────────────────────────────────
+/* ── RENDERER ── */
 function renderLive(data, trainNo, trainName) {
   if (!data || !data.route || !data.route.length) {
-    document.getElementById('liveView').innerHTML = '<div class="loader">No route data.</div>'; return;
+    document.getElementById('liveView').innerHTML = '<div class="md-loader">No route data available.</div>'; return;
   }
-
-  const route      = data.route;
-  const curCode    = data.currentPosition?.stationCode;
-  const curIdx     = route.findIndex(s => s.stationCode === curCode);
-  const delayMins  = Math.round((data.delayInSecs || 0) / 60);
-  const isLate     = delayMins > 1;
-  const progress   = curIdx >= 0 ? Math.round((curIdx / Math.max(route.length - 1, 1)) * 100) : 0;
-  const distOrig   = data.currentPosition?.distanceFromOriginKm?.toFixed(1) ?? '—';
-  const distLast   = data.currentPosition?.distanceFromLastStationKm?.toFixed(1) ?? '—';
-  const updated    = fmt(data.lastUpdatedTimestamp);
-  const origin     = route[0];
-  const dest       = route[route.length - 1];
-  const curStation = curIdx >= 0 ? route[curIdx] : null;
-  const nextStop   = curIdx >= 0 && curIdx < route.length - 1 ? route[curIdx + 1] : null;
-  const lat        = data.currentPosition?.latLng?.latitude;
-  const lng        = data.currentPosition?.latLng?.longitude;
-  const mapUrl     = lat && lng ? `https://maps.google.com/maps?q=${lat},${lng}&z=13&output=embed` : null;
-
-  // Remaining stops count
-  const remainingStops = route.length - 1 - curIdx;
-
-  // Build share text
-  const shareText = `🚆 ${trainNo} - ${trainName}\n📍 At: ${curStation?.station_name || curCode}\n⏱ Delay: ${isLate ? '+' + delayMins + ' min' : 'On time'}\n🏁 Destination: ${dest?.station_name}\n📊 Progress: ${progress}%`;
-
-  let html = `<div class="live-panel">`;
-
-  // ── Head ──
-  html += `
-    <div class="lp-head">
-      <div class="lp-badge-row">
-        <div class="lp-num">${trainNo}</div>
-        <div class="lp-src">${data.dataSource || 'LIVE'}</div>
-        <span class="badge ${isLate ? 'late' : 'ok'}">
-          <span class="blink"></span>
-          ${isLate ? `+${delayMins} min late` : 'On Time'}
-        </span>
-      </div>
-      <div class="lp-title">${trainName}</div>
-      <div class="lp-route-line">
-        <span>${origin?.station_name || '—'}</span>
-        <span class="ar">⟶</span>
-        <span>${dest?.station_name || '—'}</span>
-      </div>
-      <div class="lp-meta">
-        <div class="lp-meta-item">
-          <div class="mlabel">Updated</div>
-          <div class="mval">${updated}</div>
-        </div>
-        <div class="lp-meta-item">
-          <div class="mlabel">Covered</div>
-          <div class="mval">${distOrig} km</div>
-        </div>
-        <div class="lp-meta-item">
-          <div class="mlabel">Stops left</div>
-          <div class="mval">${remainingStops}</div>
-        </div>
-        <div class="lp-meta-item">
-          <div class="mlabel">Total stops</div>
-          <div class="mval">${route.length}</div>
-        </div>
-      </div>
-    </div>`;
-
-  // ── Progress ──
-  html += `
-    <div class="lp-progress">
-      <div class="prog-top">
-        <span class="prog-from-to">${origin?.stationCode} → ${dest?.stationCode}</span>
-        <span class="prog-pct">${progress}% complete</span>
-      </div>
-      <div class="prog-bg"><div class="prog-fill" id="pf" style="width:0%"></div></div>
-      <div class="prog-stops">
-        <span class="prog-stop-lbl">${origin?.station_name}</span>
-        <span class="prog-stop-lbl">${dest?.station_name}</span>
-      </div>
-    </div>`;
-
-  // ── Stats row ──
+  const route     = data.route;
+  const curCode   = data.currentPosition?.stationCode;
+  const curIdx    = route.findIndex(s => s.stationCode === curCode);
+  const delayMins = Math.round((data.delayInSecs || 0) / 60);
+  const isLate    = delayMins > 1;
+  const progress  = curIdx >= 0 ? Math.round((curIdx / Math.max(route.length-1, 1)) * 100) : 0;
+  const distOrig  = data.currentPosition?.distanceFromOriginKm?.toFixed(1) ?? '—';
+  const distLast  = data.currentPosition?.distanceFromLastStationKm?.toFixed(1) ?? '—';
+  const origin    = route[0];
+  const dest      = route[route.length-1];
+  const curStn    = curIdx >= 0 ? route[curIdx] : null;
+  const nextStop  = curIdx >= 0 && curIdx < route.length-1 ? route[curIdx+1] : null;
+  const lat       = data.currentPosition?.latLng?.latitude;
+  const lng       = data.currentPosition?.latLng?.longitude;
+  const mapUrl    = lat && lng ? `https://maps.google.com/maps?q=${lat},${lng}&z=13&output=embed` : null;
+  const remaining = route.length - 1 - curIdx;
+  const shareText = `🚆 ${trainNo} — ${trainName}\n📍 At: ${curStn?.station_name||curCode}\n⏱ Delay: ${isLate?'+'+delayMins+' min':'On time'}\n🏁 Destination: ${dest?.station_name}\n📊 Progress: ${progress}%`;
   const eta = nextStop?.scheduledArrivalTime
-    ? new Date((nextStop.scheduledArrivalTime + (data.delayInSecs || 0)) * 1000)
-        .toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+    ? new Date((nextStop.scheduledArrivalTime+(data.delayInSecs||0))*1000)
+        .toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true})
     : '—';
-  html += `
-    <div class="stats-row">
-      <div class="stat-item">
-        <div class="stat-val ${isLate ? 'red' : 'green'}">${isLate ? '+' + delayMins : '0'}</div>
-        <div class="stat-lbl">Min delay</div>
+
+  let h = `<div class="live-panel">`;
+
+  // HEAD
+  h += `<div class="lp-head">
+    <div class="lp-chips">
+      <span class="chip chip-num">${trainNo}</span>
+      <span class="chip chip-src">${data.dataSource||'LIVE'}</span>
+      <span class="chip ${isLate?'chip-late':'chip-ok'}"><span class="blink"></span>${isLate?'+'+delayMins+' min late':'On Time'}</span>
+    </div>
+    <div class="lp-title">${trainName}</div>
+    <div class="lp-route">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6v8c0 2.21 1.79 4 4 4h8c2.21 0 4-1.79 4-4V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2zm2 0h12v5H6V6z"/></svg>
+      ${origin?.station_name||'—'} → ${dest?.station_name||'—'}
+    </div>
+    <div class="lp-meta-row">
+      <div class="meta-it"><div class="mlabel">Updated</div><div class="mval">${fmt(data.lastUpdatedTimestamp)}</div></div>
+      <div class="meta-it"><div class="mlabel">Covered</div><div class="mval">${distOrig} km</div></div>
+      <div class="meta-it"><div class="mlabel">Stops left</div><div class="mval">${remaining}</div></div>
+      <div class="meta-it"><div class="mlabel">Total stops</div><div class="mval">${route.length}</div></div>
+    </div>
+  </div>`;
+
+  // PROGRESS
+  h += `<div class="lp-progress">
+    <div class="prog-head">
+      <span class="prog-endpoints">${origin?.stationCode} → ${dest?.stationCode}</span>
+      <span class="prog-pct">${progress}% complete</span>
+    </div>
+    <div class="md3-linear"><div class="md3-fill" id="pf" style="width:0%"></div></div>
+    <div class="prog-labels">
+      <span class="prog-lbl">${origin?.station_name}</span>
+      <span class="prog-lbl">${dest?.station_name}</span>
+    </div>
+  </div>`;
+
+  // STATS
+  h += `<div class="stats-row">
+    <div class="stat-it">
+      <div class="stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="${isLate?'#ea4335':'#34a853'}"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L11 13V7h1.5v5.25l4.5 2.67L16.23 18z"/></svg></div>
+      <div class="sval ${isLate?'red':'green'}">${isLate?'+'+delayMins:'0'}</div>
+      <div class="slbl">Min delay</div>
+    </div>
+    <div class="stat-it">
+      <div class="stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="var(--md-primary)"><path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/></svg></div>
+      <div class="sval blue">${distOrig}</div>
+      <div class="slbl">km covered</div>
+    </div>
+    <div class="stat-it">
+      <div class="stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="var(--md-on-surface-variant)"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div>
+      <div class="sval">${distLast}</div>
+      <div class="slbl">km from last stop</div>
+    </div>
+    <div class="stat-it">
+      <div class="stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="var(--md-primary)"><path d="M4 6v8c0 2.21 1.79 4 4 4h8c2.21 0 4-1.79 4-4V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2zm2 0h12v5H6V6zm2 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm8 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg></div>
+      <div class="sval blue">${eta}</div>
+      <div class="slbl">ETA next stop</div>
+    </div>
+  </div>`;
+
+  // POSITION
+  if (curStn) {
+    h += `<div class="lp-pos">
+      <div class="pos-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div>
+      <div class="pos-info">
+        <div class="pos-at">Currently At</div>
+        <div class="pos-name">${curStn.station_name}</div>
+        <div class="pos-sub">${curStn.stationCode} · Platform ${curStn.platformNumber||'—'}</div>
       </div>
-      <div class="stat-item">
-        <div class="stat-val blue">${distOrig}</div>
-        <div class="stat-lbl">km covered</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-val">${distLast}</div>
-        <div class="stat-lbl">km from last stop</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-val blue">${eta}</div>
-        <div class="stat-lbl">ETA next stop</div>
+      <div class="pos-next">
+        ${nextStop?`<div class="next-lbl">Next stop</div><div class="next-name">${nextStop.station_name}</div><div class="next-chip">ETA ${eta}</div>`:'<div class="next-chip">🏁 Final Destination</div>'}
       </div>
     </div>`;
-
-  // ── Current station ──
-  if (curStation) {
-    html += `
-      <div class="lp-cur">
-        <div class="cur-dot">📍</div>
-        <div>
-          <div class="cur-label">Currently at</div>
-          <div class="cur-name">${curStation.station_name}</div>
-          <div class="cur-sub">${curStation.stationCode} · Platform ${curStation.platformNumber || '—'}</div>
-        </div>
-        <div class="cur-right">
-          ${nextStop ? `
-          <div class="next-lbl">Next stop</div>
-          <div class="next-name">${nextStop.station_name}</div>
-          <div class="next-badge" id="etaBadge">ETA ${eta}</div>` : '<div class="next-badge">🏁 Final destination</div>'}
-        </div>
-      </div>`;
   }
 
-  // ── Countdown ──
+  // COUNTDOWN
   if (nextStop?.scheduledArrivalTime) {
-    const etaTs = (nextStop.scheduledArrivalTime + (data.delayInSecs || 0)) * 1000;
-    html += `
-      <div class="countdown-bar">
-        <div>
-          <div class="countdown-label">⏱ Next stop in</div>
-          <div class="countdown-val" id="cdVal">--:--</div>
-        </div>
-        <div style="flex:1;padding:0 16px;">
-          <div class="countdown-station">${nextStop.station_name}</div>
-          <div style="font-size:11px;color:var(--sub);font-family:var(--mono);margin-top:2px;">${nextStop.stationCode} · PF ${nextStop.platformNumber || '—'}</div>
-        </div>
-        <div class="countdown-right">
-          <div class="eta-label">Scheduled</div>
-          <div class="eta-val">${fmt(nextStop.scheduledArrivalTime)}</div>
-        </div>
-      </div>`;
-    // Start countdown
+    const etaTs = (nextStop.scheduledArrivalTime + (data.delayInSecs||0)) * 1000;
+    h += `<div class="cd-row">
+      <div><div class="cd-lbl">Next stop in</div><div class="cd-val" id="cdVal">--:--</div></div>
+      <div style="flex:1">
+        <div class="cd-stn">${nextStop.station_name}</div>
+        <div class="cd-code">${nextStop.stationCode} · PF ${nextStop.platformNumber||'—'}</div>
+      </div>
+      <div class="cd-right">
+        <div class="cd-sched-lbl">Scheduled</div>
+        <div class="cd-sched-val">${fmt(nextStop.scheduledArrivalTime)}</div>
+      </div>
+    </div>`;
     clearInterval(countdownInterval);
-    function updateCountdown() {
+    function tick() {
       const el = document.getElementById('cdVal');
       if (!el) { clearInterval(countdownInterval); return; }
       const diff = etaTs - Date.now();
-      if (diff <= 0) { el.textContent = 'Arriving'; el.style.color = '#16a34a'; clearInterval(countdownInterval); return; }
-      const m = Math.floor(diff / 60000);
-      const s = Math.floor((diff % 60000) / 1000);
+      if (diff <= 0) { el.textContent = 'Arriving'; el.style.color = '#34a853'; clearInterval(countdownInterval); return; }
+      const m = Math.floor(diff/60000), s = Math.floor((diff%60000)/1000);
       el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-      if (m < 5) el.style.color = '#dc2626';
+      el.style.color = m < 5 ? '#ea4335' : '';
     }
-    updateCountdown();
-    countdownInterval = setInterval(updateCountdown, 1000);
+    tick(); countdownInterval = setInterval(tick, 1000);
   }
 
-  // ── Map toggle ──
+  // MAP
   if (mapUrl) {
-    html += `
-      <button class="map-toggle-btn" onclick="toggleMap(this)" data-url="${mapUrl}">
-        🗺️ Show current location on map ▼
-      </button>
-      <div class="map-wrap" id="mapWrap" style="display:none;"></div>`;
+    h += `<button class="map-btn ripple-host" id="mapBtn" onclick="toggleMap(this)" data-url="${mapUrl}">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
+      Show current location on map
+      <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+    </button>
+    <div class="map-wrap" id="mapWrap"></div>`;
   }
 
-  // ── Share bar ──
-  html += `
-    <div class="share-bar">
-      <span class="share-label">Share:</span>
-      <button class="share-btn" onclick="copyStatus(\`${shareText.replace(/`/g,'\\`')}\`)">📋 Copy status</button>
-      <button class="share-btn" onclick="shareWhatsApp(\`${encodeURIComponent(shareText)}\`)">💬 WhatsApp</button>
-      <button class="share-btn" onclick="downloadStatus('${trainNo}')">⬇️ Download</button>
-    </div>`;
+  // SHARE
+  h += `<div class="share-row">
+    <span class="share-lbl">Share:</span>
+    <button class="share-btn ripple-host" onclick="copyStatus(\`${shareText.replace(/`/g,'\\`')}\`,this)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+      Copy
+    </button>
+    <button class="share-btn ripple-host" onclick="shareWA('${encodeURIComponent(shareText)}')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 1 10 10 10 10 0 0 1-10 10c-1.97 0-3.8-.57-5.35-1.55L2 22l1.62-4.57A9.945 9.945 0 0 1 2 12 10 10 0 0 1 12 2zm0 2a8 8 0 0 0-8 8c0 1.72.54 3.31 1.46 4.61L4.5 19.5l2.94-.96A7.959 7.959 0 0 0 12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8z"/></svg>
+      WhatsApp
+    </button>
+    <button class="share-btn ripple-host" onclick="downloadStatus('${trainNo}')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zm-8 2V5h2v6h1.17L12 13.17 9.83 11H11zm-6 7h14v2H5v-2z"/></svg>
+      Download
+    </button>
+  </div>`;
 
-  // ── Auto-refresh bar ──
-  html += `
-    <div class="auto-refresh-bar">
-      <div class="ar-left">
-        <div class="ar-dot"></div>
-        <span class="ar-text">Live · Auto-refreshing</span>
-        <div class="ar-progress-bg"><div class="ar-progress-fill" id="arFill" style="width:0%"></div></div>
-      </div>
-      <div class="ar-right" id="arCountdown">Next refresh in 45s</div>
-    </div>`;
+  // AUTO-REFRESH
+  h += `<div class="auto-bar">
+    <div class="auto-bar-l">
+      <div class="live-ind"><div class="live-dot"></div>Live</div>
+      <div class="ar-prog"><div class="ar-fill" id="arFill" style="width:0%"></div></div>
+    </div>
+    <span class="ar-lbl" id="arCountdown">Next in 45s</span>
+  </div>`;
 
-  // ── Tabs ──
-  html += `
-    <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab(this,'tab-timeline')">Timeline</button>
-      <button class="tab-btn" onclick="switchTab(this,'tab-table')">All Stops Table</button>
-    </div>`;
+  // TABS
+  h += `<div class="md3-tabs">
+    <button class="tab-btn active ripple-host" onclick="switchTab(this,'tab-tl')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M4 15h16v-2H4zm0 4h16v-2H4zm0-8h16V9H4zm0-6v2h16V5H4z"/></svg>
+      Timeline
+    </button>
+    <button class="tab-btn ripple-host" onclick="switchTab(this,'tab-table')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h18v18H3V3zm2 2v4h14V5H5zm0 6v4h14v-4H5zm0 6v2h14v-2H5z"/></svg>
+      All Stops
+    </button>
+  </div>`;
 
-  // ── Tab: Timeline ──
-  html += `<div id="tab-timeline" class="tab-content active">
-    <div class="lp-timeline">
-      <div class="sec-title">Journey Timeline</div>
-      <div class="tl-list">`;
+  // TIMELINE TAB
+  h += `<div id="tab-tl" class="tab-content active"><div class="lp-timeline">
+    <div class="sec-title">Journey Timeline</div>
+    <div class="tl-wrap"><div class="tl-line"></div>`;
   route.forEach((s, i) => {
-    const isCur  = i === curIdx;
-    const isPast = i < curIdx;
-    const cls    = isCur ? 'current' : isPast ? 'past' : 'future';
-    const aA = s.actualArrivalTime, aD = s.actualDepartureTime;
-    const aDelay = s.scheduledArrivalDelaySecs || 0;
-    const dDelay = s.scheduledDepartureDelaySecs || 0;
-    const aCls = aA ? (aDelay > 120 ? 'r' : 'g') : 'd';
-    const dCls = aD ? (dDelay > 120 ? 'r' : 'g') : 'd';
-    html += `
-      <div class="stop ${cls}">
-        <div class="stop-dot"></div>
-        <div class="stop-row">
-          <div>
-            <div class="sname">${s.station_name}</div>
-            <div class="scode">${s.stationCode} · stop #${s.stopIndex}</div>
-            ${s.platformNumber ? `<div class="pf-tag">PF ${s.platformNumber}</div>` : ''}
+    const isCur = i===curIdx, isPast = i<curIdx;
+    const cls = isCur?'current':isPast?'past':'future';
+    const aD = s.scheduledArrivalDelaySecs||0, dD = s.scheduledDepartureDelaySecs||0;
+    const aCls = s.actualArrivalTime?(aD>120?'r':'g'):'d';
+    const dCls = s.actualDepartureTime?(dD>120?'r':'g'):'d';
+    h += `<div class="stop ${cls}"><div class="stop-dot"></div>
+      <div class="stop-row">
+        <div class="stop-info">
+          <div class="sname">${s.station_name}</div>
+          <div class="scode">${s.stationCode} · stop #${s.stopIndex}</div>
+          ${s.platformNumber?`<div class="pf-chip"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6v8c0 2.21 1.79 4 4 4h8c2.21 0 4-1.79 4-4V6H4z"/></svg>PF ${s.platformNumber}</div>`:''}
+        </div>
+        <div class="stop-times">
+          <div class="t-grp">
+            <div class="t-label">Arr</div>
+            <div class="t-val ${aCls}">${fmt(s.actualArrivalTime||s.scheduledArrivalTime)}</div>
+            ${aD>60?`<div class="d-chip">+${Math.round(aD/60)}m</div>`:''}
           </div>
-          <div class="stop-times">
-            <div>
-              <div class="t-lbl">Arr</div>
-              <div class="t-val ${aCls}">${fmt(aA || s.scheduledArrivalTime)}</div>
-              ${aDelay > 60 ? `<div class="dpill">+${Math.round(aDelay/60)}m</div>` : ''}
-            </div>
-            <div>
-              <div class="t-lbl">Dep</div>
-              <div class="t-val ${dCls}">${fmt(aD || s.scheduledDepartureTime)}</div>
-              ${dDelay > 60 ? `<div class="dpill">+${Math.round(dDelay/60)}m</div>` : ''}
-            </div>
+          <div class="t-grp">
+            <div class="t-label">Dep</div>
+            <div class="t-val ${dCls}">${fmt(s.actualDepartureTime||s.scheduledDepartureTime)}</div>
+            ${dD>60?`<div class="d-chip">+${Math.round(dD/60)}m</div>`:''}
           </div>
         </div>
       </div>
-      ${i < route.length - 1 ? '<hr class="sdiv">' : ''}`;
+    </div>${i<route.length-1?'<hr class="stop-div">':''}`;
   });
-  html += `</div></div></div>`;
+  h += `</div></div></div>`;
 
-  // ── Tab: Table ──
-  html += `<div id="tab-table" class="tab-content">
-    <div style="background:var(--card);padding:16px 20px 20px;">
-      <div class="sec-title">All Stops</div>
-      <div class="stops-table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Station</th>
-              <th>Code</th>
-              <th>PF</th>
-              <th>Arr (Sched)</th>
-              <th>Arr (Actual)</th>
-              <th>Dep (Sched)</th>
-              <th>Dep (Actual)</th>
-              <th>Delay</th>
-            </tr>
-          </thead>
-          <tbody>`;
-  route.forEach((s, i) => {
-    const isCur  = i === curIdx;
-    const isPast = i < curIdx;
-    const rowCls = isCur ? 'row-current' : isPast ? 'row-past' : 'row-future';
-    const aDelay = s.scheduledArrivalDelaySecs || 0;
-    const dDelay = s.scheduledDepartureDelaySecs || 0;
-    const maxDelay = Math.max(aDelay, dDelay);
-    const delayCls = maxDelay > 120 ? 'late' : 'ok';
-    const delayStr = maxDelay > 60 ? `+${Math.round(maxDelay/60)}m` : '—';
-    html += `
-      <tr class="${rowCls}">
-        <td>${i + 1}${isCur ? ' <span class="cur-marker">◀</span>' : ''}</td>
-        <td class="td-name">${s.station_name}</td>
-        <td class="td-code">${s.stationCode}</td>
-        <td class="td-pf">${s.platformNumber || '—'}</td>
-        <td class="td-time">${fmt(s.scheduledArrivalTime)}</td>
-        <td class="td-time">${fmt(s.actualArrivalTime)}</td>
-        <td class="td-time">${fmt(s.scheduledDepartureTime)}</td>
-        <td class="td-time">${fmt(s.actualDepartureTime)}</td>
-        <td class="td-delay ${delayCls}">${delayStr}</td>
-      </tr>`;
+  // TABLE TAB
+  h += `<div id="tab-table" class="tab-content"><div style="padding:20px 24px;background:var(--md-surface-1);">
+    <div class="sec-title">All Stops</div>
+    <div class="stops-wrap"><table>
+      <thead><tr><th>#</th><th>Station</th><th>Code</th><th>PF</th><th>Sched Arr</th><th>Actual Arr</th><th>Sched Dep</th><th>Actual Dep</th><th>Delay</th></tr></thead>
+      <tbody>`;
+  route.forEach((s,i)=>{
+    const isCur=i===curIdx,isPast=i<curIdx;
+    const rc=isCur?'row-cur':isPast?'row-past':'row-fut';
+    const md=Math.max(s.scheduledArrivalDelaySecs||0,s.scheduledDepartureDelaySecs||0);
+    const ds=md>60?`+${Math.round(md/60)}m`:'—';
+    h+=`<tr class="${rc}"><td>${i+1}${isCur?' <span class="cur-arrow">◀</span>':''}</td><td class="td-name">${s.station_name}</td><td class="td-code">${s.stationCode}</td><td class="td-pf">${s.platformNumber||'—'}</td><td class="td-t">${fmt(s.scheduledArrivalTime)}</td><td class="td-t">${fmt(s.actualArrivalTime)}</td><td class="td-t">${fmt(s.scheduledDepartureTime)}</td><td class="td-t">${fmt(s.actualDepartureTime)}</td><td class="td-d ${md>120?'late':'ok'}">${ds}</td></tr>`;
   });
-  html += `</tbody></table></div></div></div>`;
+  h += `</tbody></table></div></div></div></div>`;
+  h += `<div class="last-ref">Last refreshed: <span id="lastRefTime">—</span></div>`;
 
-  html += `</div>`; // close .live-panel
-
-  // Last refreshed line below panel
-  html += `
-    <div style="text-align:center;padding:10px 0 4px;font-size:11px;color:var(--sub);font-family:var(--mono);">
-      🕐 Last refreshed from server: <span id="lastRefreshedTime">—</span>
-    </div>`;
-  document.getElementById('liveView').innerHTML = html;
-
-  // Animate progress bar
-  requestAnimationFrame(() => {
-    const pf = document.getElementById('pf');
-    if (pf) { setTimeout(() => pf.style.width = progress + '%', 50); }
-  });
+  document.getElementById('liveView').innerHTML = h;
+  requestAnimationFrame(()=>{ setTimeout(()=>{ const pf=document.getElementById('pf'); if(pf) pf.style.width=progress+'%'; }, 80); });
 }
 
-// ── Helpers ─────────────────────────────────────────────────────────────────
+/* ── HELPERS ── */
 function fmt(ts) {
   if (!ts) return '—';
-  return new Date(ts * 1000).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+  return new Date(ts*1000).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});
 }
-function esc(s) { return (s || '').replace(/'/g, "\\'"); }
-
+function esc(s) { return (s||'').replace(/'/g,"\\'"); }
+function loader(msg) {
+  return `<div class="md-loader"><div class="md-spinner"><svg viewBox="22 22 44 44"><circle cx="44" cy="44" r="20.2"/></svg></div>${msg}</div>`;
+}
 function switchTab(btn, id) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById(id)?.classList.add('active');
 }
-
 function toggleMap(btn) {
-  const wrap = document.getElementById('mapWrap');
-  if (wrap.style.display === 'none') {
-    wrap.style.display = 'block';
-    if (!wrap.querySelector('iframe')) {
-      wrap.innerHTML = `<iframe src="${btn.dataset.url}" loading="lazy" allowfullscreen></iframe>`;
-    }
-    btn.textContent = '🗺️ Hide map ▲';
-  } else {
-    wrap.style.display = 'none';
-    btn.textContent = '🗺️ Show current location on map ▼';
-  }
+  const w = document.getElementById('mapWrap');
+  btn.classList.toggle('open');
+  if (!btn.classList.contains('open')) { w.style.display='none'; return; }
+  w.style.display='block';
+  if (!w.querySelector('iframe')) w.innerHTML = `<iframe src="${btn.dataset.url}" loading="lazy" allowfullscreen></iframe>`;
 }
 
-function showToast(msg) {
+const toastSVG = {
+  refresh:'<svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>',
+  done:'<svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>',
+  error:'<svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>'
+};
+let toastT;
+function showToast(msg, type='done') {
   const t = document.getElementById('toast');
-  t.textContent = msg;
+  t.innerHTML = `${toastSVG[type]||toastSVG.done}<span>${msg}</span>`;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2200);
+  clearTimeout(toastT);
+  toastT = setTimeout(()=>t.classList.remove('show'), 2600);
 }
 
-function copyStatus(text) {
+function copyStatus(text, btn) {
   navigator.clipboard.writeText(text)
-    .then(() => showToast('✅ Status copied to clipboard!'))
-    .catch(() => showToast('Copy failed'));
+    .then(()=>{ showToast('Status copied to clipboard','done'); if(btn){btn.classList.add('copied');setTimeout(()=>btn.classList.remove('copied'),2200);} })
+    .catch(()=>showToast('Copy failed','error'));
 }
-
-function shareWhatsApp(encoded) {
-  window.open(`https://wa.me/?text=${encoded}`, '_blank');
-}
-
-function downloadStatus(trainNo) {
-  const content = document.querySelector('.live-panel')?.innerText || '';
-  const blob = new Blob([content], { type: 'text/plain' });
+function shareWA(enc) { window.open(`https://wa.me/?text=${enc}`,'_blank'); }
+function downloadStatus(no) {
+  const c = document.querySelector('.live-panel')?.innerText||'';
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `train-${trainNo}-status.txt`;
+  a.href = URL.createObjectURL(new Blob([c],{type:'text/plain'}));
+  a.download = `train-${no}-status.txt`;
   a.click();
-  showToast('⬇️ Downloaded!');
+  showToast('Downloaded!','done');
 }
 
-// ── Recent searches (localStorage) ──────────────────────────────────────────
-function getRecent() {
-  try { return JSON.parse(localStorage.getItem('recentTrains') || '[]'); } catch { return []; }
+/* ── RECENT ── */
+function getRecent() { try{return JSON.parse(localStorage.getItem('recentTrains')||'[]');}catch{return[];} }
+function saveRecent(num,name) {
+  let r = getRecent().filter(x=>x.num!==num);
+  r.unshift({num,name}); if(r.length>6)r=r.slice(0,6);
+  try{localStorage.setItem('recentTrains',JSON.stringify(r));}catch{}
 }
-function saveRecent(num, name) {
-  let r = getRecent().filter(x => x.num !== num);
-  r.unshift({ num, name });
-  if (r.length > 6) r = r.slice(0, 6);
-  try { localStorage.setItem('recentTrains', JSON.stringify(r)); } catch {}
-}
-function clearRecent() {
-  try { localStorage.removeItem('recentTrains'); } catch {}
-  showWelcome();
-  showToast('🗑️ Recent searches cleared');
-}
+function clearRecent() { try{localStorage.removeItem('recentTrains');}catch{} showWelcome(); showToast('Recent searches cleared','done'); }
+function doLiveWithRecent(num,name) { doLive(num,name); setTimeout(()=>saveRecent(num,name||num),300); }
 
-// ── Welcome / home screen ────────────────────────────────────────────────────
+/* ── WELCOME ── */
 function showWelcome() {
   const recent = getRecent();
-  let html = `
-    <div style="text-align:center;padding:40px 20px 24px;">
-      <div style="font-size:48px;margin-bottom:12px;">🚆</div>
-      <div style="font-size:22px;font-weight:700;margin-bottom:6px;">Track any Indian train, live.</div>
-      <div style="font-size:14px;color:var(--sub);margin-bottom:24px;">Type a train number or name in the search bar above to get started.</div>
-    </div>`;
+  let h = `<div class="welcome"><div class="welcome-hero">
+    <div class="welcome-icon">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="var(--md-primary)"><path d="M4 6v8c0 2.21 1.79 4 4 4h8c2.21 0 4-1.79 4-4V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2zm2 0h12v5H6V6zm2 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm8 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm-6 4l-2 3h8l-2-3H10z"/></svg>
+    </div>
+    <div class="welcome-title">Track any Indian train, live.</div>
+    <div class="welcome-sub">Type a train number or name in the search bar above to get started.</div>
+  </div>`;
 
   if (recent.length) {
-    html += `
-      <div style="margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
-        <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--sub);">🕓 Recent Searches</div>
-        <button onclick="clearRecent()" style="background:none;border:none;font-size:11px;color:var(--sub);cursor:pointer;font-family:var(--font);">Clear all</button>
-      </div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px;">
-        ${recent.map(r => `
-          <button onclick="doLive('${r.num}','${esc(r.name)}')" style="
-            background:var(--card);border:1px solid var(--border);border-radius:10px;
-            padding:8px 14px;font-family:var(--font);font-size:13px;font-weight:600;
-            cursor:pointer;color:var(--ink);display:flex;align-items:center;gap:7px;
-            transition:box-shadow .15s;box-shadow:var(--shadow);"
-            onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,.12)'"
-            onmouseout="this.style.boxShadow='var(--shadow)'">
-            <span style="font-family:var(--mono);color:var(--accent);font-size:12px;">${r.num}</span>
-            <span>${r.name}</span>
-          </button>`).join('')}
-      </div>`;
+    h += `<div class="recent-head">
+      <div class="recent-title-lbl">Recent Searches</div>
+      <button class="clear-btn" onclick="clearRecent()">Clear all</button>
+    </div>
+    <div class="recent-chips">${recent.map(r=>`
+      <div class="r-chip ripple-host" onclick="doLiveWithRecent('${r.num}','${esc(r.name)}')">
+        <span class="r-num">${r.num}</span><span>${r.name}</span>
+      </div>`).join('')}</div>`;
   }
 
-  html += `
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow);">
-      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--sub);margin-bottom:14px;">ℹ️ How to use</div>
-      <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;color:var(--sub);">
-        <div>🔍 <strong style="color:var(--ink);">Search</strong> — type a train number (e.g. 12728) or name in the topbar</div>
-        <div>📍 <strong style="color:var(--ink);">Track</strong> — click Track to load real-time position, platform & delay info</div>
-        <div>🔄 <strong style="color:var(--ink);">Auto-refresh</strong> — live data updates every 45 seconds automatically</div>
-        <div>🗺️ <strong style="color:var(--ink);">Map</strong> — see the train's GPS location on Google Maps</div>
-        <div>📋 <strong style="color:var(--ink);">Share</strong> — copy, WhatsApp, or download the live status report</div>
+  h += `<div class="howto-card"><div class="howto-title">How to use TrackIt</div>
+    <div class="howto-items">
+      <div class="howto-item">
+        <div class="howto-icon-bg" style="background:#e8f0fe"><svg width="18" height="18" viewBox="0 0 24 24" fill="#1a73e8"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></div>
+        <div><h4>Search</h4><p>Type a train number (e.g. 12728) or partial name in the topbar</p></div>
       </div>
-    </div>`;
+      <div class="howto-item">
+        <div class="howto-icon-bg" style="background:#fce8e6"><svg width="18" height="18" viewBox="0 0 24 24" fill="#ea4335"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div>
+        <div><h4>Track</h4><p>Click Track to see real-time position, platform & delay info</p></div>
+      </div>
+      <div class="howto-item">
+        <div class="howto-icon-bg" style="background:#e6f4ea"><svg width="18" height="18" viewBox="0 0 24 24" fill="#34a853"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></div>
+        <div><h4>Auto-refresh</h4><p>Live data updates every 45 seconds automatically</p></div>
+      </div>
+      <div class="howto-item">
+        <div class="howto-icon-bg" style="background:#fff8e1"><svg width="18" height="18" viewBox="0 0 24 24" fill="#f9ab00"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg></div>
+        <div><h4>Map & Share</h4><p>View GPS location on Google Maps, copy or share via WhatsApp</p></div>
+      </div>
+    </div>
+  </div></div>`;
 
-  document.getElementById('searchResults').innerHTML = html;
+  document.getElementById('searchResults').innerHTML = h;
   document.getElementById('liveView').innerHTML = '';
 }
 
-// ── Patch doLive to save recent + show back button ───────────────────────────
-const _origDoLive = doLive;
-// Override doLive to save to recent after render
-function doLiveWithRecent(num, name) {
-  doLive(num, name);
-  // save after slight delay so name is confirmed
-  setTimeout(() => saveRecent(num, name || num), 300);
-}
-
-// Expose back button
 function goHome() {
-  stopAutoRefresh();
-  clearInterval(countdownInterval);
+  stopAutoRefresh(); clearInterval(countdownInterval);
   currentTrainNo = null; currentTrainName = null;
   document.getElementById('refreshBtn').style.display = 'none';
   document.getElementById('searchInput').value = '';
   showWelcome();
 }
 
-// ── Back button in topbar ────────────────────────────────────────────────────
-document.querySelector('.brand').style.cursor = 'pointer';
-document.querySelector('.brand').title = 'Back to home';
-document.querySelector('.brand').onclick = goHome;
-
-// ── Patch renderSearch to use doLiveWithRecent ───────────────────────────────
-const _origRenderSearch = renderSearch;
-function renderSearch(trains) {
-  const sr = document.getElementById('searchResults');
-  if (!trains.length) { sr.innerHTML = '<div class="loader">No trains found.</div>'; return; }
-  sr.innerHTML = trains.map(t => `
-    <div class="result-card">
-      <div>
-        <div class="rnum">${t.number}</div>
-        <div class="rname">${t.name}</div>
-        <div class="rroute">${t.fromStnCode} → ${t.toStnCode}</div>
-      </div>
-      <button class="track-btn" onclick="doLiveWithRecent('${t.number}','${esc(t.name)}')">📍 Track</button>
-    </div>`).join('');
-}
-
-// ── Show welcome on load ─────────────────────────────────────────────────────
 showWelcome();
+</script>
+<!-- Code injected by live-server -->
+<script>
+	// <![CDATA[  <-- For SVG support
+	if ('WebSocket' in window) {
+		(function () {
+			function refreshCSS() {
+				var sheets = [].slice.call(document.getElementsByTagName("link"));
+				var head = document.getElementsByTagName("head")[0];
+				for (var i = 0; i < sheets.length; ++i) {
+					var elem = sheets[i];
+					var parent = elem.parentElement || head;
+					parent.removeChild(elem);
+					var rel = elem.rel;
+					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
+						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
+						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
+					}
+					parent.appendChild(elem);
+				}
+			}
+			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+			var address = protocol + window.location.host + window.location.pathname + '/ws';
+			var socket = new WebSocket(address);
+			socket.onmessage = function (msg) {
+				if (msg.data == 'reload') window.location.reload();
+				else if (msg.data == 'refreshcss') refreshCSS();
+			};
+			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
+				console.log('Live reload enabled.');
+				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
+			}
+		})();
+	}
+	else {
+		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
+	}
+	// ]]>
 </script>
 </body>
 </html>
