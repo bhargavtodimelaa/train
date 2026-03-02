@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1057,6 +1058,27 @@ function showToast(msg, type='done') {
   clearTimeout(toastT);
   toastT = setTimeout(()=>t.classList.remove('show'), 2600);
 }
+
+/* ── ANTI‑DEBUGGING PROTECTION ── */
+function warnDebug() {
+  showToast('All debugging features are disabled for security purposes','error');
+}
+
+document.addEventListener('contextmenu', function(e) {
+  e.preventDefault();
+  warnDebug();
+});
+
+document.addEventListener('keydown', function(e) {
+  // block ctrl+U, F12, ctrl+shift+I/J
+  const key = e.key;
+  if ((e.ctrlKey && key.toLowerCase() === 'u') ||
+      key === 'F12' ||
+      (e.ctrlKey && e.shiftKey && (key === 'I' || key === 'J'))) {
+    e.preventDefault();
+    warnDebug();
+  }
+});
 
 function copyStatus(text, btn) {
   navigator.clipboard.writeText(text)
