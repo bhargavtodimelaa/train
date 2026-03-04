@@ -7,6 +7,7 @@
 <title>TrackIt — Live Train Tracker</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Google+Sans+Display:wght@400;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -643,6 +644,12 @@ tr.row-fut td { opacity:.5; }
 </div>
 
 <div class="main">
+	<div id="humanCheck" style="text-align:center;margin:20px 0;">
+  <div class="cf-turnstile"
+       data-sitekey="0x4AAAAAACmJJJH8jliZRit2"
+       data-callback="onHumanVerified">
+  </div>
+</div>
   <div id="searchResults"></div>
   <div id="liveView"></div>
 </div>
@@ -658,6 +665,27 @@ tr.row-fut td { opacity:.5; }
 
 <script>
 const BASE = "https://sujith.bhargavtodimela4.workers.dev";
+	let SESSION_TOKEN = null;
+
+function onHumanVerified(token) {
+
+  fetch(`${BASE}/verify-human`, {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({token})
+  })
+  .then(r => r.json())
+  .then(d => {
+
+    SESSION_TOKEN = d.session;
+
+    document.getElementById("humanCheck").style.display = "none";
+
+    showToast("Human verified ✓","done");
+
+  })
+  .catch(() => showToast("Verification failed","error"));
+}
 let searchTimer, countdownInterval, autoRefreshTick;
 let autoRefreshSecsLeft = 45;
 let currentTrainNo = null, currentTrainName = null;
@@ -717,7 +745,7 @@ function updateARBar() {
 }
 function silentRefresh() {
   if (!currentTrainNo) return;
-  fetch(`${BASE}/live-status?trainNo=${currentTrainNo}`).then(r=>r.json()).then(d=>{
+  fetch(`${BASE}/live-status?trainNo=${currentTrainNo}&session=${SESSION_TOKEN}`).then(r=>r.json()).then(d=>{
     lastRefreshedTs = new Date(); renderLive(d.data, currentTrainNo, currentTrainName);
     updateLastRef(); showToast('Live data refreshed','refresh');
   }).catch(()=>showToast('Auto-refresh failed','error'));
@@ -727,7 +755,7 @@ function manualRefresh() {
   const btn = document.getElementById('refreshBtn');
   if (btn) { btn.classList.add('spinning'); btn.disabled = true; }
   autoRefreshSecsLeft = 45; updateARBar();
-  fetch(`${BASE}/live-status?trainNo=${currentTrainNo}`).then(r=>r.json()).then(d=>{
+ fetch(`${BASE}/live-status?trainNo=${currentTrainNo}&session=${SESSION_TOKEN}`).then(r=>r.json()).then(d=>{
     lastRefreshedTs = new Date(); renderLive(d.data, currentTrainNo, currentTrainName);
     updateLastRef(); showToast('Refreshed from server','done');
   }).catch(()=>showToast('Refresh failed','error'))
@@ -743,8 +771,19 @@ function updateLastRef() {
 
 /* ── SEARCH ── */
 function onSearch(q) {
+
+  if (!SESSION_TOKEN) {
+    showToast("Please verify you are human first","error");
+    return;
+  }
+
   clearTimeout(searchTimer);
-  if (q.length < 2) { document.getElementById('searchResults').innerHTML = ''; return; }
+
+  if (q.length < 2) {
+    document.getElementById('searchResults').innerHTML = '';
+    return;
+  }
+
   searchTimer = setTimeout(() => doSearch(q), 320);
 }
 function doSearch(q) {
@@ -754,7 +793,7 @@ function doSearch(q) {
   clearInterval(countdownInterval); stopAutoRefresh();
   currentTrainNo = null; currentTrainName = null;
   document.getElementById('refreshBtn').style.display = 'none';
-  fetch(`${BASE}/search?q=${encodeURIComponent(q)}`).then(r=>r.json())
+  fetch(`${BASE}/search?q=${encodeURIComponent(q)}&session=${SESSION_TOKEN}`).then(r=>r.json())
     .then(d=>renderSearch(d.data||[]))
     .catch(()=>sr.innerHTML='<div class="md-loader">Search failed. Check your connection.</div>');
 }
@@ -780,12 +819,17 @@ function renderSearch(trains) {
 
 /* ── LIVE FETCH ── */
 function doLive(num, name) {
+	  if (!SESSION_TOKEN) {
+    showToast("Please verify you are human first","error");
+    return;
+  }
+
   document.getElementById('searchResults').innerHTML = '';
   document.getElementById('liveView').innerHTML = loader(`Fetching live status for ${num}…`);
   clearInterval(countdownInterval); stopAutoRefresh();
   currentTrainNo = num; currentTrainName = name || num;
   document.getElementById('refreshBtn').style.display = 'flex';
-  fetch(`${BASE}/live-status?trainNo=${num}`).then(r=>r.json()).then(d=>{
+ fetch(`${BASE}/live-status?trainNo=${num}&session=${SESSION_TOKEN}`).then(r=>r.json()).then(d=>{
     lastRefreshedTs = new Date();
     renderLive(d.data, num, name || num);
     updateLastRef(); startAutoRefresh();
