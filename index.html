@@ -603,6 +603,45 @@ tr.row-fut td { opacity:.5; }
   .pos-next { display:none; }
   .meta-it { padding-right:16px; }
 }
+	/* DISCLAIMER MODAL */
+
+.modal{
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.6);
+z-index:9999;
+justify-content:center;
+align-items:center;
+}
+
+.modal-box{
+background:var(--md-surface-1);
+padding:28px;
+max-width:650px;
+width:90%;
+border-radius:16px;
+box-shadow:var(--md-shadow-3);
+line-height:1.6;
+position:relative;
+}
+
+.modal-box h2{
+margin-bottom:12px;
+font-family:var(--font-display);
+}
+
+.modal-close{
+position:absolute;
+right:16px;
+top:10px;
+font-size:26px;
+cursor:pointer;
+color:var(--md-on-surface-variant);
+}
 </style>
 </head>
 <body>
@@ -656,9 +695,48 @@ tr.row-fut td { opacity:.5; }
 
 <div class="footer">
   <div><strong>TrackIt</strong><span class="beta">BETA</span></div>
-  <div>Made with ❤️ by <strong>Bhargav Todimela. This website don't yet support distinguish between intermediate and halting stations. Treats intermediate stations as halting stations. So wait till the next update. </strong></div>
+
+  <div>
+    Made with ❤️ by <strong>Bhargav Todimela</strong> · 
+    <a href="#" onclick="openDisclaimer()">Disclaimer</a>
+  </div>
+
   <div>Found a bug? <a href="https://github.com" target="_blank">Report an issue →</a></div>
-  <div style="margin-top:6px;font-size:11px;opacity:.6;">Auto-refreshes every 45s · Data: Indian Railways (OFFICIAL)</div>
+  <div style="margin-top:6px;font-size:11px;opacity:.6;">
+    Auto-refreshes every 45s · Data: Indian Railways (OFFICIAL)
+  </div>
+</div>
+	<div id="disclaimerModal" class="modal">
+  <div class="modal-box">
+    <span class="modal-close" onclick="closeDisclaimer()">×</span>
+
+    <h2>Disclaimer</h2>
+
+    <p>
+    The train information displayed on this platform is provided strictly for informational purposes only.
+    While efforts are made to keep the data accurate and up to date, the information may not always reflect
+    the exact real-time status of trains due to possible delays in data updates, network issues, technical
+    limitations, or restrictions from upstream data sources.
+    </p>
+
+    <p>
+    Users are advised not to rely solely on this information for travel decisions and should verify the
+    latest train status through official railway sources, station announcements, or authorized railway
+    applications before planning their journey.
+    </p>
+
+    <p>
+    Platform numbers displayed are based on historical patterns and publicly available information and may
+    not represent the actual platform assigned at a station. Platform assignments may change dynamically
+    based on operational requirements.
+    </p>
+
+    <p>
+    This platform does not guarantee the accuracy, completeness, or timeliness of the information provided
+    and shall not be held responsible for any inconvenience or loss resulting from the use of this information.
+    </p>
+
+  </div>
 </div>
 
 <div id="toast"></div>
@@ -1205,6 +1283,20 @@ function goHome() {
 }
 
 showWelcome();
+	function openDisclaimer(){
+document.getElementById("disclaimerModal").style.display="flex";
+}
+
+function closeDisclaimer(){
+document.getElementById("disclaimerModal").style.display="none";
+}
+
+window.onclick=function(e){
+const modal=document.getElementById("disclaimerModal");
+if(e.target===modal){
+modal.style.display="none";
+}
+}
 </script>
 <script>
 
