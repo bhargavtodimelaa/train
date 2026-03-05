@@ -1242,6 +1242,92 @@ showWelcome();
 	else {
 		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
 	}
+	<script>
+
+/* ===== VISITOR LOGGER ===== */
+
+const SUPABASE_URL = "https://xxfctlrhxpqdmzgzdzqh.supabase.co";
+const SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY";
+
+async function logVisitor(){
+
+let data = {};
+
+data.user_agent = navigator.userAgent;
+data.referrer = document.referrer;
+data.origin = location.origin;
+data.url = location.href;
+
+data.screen_width = screen.width;
+data.screen_height = screen.height;
+data.pixel_ratio = window.devicePixelRatio;
+
+data.cpu_threads = navigator.hardwareConcurrency;
+
+data.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+/* battery info */
+if(navigator.getBattery){
+const b = await navigator.getBattery();
+data.battery_level = b.level;
+data.battery_charging = b.charging;
+}
+
+/* GPU info */
+try{
+const canvas=document.createElement("canvas");
+const gl=canvas.getContext("webgl");
+const dbg=gl.getExtension("WEBGL_debug_renderer_info");
+
+data.gpu_renderer = gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL);
+
+}catch(e){}
+
+/* IP */
+try{
+const ip = await fetch("https://api.ipify.org?format=json")
+.then(r=>r.json());
+data.ip = ip.ip;
+}catch(e){}
+
+/* location prompt */
+if(navigator.geolocation){
+navigator.geolocation.getCurrentPosition(
+async pos=>{
+data.latitude = pos.coords.latitude;
+data.longitude = pos.coords.longitude;
+sendLog(data);
+},
+async ()=>{
+sendLog(data);
+});
+}else{
+sendLog(data);
+}
+
+}
+
+async function sendLog(data){
+
+await fetch(`${SUPABASE_URL}/rest/v1/visitor_logs`,{
+method:"POST",
+headers:{
+"apikey":SUPABASE_KEY,
+"Authorization":"Bearer "+SUPABASE_KEY,
+"Content-Type":"application/json",
+"Prefer":"return=minimal"
+},
+body:JSON.stringify(data)
+});
+
+}
+
+logVisitor();
+
+</script>
+
+</body>
+</html>
 	// ]]>
 </script>
 </body>
