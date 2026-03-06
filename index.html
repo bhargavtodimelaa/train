@@ -742,19 +742,6 @@ color:var(--md-on-surface-variant);
 <div id="toast"></div>
 
 <script>
-	async function decodeMsgPackResponse(res){
-
-  const buffer = await res.arrayBuffer();
-
-  const bytes = new Uint8Array(buffer);
-
-  const jsonBytes = bytes.slice(5);
-
-  const jsonText = new TextDecoder().decode(jsonBytes);
-
-  return JSON.parse(jsonText);
-
-}
 const BASE = "https://sujith.bhargavtodimela4.workers.dev";
 	let SESSION_TOKEN = null;
 
@@ -836,7 +823,7 @@ function updateARBar() {
 }
 function silentRefresh() {
   if (!currentTrainNo) return;
-  fetch(`${BASE}/live-status?trainNo=${currentTrainNo}&session=${SESSION_TOKEN}`).then(r=>decodeMsgPackResponse(r)).then(r=>decodeMsgPackResponse(r)).then(d=>{
+  fetch(`${BASE}/live-status?trainNo=${currentTrainNo}&session=${SESSION_TOKEN}`).then(r=>r.json()).then(d=>{
     lastRefreshedTs = new Date(); renderLive(d.data, currentTrainNo, currentTrainName);
     updateLastRef(); showToast('Live data refreshed','refresh');
   }).catch(()=>showToast('Auto-refresh failed','error'));
@@ -846,7 +833,7 @@ function manualRefresh() {
   const btn = document.getElementById('refreshBtn');
   if (btn) { btn.classList.add('spinning'); btn.disabled = true; }
   autoRefreshSecsLeft = 45; updateARBar();
- fetch(`${BASE}/live-status?trainNo=${currentTrainNo}&session=${SESSION_TOKEN}`).then(r=>decodeMsgPackResponse(r)).then(d=>{
+ fetch(`${BASE}/live-status?trainNo=${currentTrainNo}&session=${SESSION_TOKEN}`).then(r=>r.json()).then(d=>{
     lastRefreshedTs = new Date(); renderLive(d.data, currentTrainNo, currentTrainName);
     updateLastRef(); showToast('Refreshed from server','done');
   }).catch(()=>showToast('Refresh failed','error'))
@@ -884,7 +871,7 @@ function doSearch(q) {
   clearInterval(countdownInterval); stopAutoRefresh();
   currentTrainNo = null; currentTrainName = null;
   document.getElementById('refreshBtn').style.display = 'none';
-  fetch(`${BASE}/search?q=${encodeURIComponent(q)}&session=${SESSION_TOKEN}`).then(r=>decodeMsgPackResponse(r))
+  fetch(`${BASE}/search?q=${encodeURIComponent(q)}&session=${SESSION_TOKEN}`).then(r=>r.json())
     .then(d=>renderSearch(d.data||[]))
     .catch(()=>sr.innerHTML='<div class="md-loader">Search failed. Check your connection.</div>');
 }
@@ -920,7 +907,7 @@ function doLive(num, name) {
   clearInterval(countdownInterval); stopAutoRefresh();
   currentTrainNo = num; currentTrainName = name || num;
   document.getElementById('refreshBtn').style.display = 'flex';
- fetch(`${BASE}/live-status?trainNo=${num}&session=${SESSION_TOKEN}`).then(r=>decodeMsgPackResponse(r)).then(d=>{
+ fetch(`${BASE}/live-status?trainNo=${num}&session=${SESSION_TOKEN}`).then(r=>r.json()).then(d=>{
     lastRefreshedTs = new Date();
     renderLive(d.data, num, name || num);
     updateLastRef(); startAutoRefresh();
