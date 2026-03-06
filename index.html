@@ -1,645 +1,265 @@
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>TrackIt — Live Train Tracker</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Google+Sans+Display:wght@400;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Display:wght@400;700&family=Google+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0c10;--bg2:#111318;--bg3:#181c24;
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.12);
+  --text:#e8eaf0;--text2:#8b91a8;--text3:#555d78;
+  --accent:#4f8eff;--accent2:#7c5cff;
+  --green:#22d483;--red:#ff5a5a;--yellow:#f5c842;
+  --glow:rgba(79,142,255,.18);
+  --font:'Google Sans',sans-serif;
+  --display:'Google Sans Display',sans-serif;
+  --mono:'Google Sans Mono',monospace;
+  --r:8px;--r2:14px;--r3:20px;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(79,142,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(79,142,255,.02) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
 
-:root {
-  --md-primary: #1a73e8;
-  --md-primary-container: #d3e3fd;
-  --md-on-primary: #fff;
-  --md-secondary: #ea4335;
-  --md-tertiary: #34a853;
-  --md-surface: #f8faff;
-  --md-surface-1: #ffffff;
-  --md-surface-2: #f1f3f9;
-  --md-surface-3: #e8eaf6;
-  --md-on-surface: #1c1b1f;
-  --md-on-surface-variant: #49454f;
-  --md-outline: #cac4d0;
-  --md-outline-variant: #e7e0ec;
-  --md-error: #b3261e;
-  --md-shadow-1: 0 1px 2px rgba(0,0,0,.1), 0 1px 3px rgba(0,0,0,.08);
-  --md-shadow-2: 0 1px 2px rgba(0,0,0,.1), 0 2px 6px rgba(0,0,0,.1);
-  --md-shadow-3: 0 4px 8px rgba(0,0,0,.1), 0 1px 3px rgba(0,0,0,.1);
-  --md-ripple: rgba(26,115,232,.12);
-  --font: 'Google Sans', -apple-system, sans-serif;
-  --font-display: 'Google Sans Display', sans-serif;
-  --mono: 'Roboto Mono', monospace;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
-  --radius-full: 9999px;
-  --easing: cubic-bezier(.2, 0, 0, 1);
-}
+/* APP BAR */
+.app-bar{position:sticky;top:0;z-index:100;background:rgba(10,12,16,.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);transition:border-color .3s}
+.app-bar.elevated{border-color:var(--border2)}
+.bar-inner{display:flex;align-items:center;gap:8px;padding:0 16px;height:62px;max-width:1000px;margin:0 auto;position:relative;z-index:1}
+.brand{display:flex;align-items:center;gap:10px;cursor:pointer;padding:6px 10px 6px 4px;border-radius:var(--r2);transition:background .2s;flex-shrink:0;user-select:none}
+.brand:hover{background:rgba(255,255,255,.04)}
+.brand-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:10px;display:grid;place-items:center;box-shadow:0 0 20px var(--glow);flex-shrink:0}
+.brand-text{font-family:var(--display);font-size:20px;font-weight:800;letter-spacing:-.5px}
+.brand-text em{color:var(--accent);font-style:normal}
+.search-wrap{flex:1;max-width:440px;margin:0 12px}
+.search-field{display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r3);padding:0 16px;height:42px;transition:border-color .2s,box-shadow .2s}
+.search-field:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,142,255,.15)}
+.search-field svg{color:var(--text3);flex-shrink:0}
+.search-field input{flex:1;background:none;border:none;outline:none;font-family:var(--font);font-size:14px;color:var(--text)}
+.search-field input::placeholder{color:var(--text3)}
+.bar-right{margin-left:auto;display:flex;align-items:center;gap:6px}
+.ist-chip{display:flex;align-items:center;gap:6px;background:rgba(79,142,255,.1);border:1px solid rgba(79,142,255,.2);color:var(--accent);border-radius:var(--r3);padding:5px 12px;font-family:var(--mono);font-size:11px;white-space:nowrap;flex-shrink:0}
+.refresh-btn{display:none;align-items:center;gap:8px;background:var(--accent);color:#fff;border:none;border-radius:var(--r3);padding:0 18px;height:38px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 0 16px var(--glow);transition:opacity .2s}
+.refresh-btn:disabled{opacity:.5;cursor:not-allowed}
+.refresh-btn.spinning svg{animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-.dark {
-  --md-primary: #a8c7fa;
-  --md-primary-container: #004a99;
-  --md-surface: #1c1b1f;
-  --md-surface-1: #242329;
-  --md-surface-2: #2c2b31;
-  --md-surface-3: #36343b;
-  --md-on-surface: #e6e1e5;
-  --md-on-surface-variant: #cac4d0;
-  --md-outline: #938f99;
-  --md-outline-variant: #49454f;
-  --md-shadow-1: 0 1px 2px rgba(0,0,0,.3);
-  --md-shadow-2: 0 2px 6px rgba(0,0,0,.3);
-  --md-shadow-3: 0 4px 12px rgba(0,0,0,.4);
-  --md-ripple: rgba(168,199,250,.12);
-}
+/* MAIN */
+.main{max-width:860px;margin:0 auto;padding:28px 16px 80px;position:relative;z-index:1}
 
-html { scroll-behavior: smooth; }
-body {
-  font-family: var(--font);
-  background: var(--md-surface);
-  color: var(--md-on-surface);
-  min-height: 100vh;
-  transition: background .3s var(--easing), color .3s var(--easing);
-  font-size: 14px;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-}
+/* LOADER */
+.md-loader{display:flex;align-items:center;gap:16px;padding:40px 4px;color:var(--text2);font-size:14px}
+.md-spinner{width:32px;height:32px;flex-shrink:0}
+.md-spinner svg{width:32px;height:32px;animation:rotate 1.4s linear infinite}
+.md-spinner circle{fill:none;stroke:var(--accent);stroke-width:3.5;stroke-linecap:round;stroke-dasharray:80;stroke-dashoffset:60;animation:dash 1.4s ease-in-out infinite}
+@keyframes rotate{to{transform:rotate(360deg)}}
+@keyframes dash{0%{stroke-dashoffset:80}50%{stroke-dashoffset:20}100%{stroke-dashoffset:80}}
 
-/* ── RIPPLE ───────────────────────────────────────────────────────────────── */
-.ripple-host { position: relative; overflow: hidden; }
-.ripple-wave {
-  position: absolute;
-  border-radius: 50%;
-  background: var(--md-ripple);
-  transform: scale(0);
-  animation: ripple-out .55s var(--easing) forwards;
-  pointer-events: none;
-}
-@keyframes ripple-out { to { transform: scale(4); opacity: 0; } }
+/* SEARCH RESULTS */
+.results-header{font-size:11px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:var(--text3);padding:0 2px 14px}
+.result-card{display:flex;align-items:center;gap:14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;margin-bottom:8px;transition:border-color .2s,transform .15s}
+.result-card:hover{border-color:rgba(79,142,255,.3);transform:translateY(-1px)}
+.rnum-badge{width:56px;height:56px;flex-shrink:0;border-radius:var(--r);background:rgba(79,142,255,.08);border:1px solid rgba(79,142,255,.15);display:grid;place-items:center;font-family:var(--mono);font-size:11px;font-weight:600;color:var(--accent);text-align:center;line-height:1.3}
+.rinfo{flex:1;min-width:0}
+.rname{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rroute{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);margin-top:3px;font-family:var(--mono)}
+.track-btn{display:flex;align-items:center;gap:7px;background:var(--accent);color:#fff;border:none;border-radius:var(--r3);padding:0 18px;height:38px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 0 14px var(--glow);transition:opacity .2s}
+.track-btn:hover{opacity:.85}
+.track-btn:active{transform:scale(.97)}
 
-/* ── TOP APP BAR ──────────────────────────────────────────────────────────── */
-.app-bar {
-  background: var(--md-surface-1);
-  border-bottom: 1px solid var(--md-outline-variant);
-  position: sticky; top: 0; z-index: 100;
-  transition: background .3s, box-shadow .2s;
-}
-.app-bar.elevated { box-shadow: var(--md-shadow-2); }
-.bar-inner {
-  display: flex; align-items: center; gap: 4px;
-  padding: 0 8px; height: 64px;
-  max-width: 960px; margin: 0 auto;
-}
-
-.brand {
-  display: flex; align-items: center; gap: 10px;
-  padding: 6px 14px 6px 8px;
-  border-radius: var(--radius-full);
-  cursor: pointer; flex-shrink: 0;
-  transition: background .2s;
-}
-.brand:hover { background: var(--md-surface-2); }
-.brand-icon {
-  width: 34px; height: 34px;
-  background: var(--md-primary);
-  border-radius: 10px;
-  display: grid; place-items: center;
-  box-shadow: 0 2px 6px rgba(26,115,232,.35);
-}
-.brand-text {
-  font-family: var(--font-display);
-  font-size: 19px; font-weight: 700;
-  letter-spacing: -.4px;
-}
-.brand-text em { color: var(--md-primary); font-style: normal; }
-
-.search-wrap { flex: 1; max-width: 460px; margin: 0 8px; }
-.search-field {
-  display: flex; align-items: center; gap: 10px;
-  background: var(--md-surface-2);
-  border: 1.5px solid transparent;
-  border-radius: var(--radius-full);
-  padding: 0 16px; height: 46px;
-  transition: background .2s, border-color .2s, box-shadow .2s;
-}
-.search-field:focus-within {
-  background: var(--md-surface-1);
-  border-color: var(--md-primary);
-  box-shadow: 0 0 0 3px rgba(26,115,232,.14);
-}
-.search-field svg { color: var(--md-on-surface-variant); flex-shrink: 0; }
-.search-field input {
-  flex: 1; background: none; border: none; outline: none;
-  font-family: var(--font); font-size: 15px; color: var(--md-on-surface);
-}
-.search-field input::placeholder { color: var(--md-on-surface-variant); }
-
-.bar-right { margin-left: auto; display: flex; align-items: center; gap: 6px; }
-
-.ist-chip {
-  display: flex; align-items: center; gap: 6px;
-  background: var(--md-primary-container);
-  color: var(--md-primary);
-  border-radius: var(--radius-full);
-  padding: 5px 12px;
-  font-family: var(--mono); font-size: 12px; font-weight: 500;
-  white-space: nowrap; flex-shrink: 0;
-}
-.dark .ist-chip { background: rgba(168,199,250,.15); }
-
-.icon-btn {
-  width: 46px; height: 46px; border: none; background: none;
-  border-radius: var(--radius-full);
-  display: grid; place-items: center;
-  cursor: pointer; color: var(--md-on-surface-variant);
-  transition: background .2s; flex-shrink: 0;
-  overflow: hidden; position: relative;
-}
-.icon-btn:hover { background: var(--md-surface-2); }
-
-.refresh-btn {
-  display: none; align-items: center; gap: 8px;
-  background: var(--md-primary); color: #fff;
-  border: none; border-radius: var(--radius-full);
-  padding: 0 18px; height: 40px;
-  font-family: var(--font); font-size: 13px; font-weight: 600;
-  cursor: pointer; overflow: hidden; position: relative;
-  box-shadow: var(--md-shadow-2);
-  transition: box-shadow .2s, transform .1s;
-}
-.refresh-btn:hover { box-shadow: var(--md-shadow-3); }
-.refresh-btn:active { transform: scale(.97); }
-.refresh-btn:disabled { opacity: .55; cursor: not-allowed; }
-.refresh-btn.spinning svg { animation: spin 1s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* ── MAIN ─────────────────────────────────────────────────────────────────── */
-.main { max-width: 860px; margin: 0 auto; padding: 24px 16px 60px; }
-
-/* ── MD3 CIRCULAR LOADER ──────────────────────────────────────────────────── */
-.md-loader { display: flex; align-items: center; gap: 14px; padding: 36px 4px; color: var(--md-on-surface-variant); font-size: 14px; }
-.md-spinner { width: 34px; height: 34px; flex-shrink: 0; }
-.md-spinner svg { width: 34px; height: 34px; animation: rotate 1.4s linear infinite; }
-.md-spinner circle {
-  fill: none; stroke: var(--md-primary); stroke-width: 3.6;
-  stroke-linecap: round; stroke-dasharray: 80; stroke-dashoffset: 60;
-  animation: dash 1.4s ease-in-out infinite;
-}
-@keyframes rotate { to { transform: rotate(360deg); } }
-@keyframes dash { 0%{stroke-dashoffset:80}50%{stroke-dashoffset:20}100%{stroke-dashoffset:80} }
-
-/* ── SEARCH RESULTS ───────────────────────────────────────────────────────── */
-.results-header {
-  font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
-  text-transform: uppercase; color: var(--md-on-surface-variant);
-  padding: 0 4px 12px;
-}
-.result-card {
-  display: flex; align-items: center; gap: 14px;
-  background: var(--md-surface-1);
-  border: 1px solid var(--md-outline-variant);
-  border-radius: var(--radius-lg);
-  padding: 14px 16px; margin-bottom: 8px;
-  box-shadow: var(--md-shadow-1);
-  transition: box-shadow .2s, transform .15s;
-  position: relative; overflow: hidden;
-}
-.result-card:hover { box-shadow: var(--md-shadow-3); transform: translateY(-1px); }
-.rnum-badge {
-  width: 54px; height: 54px; flex-shrink: 0;
-  border-radius: var(--radius-md);
-  background: var(--md-primary-container);
-  display: grid; place-items: center;
-  font-family: var(--mono); font-size: 11px; font-weight: 600;
-  color: var(--md-primary); text-align: center; line-height: 1.3;
-}
-.dark .rnum-badge { color: var(--md-primary); }
-.rinfo { flex: 1; min-width: 0; }
-.rname { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.rroute { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--md-on-surface-variant); margin-top: 3px; font-family: var(--mono); }
-.track-btn {
-  display: flex; align-items: center; gap: 8px;
-  background: var(--md-primary); color: #fff;
-  border: none; border-radius: var(--radius-full);
-  padding: 0 20px; height: 40px;
-  font-family: var(--font); font-size: 14px; font-weight: 600;
-  cursor: pointer; white-space: nowrap;
-  position: relative; overflow: hidden;
-  box-shadow: var(--md-shadow-1);
-  transition: box-shadow .2s, transform .1s; flex-shrink: 0;
-}
-.track-btn:hover { box-shadow: var(--md-shadow-3); }
-.track-btn:active { transform: scale(.97); }
-
-/* ── LIVE PANEL ───────────────────────────────────────────────────────────── */
-.live-panel {
-  background: var(--md-surface-1);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  box-shadow: var(--md-shadow-3);
-  border: 1px solid var(--md-outline-variant);
-  animation: fadeSlide .3s var(--easing);
-}
-@keyframes fadeSlide { from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none} }
+/* LIVE PANEL */
+.live-panel{border-radius:var(--r3);overflow:hidden;border:1px solid var(--border2);background:var(--bg2);animation:fadeUp .4s var(--ease)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 
 /* HEAD */
-.lp-head {
-  background: linear-gradient(145deg, #1557b0 0%, #1a73e8 60%, #1e88e5 100%);
-  color: #fff; padding: 24px; position: relative; overflow: hidden;
-}
-.lp-head::before {
-  content:''; position:absolute; top:-50px; right:-50px;
-  width:220px; height:220px; border-radius:50%;
-  background:rgba(255,255,255,.06);
-}
-.lp-head::after {
-  content:''; position:absolute; bottom:-70px; left:35%;
-  width:300px; height:300px; border-radius:50%;
-  background:rgba(255,255,255,.04);
-}
-.lp-chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; position:relative; z-index:1; }
-.chip {
-  display:inline-flex; align-items:center; gap:5px;
-  padding:4px 12px; border-radius:var(--radius-full);
-  font-size:12px; font-weight:600;
-}
-.chip-num { background:rgba(255,255,255,.16); color:#fff; font-family:var(--mono); font-size:13px; }
-.chip-src { background:rgba(255,255,255,.1); color:rgba(255,255,255,.8); }
-.chip-late { background:#fce4e4; color:#c62828; }
-.chip-ok { background:#e6f4ea; color:#2e7d32; }
-.blink { width:7px; height:7px; border-radius:50%; background:currentColor; animation:bl 1.4s ease-in-out infinite; }
-@keyframes bl { 0%,100%{opacity:1}50%{opacity:.2} }
-.lp-title { font-family:var(--font-display); font-size:21px; font-weight:700; letter-spacing:-.3px; position:relative; z-index:1; }
-.lp-route { display:flex; align-items:center; gap:8px; margin-top:5px; font-size:13px; color:rgba(255,255,255,.75); position:relative; z-index:1; }
-.lp-meta-row {
-  display:flex; flex-wrap:wrap; gap:0;
-  margin-top:18px; padding-top:16px;
-  border-top:1px solid rgba(255,255,255,.12);
-  position:relative; z-index:1;
-}
-.meta-it { padding-right:26px; margin-bottom:2px; }
-.mlabel { font-size:10px; color:rgba(255,255,255,.55); letter-spacing:.8px; text-transform:uppercase; }
-.mval { font-size:15px; font-weight:600; margin-top:2px; }
+.lp-head{background:linear-gradient(135deg,#0d1220 0%,#0f1726 50%,#111e30 100%);padding:24px;position:relative;overflow:hidden;border-bottom:1px solid var(--border2)}
+.lp-head-glow{position:absolute;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(79,142,255,.12),transparent 70%);top:-100px;right:-50px;pointer-events:none}
+.lp-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;position:relative;z-index:1}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:var(--r3);font-size:11px;font-weight:600;letter-spacing:.4px}
+.chip-num{background:rgba(79,142,255,.15);border:1px solid rgba(79,142,255,.25);color:var(--accent);font-family:var(--mono);font-size:12px}
+.chip-src{background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text2)}
+.chip-late{background:rgba(255,90,90,.12);border:1px solid rgba(255,90,90,.25);color:#ff8080}
+.chip-ok{background:rgba(34,212,131,.1);border:1px solid rgba(34,212,131,.2);color:var(--green)}
+.blink{width:6px;height:6px;border-radius:50%;background:currentColor;animation:bl 1.4s ease-in-out infinite}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.2}}
+.lp-title{font-family:var(--display);font-size:22px;font-weight:800;letter-spacing:-.5px;position:relative;z-index:1;line-height:1.2}
+.lp-route{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:12px;color:var(--text2);position:relative;z-index:1;font-family:var(--mono)}
+.lp-meta-row{display:flex;flex-wrap:wrap;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);position:relative;z-index:1}
+.meta-it{padding-right:28px;margin-bottom:2px}
+.mlabel{font-size:10px;color:var(--text3);letter-spacing:.8px;text-transform:uppercase}
+.mval{font-size:15px;font-weight:600;margin-top:2px;font-family:var(--mono)}
 
 /* PROGRESS */
-.lp-progress { padding:20px 24px; border-bottom:1px solid var(--md-outline-variant); }
-.prog-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
-.prog-endpoints { font-size:12px; font-weight:500; color:var(--md-on-surface-variant); font-family:var(--mono); }
-.prog-pct { font-size:13px; font-weight:700; color:var(--md-primary); }
-.md3-linear { height:4px; background:var(--md-outline-variant); border-radius:var(--radius-full); overflow:hidden; }
-.md3-fill {
-  height:100%; border-radius:var(--radius-full);
-  background:var(--md-primary);
-  transition:width 1.4s var(--easing);
-  position:relative; overflow:hidden;
-}
-.md3-fill::after {
-  content:''; position:absolute; top:0; left:-100%; right:0; bottom:0;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);
-  animation:shimmer 2.2s infinite;
-}
-@keyframes shimmer { to{left:200%;} }
-.prog-labels { display:flex; justify-content:space-between; margin-top:6px; }
-.prog-lbl { font-size:11px; color:var(--md-on-surface-variant); font-family:var(--mono); }
+.lp-progress{padding:20px 24px;border-bottom:1px solid var(--border)}
+.prog-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.prog-endpoints{font-size:11px;font-weight:500;color:var(--text2);font-family:var(--mono)}
+.prog-pct{font-size:13px;font-weight:700;color:var(--accent);font-family:var(--mono)}
+.linear-track{height:4px;background:rgba(255,255,255,.05);border-radius:99px;overflow:hidden}
+.linear-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width 1.6s var(--ease);position:relative;overflow:hidden;box-shadow:0 0 8px var(--glow)}
+.linear-fill::after{content:'';position:absolute;top:0;left:-100%;right:0;bottom:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);animation:shimmer 2.5s infinite}
+@keyframes shimmer{to{left:200%}}
+.prog-labels{display:flex;justify-content:space-between;margin-top:6px}
+.prog-lbl{font-size:11px;color:var(--text3);font-family:var(--mono)}
 
 /* STATS */
-.stats-row { display:flex; border-bottom:1px solid var(--md-outline-variant); overflow-x:auto; }
-.stat-it {
-  flex:1; min-width:90px;
-  padding:14px 12px; text-align:center;
-  border-right:1px solid var(--md-outline-variant);
-}
-.stat-it:last-child { border-right:none; }
-.stat-icon { margin-bottom:4px; }
-.sval { font-family:var(--mono); font-size:20px; font-weight:600; line-height:1; }
-.sval.green { color:#34a853; }
-.sval.red { color:#ea4335; }
-.sval.blue { color:var(--md-primary); }
-.slbl { font-size:10px; color:var(--md-on-surface-variant); margin-top:4px; }
+.stats-row{display:flex;border-bottom:1px solid var(--border);overflow-x:auto}
+.stat-it{flex:1;min-width:90px;padding:16px 12px;text-align:center;border-right:1px solid var(--border)}
+.stat-it:last-child{border-right:none}
+.stat-icon{margin-bottom:6px}
+.sval{font-family:var(--mono);font-size:20px;font-weight:600;line-height:1}
+.sval.g{color:var(--green)}.sval.r{color:var(--red)}.sval.b{color:var(--accent)}
+.slbl{font-size:10px;color:var(--text3);margin-top:5px;letter-spacing:.4px}
 
 /* POSITION */
-.lp-pos {
-  display:flex; align-items:center; gap:16px;
-  padding:18px 24px;
-  background:var(--md-primary-container);
-  border-bottom:1px solid var(--md-outline-variant);
-  position:relative; overflow:hidden;
-}
-.dark .lp-pos { background:rgba(0,74,153,.2); }
-.pos-icon {
-  width:48px; height:48px;
-  background:var(--md-primary);
-  border-radius:var(--radius-full);
-  display:grid; place-items:center;
-  flex-shrink:0;
-  animation:pulse 2s ease-out infinite;
-}
-@keyframes pulse {
-  0%{box-shadow:0 0 0 0 rgba(26,115,232,.45)}
-  70%{box-shadow:0 0 0 14px rgba(26,115,232,0)}
-  100%{box-shadow:0 0 0 0 rgba(26,115,232,0)}
-}
-.pos-info { flex:1; min-width:0; }
-.pos-at { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--md-primary); margin-bottom:2px; }
-.pos-name { font-size:18px; font-weight:700; }
-.pos-sub { font-size:12px; color:var(--md-on-surface-variant); margin-top:2px; font-family:var(--mono); }
-.pos-next { flex-shrink:0; text-align:right; }
-.next-lbl { font-size:10px; color:var(--md-on-surface-variant); }
-.next-name { font-size:13px; font-weight:600; margin-top:2px; }
-.next-chip {
-  display:inline-block; background:var(--md-primary); color:#fff;
-  font-size:11px; font-weight:600;
-  padding:3px 10px; border-radius:var(--radius-full); margin-top:5px;
-}
+.lp-pos{display:flex;align-items:center;gap:16px;padding:18px 24px;background:rgba(79,142,255,.05);border-bottom:1px solid var(--border)}
+.pos-icon{width:50px;height:50px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:50%;display:grid;place-items:center;flex-shrink:0;animation:pulseRing 2.5s ease-out infinite}
+@keyframes pulseRing{0%{box-shadow:0 0 0 0 rgba(79,142,255,.5)}70%{box-shadow:0 0 0 16px rgba(79,142,255,0)}100%{box-shadow:0 0 0 0 rgba(79,142,255,0)}}
+.pos-info{flex:1;min-width:0}
+.pos-at{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
+.pos-name{font-size:18px;font-weight:700;line-height:1.2}
+.pos-sub{font-size:12px;color:var(--text2);margin-top:3px;font-family:var(--mono)}
+.pos-next{flex-shrink:0;text-align:right}
+.next-lbl{font-size:10px;color:var(--text3)}
+.next-name{font-size:13px;font-weight:600;margin-top:2px}
+.next-chip{display:inline-block;background:var(--accent);color:#fff;font-size:11px;font-weight:600;padding:3px 10px;border-radius:var(--r3);margin-top:5px;font-family:var(--mono)}
 
 /* COUNTDOWN */
-.cd-row {
-  display:flex; align-items:center; gap:20px;
-  padding:14px 24px;
-  border-bottom:1px solid var(--md-outline-variant);
-  background:var(--md-surface-1);
-}
-.cd-lbl { font-size:11px; color:var(--md-on-surface-variant); font-weight:500; }
-.cd-val { font-family:var(--mono); font-size:28px; font-weight:600; color:var(--md-primary); letter-spacing:2px; line-height:1.1; }
-.cd-stn { font-size:14px; font-weight:600; }
-.cd-code { font-size:11px; color:var(--md-on-surface-variant); font-family:var(--mono); margin-top:2px; }
-.cd-right { margin-left:auto; text-align:right; }
-.cd-sched-lbl { font-size:10px; color:var(--md-on-surface-variant); }
-.cd-sched-val { font-size:15px; font-weight:600; font-family:var(--mono); }
+.cd-row{display:flex;align-items:center;gap:16px;padding:14px 24px;border-bottom:1px solid var(--border)}
+.cd-lbl{font-size:10px;color:var(--text3);font-weight:600;letter-spacing:.8px;text-transform:uppercase}
+.cd-val{font-family:var(--mono);font-size:30px;font-weight:600;color:var(--accent);letter-spacing:3px;line-height:1}
+.cd-stn{font-size:14px;font-weight:600}
+.cd-code{font-size:11px;color:var(--text2);font-family:var(--mono);margin-top:2px}
+.cd-right{margin-left:auto;text-align:right}
+.cd-sched-lbl{font-size:10px;color:var(--text3)}
+.cd-sched-val{font-size:15px;font-weight:600;font-family:var(--mono);margin-top:2px}
 
 /* MAP */
-.map-btn {
-  width:100%; padding:12px 24px;
-  border:none; background:var(--md-surface-2);
-  color:var(--md-primary); font-family:var(--font);
-  font-size:14px; font-weight:600; cursor:pointer;
-  display:flex; align-items:center; gap:10px;
-  border-bottom:1px solid var(--md-outline-variant);
-  transition:background .2s;
-  position:relative; overflow:hidden;
-}
-.map-btn:hover { background:var(--md-surface-3); }
-.map-btn .chevron { margin-left:auto; transition:transform .3s; }
-.map-btn.open .chevron { transform:rotate(180deg); }
-.map-wrap { display:none; border-bottom:1px solid var(--md-outline-variant); }
-.map-wrap iframe { width:100%; height:240px; border:none; display:block; }
+.map-btn{width:100%;padding:12px 24px;border:none;background:rgba(255,255,255,.02);color:var(--accent);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);transition:background .2s}
+.map-btn:hover{background:rgba(79,142,255,.06)}
+.map-btn .chevron{margin-left:auto;transition:transform .3s}
+.map-btn.open .chevron{transform:rotate(180deg)}
+.map-wrap{display:none;border-bottom:1px solid var(--border)}
+.map-wrap iframe{width:100%;height:240px;border:none;display:block}
 
 /* SHARE */
-.share-row {
-  display:flex; align-items:center; gap:8px;
-  padding:12px 24px;
-  border-bottom:1px solid var(--md-outline-variant);
-  flex-wrap:wrap;
-}
-.share-lbl { font-size:12px; color:var(--md-on-surface-variant); font-weight:500; margin-right:4px; }
-.share-btn {
-  display:flex; align-items:center; gap:6px;
-  background:var(--md-surface-2);
-  border:1px solid var(--md-outline-variant);
-  border-radius:var(--radius-full);
-  padding:6px 14px;
-  font-family:var(--font); font-size:12px; font-weight:600;
-  cursor:pointer; color:var(--md-on-surface);
-  position:relative; overflow:hidden;
-  transition:background .15s, border-color .15s, color .15s;
-}
-.share-btn:hover { background:var(--md-surface-3); border-color:var(--md-primary); color:var(--md-primary); }
-.share-btn.copied { background:#e6f4ea; border-color:#34a853; color:#2e7d32; }
+.share-row{display:flex;align-items:center;gap:8px;padding:12px 24px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.share-lbl{font-size:11px;color:var(--text3);font-weight:600;letter-spacing:.8px;text-transform:uppercase;margin-right:4px}
+.share-btn{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:var(--r3);padding:6px 14px;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;color:var(--text);transition:background .15s,border-color .15s,color .15s}
+.share-btn:hover{background:rgba(79,142,255,.1);border-color:rgba(79,142,255,.3);color:var(--accent)}
+.share-btn.copied{background:rgba(34,212,131,.1);border-color:rgba(34,212,131,.3);color:var(--green)}
 
-/* AUTO-REFRESH BAR */
-.auto-bar {
-  display:flex; align-items:center; justify-content:space-between;
-  gap:12px; padding:10px 24px;
-  border-bottom:1px solid var(--md-outline-variant);
-  background:var(--md-surface-2); flex-wrap:wrap;
-}
-.auto-bar-l { display:flex; align-items:center; gap:10px; }
-.live-ind { display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:#34a853; }
-.live-dot { width:8px; height:8px; border-radius:50%; background:#34a853; animation:bl 1.4s ease-in-out infinite; }
-.ar-prog { flex:1; max-width:100px; height:4px; background:var(--md-outline-variant); border-radius:var(--radius-full); overflow:hidden; }
-.ar-fill { height:100%; background:var(--md-primary); border-radius:var(--radius-full); transition:width 1s linear; }
-.ar-lbl { font-size:11px; color:var(--md-on-surface-variant); font-family:var(--mono); }
+/* AUTO-REFRESH */
+.auto-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 24px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.015);flex-wrap:wrap}
+.auto-bar-l{display:flex;align-items:center;gap:10px}
+.live-ind{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--green)}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:bl 1.4s ease-in-out infinite}
+.ar-prog{flex:1;max-width:80px;height:3px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden}
+.ar-fill{height:100%;background:var(--accent);border-radius:99px;transition:width 1s linear}
+.ar-lbl{font-size:11px;color:var(--text3);font-family:var(--mono)}
 
 /* TABS */
-.md3-tabs { display:flex; background:var(--md-surface-1); border-bottom:1px solid var(--md-outline-variant); }
-.tab-btn {
-  flex:1; padding:13px 16px;
-  border:none; background:none;
-  font-family:var(--font); font-size:14px; font-weight:500;
-  cursor:pointer; color:var(--md-on-surface-variant);
-  border-bottom:3px solid transparent;
-  transition:color .2s, border-color .2s, background .15s;
-  display:flex; align-items:center; justify-content:center; gap:8px;
-  position:relative; overflow:hidden;
-}
-.tab-btn:hover { background:var(--md-surface-2); }
-.tab-btn.active { color:var(--md-primary); border-bottom-color:var(--md-primary); font-weight:600; }
-.tab-content { display:none; }
-.tab-content.active { display:block; }
+.md3-tabs{display:flex;border-bottom:1px solid var(--border)}
+.tab-btn{flex:1;padding:13px 16px;border:none;background:none;font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;transition:color .2s,border-color .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.tab-btn:hover{background:rgba(255,255,255,.03);color:var(--text)}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.tab-content{display:none}
+.tab-content.active{display:block}
 
 /* TIMELINE */
-.lp-timeline { padding:24px; background:var(--md-surface-1); }
-.sec-title { font-size:11px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--md-on-surface-variant); margin-bottom:20px; }
-.tl-wrap { position:relative; padding-left:32px; }
-.tl-line { position:absolute; left:7px; top:12px; bottom:12px; width:2px; background:var(--md-outline-variant); }
-
-.stop { position:relative; padding-bottom:22px; }
-.stop:last-child { padding-bottom:0; }
-.stop-dot {
-  position:absolute; left:-25px; top:4px;
-  width:14px; height:14px; border-radius:50%;
-  background:var(--md-outline-variant);
-  border:2px solid var(--md-surface-1);
-  z-index:1; transition:background .3s;
-}
-.stop.past .stop-dot { background:#34a853; }
-.stop.current .stop-dot {
-  width:20px; height:20px; left:-28px; top:1px;
-  background:var(--md-primary);
-  border:3px solid var(--md-surface-1);
-  animation:pulse 2s ease-out infinite;
-}
-.stop.future { opacity:.4; }
-
-.stop-row { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; }
-.stop-info { flex:1; }
-.sname { font-size:15px; font-weight:600; }
-.stop.current .sname { color:var(--md-primary); font-weight:700; }
-.scode { font-size:11px; color:var(--md-on-surface-variant); margin-top:2px; font-family:var(--mono); }
-.pf-chip {
-  display:inline-flex; align-items:center; gap:4px;
-  background:var(--md-surface-2); border:1px solid var(--md-outline-variant);
-  color:var(--md-on-surface-variant);
-  font-size:10px; font-weight:600; padding:2px 8px;
-  border-radius:var(--radius-full); margin-top:6px; font-family:var(--mono);
-}
-.stop.current .pf-chip { background:var(--md-primary); color:#fff; border-color:var(--md-primary); }
-.stop.past .pf-chip { background:#e6f4ea; border-color:#34a853; color:#2e7d32; }
-.stop-times { display:flex; gap:16px; flex-shrink:0; text-align:right; }
-.t-grp {}
-.t-label { font-size:9px; color:var(--md-on-surface-variant); text-transform:uppercase; letter-spacing:.8px; }
-.t-val { font-size:13px; font-weight:600; font-family:var(--mono); }
-.t-val.g { color:#34a853; }
-.t-val.r { color:#ea4335; }
-.t-val.d { color:var(--md-on-surface-variant); }
-.d-chip { display:inline-block; background:#fce4e4; color:#c62828; font-size:9px; font-weight:700; padding:1px 5px; border-radius:var(--radius-full); margin-top:2px; }
-.stop-div { border:none; border-top:1px solid var(--md-outline-variant); margin:0 0 22px; }
+.lp-timeline{padding:24px;background:var(--bg2)}
+.sec-title{font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--text3);margin-bottom:22px}
+.tl-wrap{position:relative;padding-left:34px}
+.tl-line{position:absolute;left:8px;top:12px;bottom:12px;width:2px;background:linear-gradient(to bottom,var(--accent),rgba(79,142,255,.1))}
+.stop{position:relative;padding-bottom:24px}
+.stop:last-child{padding-bottom:0}
+.stop-dot{position:absolute;left:-26px;top:4px;width:16px;height:16px;border-radius:50%;background:var(--border);border:2px solid var(--bg2);z-index:1}
+.stop.past .stop-dot{background:var(--green)}
+.stop.current .stop-dot{width:22px;height:22px;left:-29px;top:1px;background:var(--accent);border:3px solid var(--bg2);animation:pulseRing 2.5s ease-out infinite;box-shadow:0 0 10px var(--glow)}
+.stop.future{opacity:.35}
+.stop-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.stop-info{flex:1}
+.sname{font-size:15px;font-weight:600}
+.stop.current .sname{color:var(--accent);font-weight:700}
+.scode{font-size:11px;color:var(--text3);margin-top:2px;font-family:var(--mono)}
+.pf-chip{display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.04);border:1px solid var(--border2);color:var(--text2);font-size:10px;font-weight:600;padding:2px 8px;border-radius:var(--r3);margin-top:6px;font-family:var(--mono)}
+.stop.current .pf-chip{background:rgba(79,142,255,.15);border-color:rgba(79,142,255,.25);color:var(--accent)}
+.stop.past .pf-chip{background:rgba(34,212,131,.08);border-color:rgba(34,212,131,.2);color:var(--green)}
+.stop-times{display:flex;gap:16px;flex-shrink:0;text-align:right}
+.t-label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px}
+.t-val{font-size:13px;font-weight:600;font-family:var(--mono)}
+.t-val.g{color:var(--green)}.t-val.r{color:var(--red)}.t-val.d{color:var(--text3)}
+.d-chip{display:inline-block;background:rgba(255,90,90,.1);border:1px solid rgba(255,90,90,.2);color:#ff8080;font-size:9px;font-weight:700;padding:1px 5px;border-radius:99px;margin-top:2px;font-family:var(--mono)}
+.stop-div{border:none;border-top:1px solid rgba(255,255,255,.04);margin:0 0 24px}
 
 /* TABLE */
-.stops-wrap { overflow-x:auto; }
-table { width:100%; border-collapse:collapse; font-size:13px; }
-th {
-  text-align:left; padding:10px 12px;
-  font-size:10px; font-weight:700; letter-spacing:.8px;
-  text-transform:uppercase; color:var(--md-on-surface-variant);
-  border-bottom:2px solid var(--md-outline-variant);
-  white-space:nowrap; background:var(--md-surface-2);
-}
-td { padding:11px 12px; border-bottom:1px solid var(--md-outline-variant); vertical-align:middle; }
-tr:last-child td { border-bottom:none; }
-tr.row-past td { color:var(--md-on-surface-variant); }
-tr.row-cur { background:rgba(26,115,232,.06); }
-tr.row-cur td { font-weight:600; }
-tr.row-fut td { opacity:.5; }
-.dark tr.row-cur { background:rgba(168,199,250,.08); }
-.td-name { font-weight:600; }
-.td-code { font-family:var(--mono); font-size:11px; color:var(--md-on-surface-variant); }
-.td-t { font-family:var(--mono); white-space:nowrap; }
-.td-d { font-family:var(--mono); font-size:11px; }
-.td-d.late { color:#ea4335; }
-.td-d.ok { color:#34a853; }
-.td-pf { text-align:center; font-family:var(--mono); }
-.cur-arrow { color:var(--md-primary); font-size:10px; }
+.stops-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:10px 12px;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border2);background:rgba(255,255,255,.02);white-space:nowrap}
+td{padding:11px 12px;border-bottom:1px solid rgba(255,255,255,.03);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr.row-past td{color:var(--text2)}
+tr.row-cur{background:rgba(79,142,255,.06)}
+tr.row-cur td{font-weight:600}
+tr.row-fut td{opacity:.35}
+.td-name{font-weight:600}
+.td-code{font-family:var(--mono);font-size:10px;color:var(--text3)}
+.td-t{font-family:var(--mono);white-space:nowrap}
+.td-d{font-family:var(--mono);font-size:10px}
+.td-d.late{color:var(--red)}.td-d.ok{color:var(--green)}
+.td-pf{text-align:center;font-family:var(--mono)}
+.cur-arrow{color:var(--accent);font-size:10px}
 
-/* ── WELCOME ──────────────────────────────────────────────────────────────── */
-.welcome { padding:32px 4px; }
-.welcome-hero { text-align:center; padding-bottom:28px; }
-.welcome-icon {
-  width:80px; height:80px; border-radius:var(--radius-xl);
-  background:var(--md-primary-container);
-  display:grid; place-items:center;
-  margin:0 auto 20px;
-}
-.welcome-title { font-family:var(--font-display); font-size:26px; font-weight:700; margin-bottom:8px; }
-.welcome-sub { font-size:15px; color:var(--md-on-surface-variant); max-width:380px; margin:0 auto; }
-.recent-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
-.recent-title-lbl { font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--md-on-surface-variant); }
-.clear-btn {
-  background:none; border:none; font-size:12px; color:var(--md-primary);
-  cursor:pointer; font-family:var(--font); font-weight:600;
-  border-radius:var(--radius-full); padding:4px 10px;
-  transition:background .2s;
-}
-.clear-btn:hover { background:var(--md-surface-2); }
-.recent-chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:28px; }
-.r-chip {
-  display:flex; align-items:center; gap:8px;
-  background:var(--md-surface-1);
-  border:1px solid var(--md-outline-variant);
-  border-radius:var(--radius-full);
-  padding:8px 16px; cursor:pointer;
-  font-size:13px; font-weight:500;
-  box-shadow:var(--md-shadow-1);
-  transition:box-shadow .2s, transform .15s;
-  position:relative; overflow:hidden;
-}
-.r-chip:hover { box-shadow:var(--md-shadow-2); transform:translateY(-1px); }
-.r-num { font-family:var(--mono); font-size:11px; color:var(--md-primary); font-weight:600; }
+/* WELCOME */
+.welcome{padding:36px 4px}
+.welcome-hero{text-align:center;padding-bottom:32px}
+.welcome-icon{width:88px;height:88px;border-radius:var(--r2);background:rgba(79,142,255,.08);border:1px solid rgba(79,142,255,.2);display:grid;place-items:center;margin:0 auto 20px;box-shadow:0 0 40px rgba(79,142,255,.12)}
+.welcome-title{font-family:var(--display);font-size:28px;font-weight:800;letter-spacing:-.5px;margin-bottom:10px}
+.welcome-title span{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.welcome-sub{font-size:15px;color:var(--text2);max-width:380px;margin:0 auto;line-height:1.7}
+.recent-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.recent-title-lbl{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3)}
+.clear-btn{background:none;border:none;font-size:12px;color:var(--accent);cursor:pointer;font-family:var(--font);font-weight:600;border-radius:var(--r);padding:4px 10px;transition:background .2s}
+.clear-btn:hover{background:rgba(79,142,255,.08)}
+.recent-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px}
+.r-chip{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r3);padding:8px 16px;cursor:pointer;font-size:13px;font-weight:500;transition:border-color .2s,transform .15s}
+.r-chip:hover{border-color:rgba(79,142,255,.3);transform:translateY(-1px)}
+.r-num{font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:600}
+.howto-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r3);padding:22px 24px}
+.howto-title{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);margin-bottom:18px}
+.howto-items{display:flex;flex-direction:column;gap:16px}
+.howto-item{display:flex;align-items:flex-start;gap:14px}
+.howto-icon-bg{width:38px;height:38px;border-radius:var(--r);display:grid;place-items:center;flex-shrink:0}
+.howto-item h4{font-size:14px;font-weight:600;margin-bottom:3px}
+.howto-item p{font-size:12px;color:var(--text2);line-height:1.6}
 
-.howto-card {
-  background:var(--md-surface-1);
-  border:1px solid var(--md-outline-variant);
-  border-radius:var(--radius-xl);
-  padding:20px 24px; box-shadow:var(--md-shadow-1);
-}
-.howto-title { font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--md-on-surface-variant); margin-bottom:16px; }
-.howto-items { display:flex; flex-direction:column; gap:14px; }
-.howto-item { display:flex; align-items:flex-start; gap:14px; }
-.howto-icon-bg { width:36px; height:36px; border-radius:var(--radius-md); display:grid; place-items:center; flex-shrink:0; }
-.howto-item h4 { font-size:14px; font-weight:600; margin-bottom:2px; }
-.howto-item p { font-size:12px; color:var(--md-on-surface-variant); }
-
-/* ── SNACKBAR / TOAST ─────────────────────────────────────────────────────── */
-#toast {
-  position:fixed; bottom:24px; left:50%;
-  transform:translateX(-50%) translateY(80px);
-  background:#323232; color:#fff;
-  padding:12px 20px; border-radius:var(--radius-md);
-  font-size:14px; font-weight:500;
-  z-index:999;
-  transition:transform .25s var(--easing), opacity .25s;
-  pointer-events:none; white-space:nowrap;
-  display:flex; align-items:center; gap:10px;
-  box-shadow:0 3px 5px rgba(0,0,0,.2),0 6px 10px rgba(0,0,0,.14),0 1px 18px rgba(0,0,0,.12);
-}
-#toast.show { transform:translateX(-50%) translateY(0); }
+/* TOAST */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#1a1d27;border:1px solid var(--border2);color:var(--text);padding:12px 20px;border-radius:var(--r2);font-size:13px;font-weight:500;z-index:999;transition:transform .25s var(--ease);pointer-events:none;white-space:nowrap;display:flex;align-items:center;gap:10px;box-shadow:0 4px 24px rgba(0,0,0,.4)}
+#toast.show{transform:translateX(-50%) translateY(0)}
 
 /* FOOTER */
-.footer {
-  text-align:center; padding:28px 16px;
-  font-size:12px; color:var(--md-on-surface-variant); line-height:2;
-}
-.footer a { color:var(--md-primary); text-decoration:none; }
-.footer a:hover { text-decoration:underline; }
-.beta {
-  display:inline-flex; align-items:center;
-  background:#fff8e1; color:#e65100;
-  font-size:10px; font-weight:700;
-  padding:2px 8px; border-radius:var(--radius-full);
-  letter-spacing:.5px; vertical-align:middle; margin-left:6px;
-}
-.dark .beta { background:#3e2723; color:#ffb74d; }
-.last-ref { text-align:center; padding:10px 0 4px; font-size:11px; color:var(--md-on-surface-variant); font-family:var(--mono); }
+.footer{text-align:center;padding:28px 16px;font-size:12px;color:var(--text3);line-height:2.2;position:relative;z-index:1}
+.footer a{color:var(--accent);text-decoration:none}
+.footer a:hover{text-decoration:underline}
+.beta{display:inline-flex;align-items:center;background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.2);color:var(--yellow);font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;letter-spacing:.7px;vertical-align:middle;margin-left:6px;font-family:var(--mono)}
+.last-ref{text-align:center;padding:10px 0 4px;font-size:11px;color:var(--text3);font-family:var(--mono)}
+
+/* MODAL */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:9999;justify-content:center;align-items:center}
+.modal-box{background:var(--bg3);border:1px solid var(--border2);padding:28px 32px;max-width:620px;width:90%;border-radius:var(--r3);box-shadow:0 20px 60px rgba(0,0,0,.5);line-height:1.7;position:relative;max-height:80vh;overflow-y:auto}
+.modal-box h2{font-family:var(--display);margin-bottom:14px;font-size:22px}
+.modal-box p{font-size:13px;color:var(--text2);margin-bottom:12px}
+.modal-close{position:absolute;right:16px;top:12px;font-size:24px;cursor:pointer;color:var(--text3);width:32px;height:32px;display:grid;place-items:center;border-radius:50%;background:none;border:none;transition:background .2s,color .2s}
+.modal-close:hover{background:rgba(255,255,255,.06);color:var(--text)}
 
 @media(max-width:540px){
-  .lp-head,.lp-progress,.cd-row,.share-row,.auto-bar,.lp-timeline { padding-left:16px; padding-right:16px; }
-  .bar-inner { padding:0 6px; }
-  .brand-text { font-size:17px; }
-  .pos-next { display:none; }
-  .meta-it { padding-right:16px; }
-}
-	/* DISCLAIMER MODAL */
-
-.modal{
-display:none;
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.6);
-z-index:9999;
-justify-content:center;
-align-items:center;
-}
-
-.modal-box{
-background:var(--md-surface-1);
-padding:28px;
-max-width:650px;
-width:90%;
-border-radius:16px;
-box-shadow:var(--md-shadow-3);
-line-height:1.6;
-position:relative;
-}
-
-.modal-box h2{
-margin-bottom:12px;
-font-family:var(--font-display);
-}
-
-.modal-close{
-position:absolute;
-right:16px;
-top:10px;
-font-size:26px;
-cursor:pointer;
-color:var(--md-on-surface-variant);
+  .lp-head,.lp-progress,.cd-row,.share-row,.auto-bar,.lp-timeline{padding-left:16px;padding-right:16px}
+  .bar-inner{padding:0 10px}
+  .brand-text{font-size:18px}
+  .pos-next{display:none}
+  .meta-it{padding-right:16px}
 }
 </style>
 </head>
@@ -647,690 +267,665 @@ color:var(--md-on-surface-variant);
 
 <div class="app-bar" id="appBar">
   <div class="bar-inner">
-    <div class="brand ripple-host" onclick="goHome()">
+    <div class="brand" id="brandBtn">
       <div class="brand-icon">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M4 6v8c0 2.21 1.79 4 4 4h8c2.21 0 4-1.79 4-4V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2zm2 0h12v5H6V6zm2 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm8 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm-6 4l-2 3h8l-2-3H10z"/></svg>
       </div>
       <div class="brand-text">Track<em>It</em></div>
     </div>
-
     <div class="search-wrap">
       <div class="search-field">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-        <input id="searchInput" type="search" placeholder="Search train number or name…" oninput="onSearch(this.value)" autocomplete="off">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        <input id="searchInput" type="search" placeholder="Search by train number or name…" autocomplete="off">
       </div>
     </div>
-
     <div class="bar-right">
       <div class="ist-chip">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L11 13V7h1.5v5.25l4.5 2.67L16.23 18z"/></svg>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L11 13V7h1.5v5.25l4.5 2.67L16.23 18z"/></svg>
         <span id="istText">--:--:-- IST</span>
       </div>
-
-      <button class="refresh-btn ripple-host" id="refreshBtn" onclick="manualRefresh()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+      <button class="refresh-btn" id="refreshBtn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
         Refresh
-      </button>
-
-      <button class="icon-btn ripple-host" onclick="toggleDark()" title="Toggle dark mode">
-        <svg id="themeIcon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>
-        </svg>
       </button>
     </div>
   </div>
 </div>
-</div>
+
+<div class="main">
   <div id="searchResults"></div>
   <div id="liveView"></div>
 </div>
 
 <div class="footer">
   <div><strong>TrackIt</strong><span class="beta">BETA</span></div>
-
-  <div>
-    Made with ❤️ by <strong>Bhargav Todimela</strong> · 
-    <a href="#" onclick="openDisclaimer()">Disclaimer</a>
-  </div>
-
+  <div>Made with ❤️ by <strong>Bhargav Todimela</strong> · <a href="#" id="disclaimerLink">Disclaimer</a></div>
   <div>Found a bug? <a href="https://github.com" target="_blank">Report an issue →</a></div>
-  <div style="margin-top:6px;font-size:11px;opacity:.6;">
-    Auto-refreshes every 45s · Data: Indian Railways (OFFICIAL)
-  </div>
+  <div style="margin-top:4px;font-size:10px;opacity:.5;font-family:var(--mono)">Auto-refreshes every 45s · Data: Indian Railways</div>
 </div>
-	<div id="disclaimerModal" class="modal">
+
+<div id="disclaimerModal" class="modal">
   <div class="modal-box">
-    <span class="modal-close" onclick="closeDisclaimer()">×</span>
-
+    <button class="modal-close" id="modalCloseBtn">×</button>
     <h2>Disclaimer</h2>
-
-    <p>
-    The train information displayed on this platform is provided strictly for informational purposes only.
-    While efforts are made to keep the data accurate and up to date, the information may not always reflect
-    the exact real-time status of trains due to possible delays in data updates, network issues, technical
-    limitations, or restrictions from upstream data sources.
-    </p>
-
-    <p>
-    Users are advised not to rely solely on this information for travel decisions and should verify the
-    latest train status through official railway sources, station announcements, or authorized railway
-    applications before planning their journey.
-    </p>
-
-    <p>
-    Platform numbers displayed are based on historical patterns and publicly available information and may
-    not represent the actual platform assigned at a station. Platform assignments may change dynamically
-    based on operational requirements.
-    </p>
-
-    <p>
-    This platform does not guarantee the accuracy, completeness, or timeliness of the information provided
-    and shall not be held responsible for any inconvenience or loss resulting from the use of this information.
-    </p>
-
+    <p>The train information displayed on this platform is provided strictly for informational purposes only. While efforts are made to keep the data accurate and up to date, the information may not always reflect the exact real-time status of trains due to possible delays in data updates, network issues, or restrictions from upstream data sources.</p>
+    <p>Users are advised not to rely solely on this information for travel decisions and should verify the latest train status through official railway sources before planning their journey.</p>
+    <p>Platform numbers displayed are based on historical patterns and may not represent the actual platform assigned at a station.</p>
+    <p>This platform does not guarantee the accuracy, completeness, or timeliness of the information provided and shall not be held responsible for any inconvenience or loss resulting from its use.</p>
   </div>
 </div>
 
 <div id="toast"></div>
 
 <script>
-const BASE = "https://sujith.bhargavtodimela4.workers.dev";
+(function() {
+'use strict';
 
+/* ══ CONFIG ══ */
+const BASE = 'https://sujith.bhargavtodimela4.workers.dev';
 
-
-let searchTimer, countdownInterval, autoRefreshTick;
+/* ══ STATE ══ */
+let searchTimer = null;
+let countdownInterval = null;
+let autoRefreshTick = null;
 let autoRefreshSecsLeft = 45;
-let currentTrainNo = null, currentTrainName = null;
+let currentTrainNo = null;
+let currentTrainName = null;
 let lastRefreshedTs = null;
+let searchResults = []; // store last search results for track button lookup
 
-/* ── RIPPLE ── */
-document.addEventListener('click', e => {
-  const host = e.target.closest('.ripple-host');
-  if (!host) return;
-  const r = host.getBoundingClientRect();
-  const size = Math.max(r.width, r.height) * 2;
-  const wave = document.createElement('span');
-  wave.className = 'ripple-wave';
-  wave.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-r.left-size/2}px;top:${e.clientY-r.top-size/2}px;`;
-  host.appendChild(wave);
-  wave.addEventListener('animationend', () => wave.remove());
-});
+/* ══ MSGPACK DECODER ══
+   Worker returns str32: byte 0xdb, 4-byte big-endian length, then UTF-8 JSON */
+async function fetchData(url) {
+  const resp = await fetch(url, {
+    headers: { 'Accept': 'application/msgpack' }
+  });
+  if (!resp.ok) throw new Error('HTTP ' + resp.status);
+  const buf = await resp.arrayBuffer();
+  const u8 = new Uint8Array(buf);
+  let jsonStr;
+  if (u8.length > 5 && u8[0] === 0xdb) {
+    const len = (u8[1] * 16777216) + (u8[2] << 16) + (u8[3] << 8) + u8[4];
+    jsonStr = new TextDecoder().decode(u8.slice(5, 5 + len));
+  } else {
+    jsonStr = new TextDecoder().decode(u8);
+  }
+  return JSON.parse(jsonStr);
+}
 
-/* ── IST CLOCK ── */
+/* ══ HELPERS ══ */
+function pad(n) { return String(n).padStart(2, '0'); }
+
+function fmt(ts) {
+  if (!ts) return '—';
+  return new Date(ts * 1000).toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit', hour12:true});
+}
+
+function he(s) { // html escape
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function loader(msg) {
+  return '<div class="md-loader"><div class="md-spinner"><svg viewBox="22 22 44 44"><circle cx="44" cy="44" r="20.2"/></svg></div>' + he(msg) + '</div>';
+}
+
+function toast(msg, type) {
+  const colors = {done:'var(--green)', error:'var(--red)', info:'var(--accent)'};
+  const el = document.getElementById('toast');
+  el.innerHTML = '<span style="color:' + (colors[type]||colors.done) + '">●</span> ' + he(msg);
+  el.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+/* ══ CLOCK ══ */
 function tickClock() {
   const el = document.getElementById('istText');
   if (!el) return;
-  const d = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Kolkata'}));
-  el.textContent = `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}:${d.getSeconds().toString().padStart(2,'0')} IST`;
+  try {
+    const d = new Date(new Date().toLocaleString('en-US', {timeZone:'Asia/Kolkata'}));
+    el.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) + ' IST';
+  } catch(e) {}
 }
-tickClock(); setInterval(tickClock, 1000);
+tickClock();
+setInterval(tickClock, 1000);
 
-/* ── DARK MODE ── */
-const MOON = '<path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>';
-const SUN  = '<path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.79 1.42-1.41zm-1.98 6.16H2v2h2.76v-2zm14.46 0h-2.76v2H20v-2zm-4.62-6.33l1.79-1.79-1.41-1.41-1.79 1.79 1.41 1.41zM17.24 18.16l1.79 1.8 1.41-1.41-1.8-1.79-1.4 1.4zM12 5.5C8.97 5.5 6.5 7.97 6.5 11S8.97 16.5 12 16.5 17.5 14.03 17.5 11 15.03 5.5 12 5.5zm0 9C9.79 14.5 8 12.71 8 10.5S9.79 6.5 12 6.5s4 1.79 4 4-1.79 4-4 4zm-1 4.5h2v2.76h-2V19zm0-17h2v2.76h-2V2z"/>';
-function toggleDark() {
-  document.body.classList.toggle('dark');
-  const d = document.body.classList.contains('dark');
-  localStorage.setItem('dark', d ? '1' : '0');
-  document.getElementById('themeIcon').innerHTML = d ? SUN : MOON;
-}
-if (localStorage.getItem('dark') === '1') { document.body.classList.add('dark'); document.getElementById('themeIcon').innerHTML = SUN; }
+/* ══ SCROLL ══ */
+window.addEventListener('scroll', function() {
+  document.getElementById('appBar').classList.toggle('elevated', window.scrollY > 4);
+}, {passive:true});
 
-/* ── SCROLL ELEVATION ── */
-window.addEventListener('scroll', () => document.getElementById('appBar').classList.toggle('elevated', scrollY > 4));
-
-/* ── AUTO-REFRESH ── */
+/* ══ AUTO-REFRESH ══ */
 function startAutoRefresh() {
-  stopAutoRefresh(); autoRefreshSecsLeft = 45; updateARBar();
-  autoRefreshTick = setInterval(() => {
+  stopAutoRefresh();
+  autoRefreshSecsLeft = 45;
+  updateARBar();
+  autoRefreshTick = setInterval(function() {
     autoRefreshSecsLeft--;
     updateARBar();
-    if (autoRefreshSecsLeft <= 0) { autoRefreshSecsLeft = 45; silentRefresh(); }
+    if (autoRefreshSecsLeft <= 0) {
+      autoRefreshSecsLeft = 45;
+      doRefresh(true);
+    }
   }, 1000);
 }
-function stopAutoRefresh() { clearInterval(autoRefreshTick); }
+
+function stopAutoRefresh() {
+  if (autoRefreshTick) { clearInterval(autoRefreshTick); autoRefreshTick = null; }
+}
+
 function updateARBar() {
-  const f = document.getElementById('arFill');
-  const l = document.getElementById('arCountdown');
-  if (f) f.style.width = ((45-autoRefreshSecsLeft)/45*100)+'%';
-  if (l) l.textContent = `Next in ${autoRefreshSecsLeft}s`;
+  var f = document.getElementById('arFill');
+  var l = document.getElementById('arCountdown');
+  if (f) f.style.width = ((45 - autoRefreshSecsLeft) / 45 * 100) + '%';
+  if (l) l.textContent = 'Next in ' + autoRefreshSecsLeft + 's';
 }
-function silentRefresh() {
+
+async function doRefresh(silent) {
   if (!currentTrainNo) return;
-  fetch(`${BASE}/live-status?trainNo=${currentTrainNo}&session=${SESSION_TOKEN}`).then(r=>r.json()).then(d=>{
-    lastRefreshedTs = new Date(); renderLive(d.data, currentTrainNo, currentTrainName);
-    updateLastRef(); showToast('Live data refreshed','refresh');
-  }).catch(()=>showToast('Auto-refresh failed','error'));
-}
-function manualRefresh() {
-  if (!currentTrainNo) return;
-  const btn = document.getElementById('refreshBtn');
-  if (btn) { btn.classList.add('spinning'); btn.disabled = true; }
-  autoRefreshSecsLeft = 45; updateARBar();
- fetch(`${BASE}/live-status?trainNo=${currentTrainNo}&session=${SESSION_TOKEN}`).then(r=>r.json()).then(d=>{
-    lastRefreshedTs = new Date(); renderLive(d.data, currentTrainNo, currentTrainName);
-    updateLastRef(); showToast('Refreshed from server','done');
-  }).catch(()=>showToast('Refresh failed','error'))
-  .finally(()=>{ const b=document.getElementById('refreshBtn'); if(b){b.classList.remove('spinning');b.disabled=false;} });
-}
-function updateLastRef() {
-  const el = document.getElementById('lastRefTime');
-  if (el && lastRefreshedTs) {
-    const d = new Date(lastRefreshedTs.toLocaleString('en-US',{timeZone:'Asia/Kolkata'}));
-    el.textContent = `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}:${d.getSeconds().toString().padStart(2,'0')} IST`;
+  if (!silent) {
+    var btn = document.getElementById('refreshBtn');
+    if (btn) { btn.classList.add('spinning'); btn.disabled = true; }
+    autoRefreshSecsLeft = 45;
+    updateARBar();
+  }
+  try {
+    var d = await fetchData(BASE + '/live-status?trainNo=' + encodeURIComponent(currentTrainNo));
+    lastRefreshedTs = new Date();
+    renderLive(d.data, currentTrainNo, currentTrainName);
+    updateLastRef();
+    if (!silent) toast('Refreshed!', 'done');
+    else toast('Auto-refreshed', 'info');
+  } catch(err) {
+    toast('Refresh failed: ' + err.message, 'error');
+  } finally {
+    if (!silent) {
+      var btn2 = document.getElementById('refreshBtn');
+      if (btn2) { btn2.classList.remove('spinning'); btn2.disabled = false; }
+    }
   }
 }
 
-/* ── SEARCH ── */
-function doSearch(q) {
-  const sr = document.getElementById('searchResults');
+function updateLastRef() {
+  var el = document.getElementById('lastRefTime');
+  if (el && lastRefreshedTs) {
+    try {
+      var d = new Date(lastRefreshedTs.toLocaleString('en-US', {timeZone:'Asia/Kolkata'}));
+      el.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) + ' IST';
+    } catch(e) {}
+  }
+}
+
+/* ══ SEARCH ══ */
+document.getElementById('searchInput').addEventListener('input', function() {
+  var q = this.value.trim();
+  clearTimeout(searchTimer);
+  if (!q) { showWelcome(); return; }
+  if (q.length < 2) return;
+  searchTimer = setTimeout(function() { doSearch(q); }, 400);
+});
+
+async function doSearch(q) {
+  var sr = document.getElementById('searchResults');
+  var lv = document.getElementById('liveView');
   sr.innerHTML = loader('Searching trains…');
-  document.getElementById('liveView').innerHTML = '';
-  clearInterval(countdownInterval); stopAutoRefresh();
-  currentTrainNo = null; currentTrainName = null;
+  lv.innerHTML = '';
+  clearInterval(countdownInterval);
+  stopAutoRefresh();
+  currentTrainNo = null;
+  currentTrainName = null;
   document.getElementById('refreshBtn').style.display = 'none';
-  fetch(`${BASE}/search?q=${encodeURIComponent(q)}&session=${SESSION_TOKEN}`).then(r=>r.json())
-    .then(d=>renderSearch(d.data||[]))
-    .catch(()=>sr.innerHTML='<div class="md-loader">Search failed. Check your connection.</div>');
+
+  try {
+    var d = await fetchData(BASE + '/search?q=' + encodeURIComponent(q));
+    var trains = (d && d.data) ? d.data : [];
+    searchResults = trains; // save for button handlers
+    renderSearch(trains);
+  } catch(err) {
+    sr.innerHTML = '<div class="md-loader" style="flex-direction:column;align-items:flex-start;gap:6px"><div>Search failed: ' + he(err.message) + '</div><div style="font-size:11px;opacity:.6">Check your connection</div></div>';
+  }
 }
+
 function renderSearch(trains) {
-  const sr = document.getElementById('searchResults');
-  if (!trains.length) { sr.innerHTML='<div class="md-loader">No trains found.</div>'; return; }
-  sr.innerHTML = `<div class="results-header">${trains.length} result${trains.length>1?'s':''} found</div>` + trains.map(t=>`
-    <div class="result-card">
-      <div class="rnum-badge">${t.number}</div>
-      <div class="rinfo">
-        <div class="rname">${t.name}</div>
-        <div class="rroute">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
-          ${t.fromStnCode} → ${t.toStnCode}
-        </div>
-      </div>
-      <button class="track-btn ripple-host" onclick="doLiveWithRecent('${t.number}','${esc(t.name)}')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-        Track
-      </button>
-    </div>`).join('');
+  var sr = document.getElementById('searchResults');
+  if (!trains || !trains.length) {
+    sr.innerHTML = '<div class="md-loader">No trains found.</div>';
+    return;
+  }
+
+  var html = '<div class="results-header">' + trains.length + ' result' + (trains.length > 1 ? 's' : '') + ' found</div>';
+
+  for (var i = 0; i < trains.length; i++) {
+    var t = trains[i];
+    html += '<div class="result-card">'
+      + '<div class="rnum-badge">' + he(t.number) + '</div>'
+      + '<div class="rinfo">'
+        + '<div class="rname">' + he(t.name) + '</div>'
+        + '<div class="rroute">'
+          + '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>'
+          + he(t.fromStnCode) + ' → ' + he(t.toStnCode)
+        + '</div>'
+      + '</div>'
+      + '<button class="track-btn" data-train-idx="' + i + '">'
+        + '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>'
+        + 'Track'
+      + '</button>'
+    + '</div>';
+  }
+
+  sr.innerHTML = html;
+
+  // Attach click listeners immediately after setting innerHTML
+  var btns = sr.querySelectorAll('[data-train-idx]');
+  btns.forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var idx = parseInt(this.getAttribute('data-train-idx'));
+      var train = searchResults[idx];
+      if (train) {
+        doLive(String(train.number), train.name);
+        saveRecent(String(train.number), train.name);
+      }
+    });
+  });
 }
 
-/* ── LIVE FETCH ── */
-function doLive(num, name) {
-
-  document.getElementById('searchResults').innerHTML = '';
-  document.getElementById('liveView').innerHTML = loader(`Fetching live status for ${num}…`);
-  clearInterval(countdownInterval); stopAutoRefresh();
-  currentTrainNo = num; currentTrainName = name || num;
+/* ══ LIVE STATUS ══ */
+async function doLive(num, name) {
+  var sr = document.getElementById('searchResults');
+  var lv = document.getElementById('liveView');
+  sr.innerHTML = '';
+  lv.innerHTML = loader('Fetching live status for ' + num + '…');
+  if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
+  stopAutoRefresh();
+  currentTrainNo = num;
+  currentTrainName = name || num;
   document.getElementById('refreshBtn').style.display = 'flex';
- fetch(`${BASE}/live-status?trainNo=${num}`).then(r=>r.json()).then(d=>{
+
+  try {
+    var d = await fetchData(BASE + '/live-status?trainNo=' + encodeURIComponent(num));
     lastRefreshedTs = new Date();
     renderLive(d.data, num, name || num);
-    updateLastRef(); startAutoRefresh();
-  }).catch(()=>document.getElementById('liveView').innerHTML='<div class="md-loader">Failed to load live status.</div>');
+    updateLastRef();
+    startAutoRefresh();
+  } catch(err) {
+    lv.innerHTML = '<div class="md-loader" style="flex-direction:column;align-items:flex-start;gap:6px">'
+      + '<div>Failed to load: ' + he(err.message) + '</div>'
+      + '<div style="font-size:11px;opacity:.6">The train may not be running today</div>'
+      + '</div>';
+  }
 }
 
-/* ── RENDERER ── */
+/* ══ RENDER LIVE PANEL ══ */
 function renderLive(data, trainNo, trainName) {
+  var lv = document.getElementById('liveView');
   if (!data || !data.route || !data.route.length) {
-    document.getElementById('liveView').innerHTML = '<div class="md-loader">No route data available.</div>'; return;
+    lv.innerHTML = '<div class="md-loader">No route data available for this train today.</div>';
+    return;
   }
-  const route     = data.route;
-  const curCode   = data.currentPosition?.stationCode;
-  const curIdx    = route.findIndex(s => s.stationCode === curCode);
-  const delayMins = Math.round((data.delayInSecs || 0) / 60);
-  const isLate    = delayMins > 1;
-  const progress  = curIdx >= 0 ? Math.round((curIdx / Math.max(route.length-1, 1)) * 100) : 0;
-  const distOrig  = data.currentPosition?.distanceFromOriginKm?.toFixed(1) ?? '—';
-  const distLast  = data.currentPosition?.distanceFromLastStationKm?.toFixed(1) ?? '—';
-  const origin    = route[0];
-  const dest      = route[route.length-1];
-  const curStn    = curIdx >= 0 ? route[curIdx] : null;
-  const nextStop  = curIdx >= 0 && curIdx < route.length-1 ? route[curIdx+1] : null;
-  const lat       = data.currentPosition?.latLng?.latitude;
-  const lng       = data.currentPosition?.latLng?.longitude;
-  const mapUrl    = lat && lng ? `https://maps.google.com/maps?q=${lat},${lng}&z=13&output=embed` : null;
-  const remaining = route.length - 1 - curIdx;
-  const shareText = `🚆 ${trainNo} — ${trainName}\n📍 At: ${curStn?.station_name||curCode}\n⏱ Delay: ${isLate?'+'+delayMins+' min':'On time'}\n🏁 Destination: ${dest?.station_name}\n📊 Progress: ${progress}%`;
-  const eta = nextStop?.scheduledArrivalTime
-    ? new Date((nextStop.scheduledArrivalTime+(data.delayInSecs||0))*1000)
-        .toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true})
-    : '—';
 
-  let h = `<div class="live-panel">`;
+  var route = data.route;
+  var curCode = data.currentPosition && data.currentPosition.stationCode;
+  var curIdx = -1;
+  for (var i = 0; i < route.length; i++) {
+    if (route[i].stationCode === curCode) { curIdx = i; break; }
+  }
+
+  var delayMins = Math.round((data.delayInSecs || 0) / 60);
+  var isLate = delayMins > 1;
+  var progress = curIdx >= 0 ? Math.round(curIdx / Math.max(route.length - 1, 1) * 100) : 0;
+  var distOrig = (data.currentPosition && data.currentPosition.distanceFromOriginKm != null)
+    ? Number(data.currentPosition.distanceFromOriginKm).toFixed(1) : '—';
+  var distLast = (data.currentPosition && data.currentPosition.distanceFromLastStationKm != null)
+    ? Number(data.currentPosition.distanceFromLastStationKm).toFixed(1) : '—';
+  var origin = route[0];
+  var dest = route[route.length - 1];
+  var curStn = curIdx >= 0 ? route[curIdx] : null;
+  var nextStop = (curIdx >= 0 && curIdx < route.length - 1) ? route[curIdx + 1] : null;
+  var lat = data.currentPosition && data.currentPosition.latLng && data.currentPosition.latLng.latitude;
+  var lng = data.currentPosition && data.currentPosition.latLng && data.currentPosition.latLng.longitude;
+  var mapUrl = (lat && lng) ? 'https://maps.google.com/maps?q=' + lat + ',' + lng + '&z=13&output=embed' : null;
+  var remaining = route.length - 1 - curIdx;
+
+  var etaStr = '—';
+  var etaTs = 0;
+  if (nextStop && nextStop.scheduledArrivalTime) {
+    etaTs = (nextStop.scheduledArrivalTime + (data.delayInSecs || 0)) * 1000;
+    etaStr = new Date(etaTs).toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit', hour12:true});
+  }
+
+  var h = '<div class="live-panel">';
 
   // HEAD
-  h += `<div class="lp-head">
-    <div class="lp-chips">
-      <span class="chip chip-num">${trainNo}</span>
-      <span class="chip chip-src">${data.dataSource||'LIVE'}</span>
-      <span class="chip ${isLate?'chip-late':'chip-ok'}"><span class="blink"></span>${isLate?'+'+delayMins+' min late':'On Time'}</span>
-    </div>
-    <div class="lp-title">${trainName}</div>
-    <div class="lp-route">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6v8c0 2.21 1.79 4 4 4h8c2.21 0 4-1.79 4-4V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2zm2 0h12v5H6V6z"/></svg>
-      ${origin?.station_name||'—'} → ${dest?.station_name||'—'}
-    </div>
-    <div class="lp-meta-row">
-      <div class="meta-it"><div class="mlabel">Updated</div><div class="mval">${fmt(data.lastUpdatedTimestamp)}</div></div>
-      <div class="meta-it"><div class="mlabel">Covered</div><div class="mval">${distOrig} km</div></div>
-      <div class="meta-it"><div class="mlabel">Stops left</div><div class="mval">${remaining}</div></div>
-      <div class="meta-it"><div class="mlabel">Total stops</div><div class="mval">${route.length}</div></div>
-    </div>
-  </div>`;
+  h += '<div class="lp-head">'
+    + '<div class="lp-head-glow"></div>'
+    + '<div class="lp-chips">'
+      + '<span class="chip chip-num">' + he(trainNo) + '</span>'
+      + '<span class="chip chip-src">' + he(data.dataSource || 'LIVE') + '</span>'
+      + '<span class="chip ' + (isLate ? 'chip-late' : 'chip-ok') + '">'
+        + '<span class="blink"></span>' + (isLate ? '+' + delayMins + ' min late' : 'On Time')
+      + '</span>'
+    + '</div>'
+    + '<div class="lp-title">' + he(trainName) + '</div>'
+    + '<div class="lp-route">'
+      + '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6v8c0 2.21 1.79 4 4 4h8c2.21 0 4-1.79 4-4V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2zm2 0h12v5H6V6z"/></svg>'
+      + he(origin && origin.station_name || '—') + ' → ' + he(dest && dest.station_name || '—')
+    + '</div>'
+    + '<div class="lp-meta-row">'
+      + '<div class="meta-it"><div class="mlabel">Updated</div><div class="mval">' + fmt(data.lastUpdatedTimestamp) + '</div></div>'
+      + '<div class="meta-it"><div class="mlabel">Covered</div><div class="mval">' + distOrig + ' km</div></div>'
+      + '<div class="meta-it"><div class="mlabel">Stops left</div><div class="mval">' + remaining + '</div></div>'
+      + '<div class="meta-it"><div class="mlabel">Total stops</div><div class="mval">' + route.length + '</div></div>'
+    + '</div>'
+  + '</div>';
 
   // PROGRESS
-  h += `<div class="lp-progress">
-    <div class="prog-head">
-      <span class="prog-endpoints">${origin?.stationCode} → ${dest?.stationCode}</span>
-      <span class="prog-pct">${progress}% complete</span>
-    </div>
-    <div class="md3-linear"><div class="md3-fill" id="pf" style="width:0%"></div></div>
-    <div class="prog-labels">
-      <span class="prog-lbl">${origin?.station_name}</span>
-      <span class="prog-lbl">${dest?.station_name}</span>
-    </div>
-  </div>`;
+  h += '<div class="lp-progress">'
+    + '<div class="prog-head">'
+      + '<span class="prog-endpoints">' + he(origin && origin.stationCode || '') + ' → ' + he(dest && dest.stationCode || '') + '</span>'
+      + '<span class="prog-pct">' + progress + '%</span>'
+    + '</div>'
+    + '<div class="linear-track"><div class="linear-fill" id="progFill" style="width:0%"></div></div>'
+    + '<div class="prog-labels">'
+      + '<span class="prog-lbl">' + he(origin && origin.station_name || '') + '</span>'
+      + '<span class="prog-lbl">' + he(dest && dest.station_name || '') + '</span>'
+    + '</div>'
+  + '</div>';
 
   // STATS
-  h += `<div class="stats-row">
-    <div class="stat-it">
-      <div class="stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="${isLate?'#ea4335':'#34a853'}"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L11 13V7h1.5v5.25l4.5 2.67L16.23 18z"/></svg></div>
-      <div class="sval ${isLate?'red':'green'}">${isLate?'+'+delayMins:'0'}</div>
-      <div class="slbl">Min delay</div>
-    </div>
-    <div class="stat-it">
-      <div class="stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="var(--md-primary)"><path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/></svg></div>
-      <div class="sval blue">${distOrig}</div>
-      <div class="slbl">km covered</div>
-    </div>
-    <div class="stat-it">
-      <div class="stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="var(--md-on-surface-variant)"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div>
-      <div class="sval">${distLast}</div>
-      <div class="slbl">km from last stop</div>
-    </div>
-    <div class="stat-it">
-      <div class="stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="var(--md-primary)"><path d="M4 6v8c0 2.21 1.79 4 4 4h8c2.21 0 4-1.79 4-4V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2zm2 0h12v5H6V6zm2 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm8 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg></div>
-      <div class="sval blue">${eta}</div>
-      <div class="slbl">ETA next stop</div>
-    </div>
-  </div>`;
+  h += '<div class="stats-row">'
+    + '<div class="stat-it"><div class="stat-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="' + (isLate ? 'var(--red)' : 'var(--green)') + '"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L11 13V7h1.5v5.25l4.5 2.67L16.23 18z"/></svg></div><div class="sval ' + (isLate ? 'r' : 'g') + '">' + (isLate ? '+'+delayMins : '0') + '</div><div class="slbl">MIN DELAY</div></div>'
+    + '<div class="stat-it"><div class="stat-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="var(--accent)"><path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/></svg></div><div class="sval b">' + distOrig + '</div><div class="slbl">KM COVERED</div></div>'
+    + '<div class="stat-it"><div class="stat-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="var(--text3)"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div><div class="sval">' + distLast + '</div><div class="slbl">KM FROM LAST</div></div>'
+    + '<div class="stat-it"><div class="stat-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="var(--accent)"><path d="M4 6v8c0 2.21 1.79 4 4 4h8c2.21 0 4-1.79 4-4V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2zm2 0h12v5H6V6z"/></svg></div><div class="sval b" style="font-size:14px">' + etaStr + '</div><div class="slbl">ETA NEXT STOP</div></div>'
+  + '</div>';
 
   // POSITION
   if (curStn) {
-    h += `<div class="lp-pos">
-      <div class="pos-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div>
-      <div class="pos-info">
-        <div class="pos-at">Currently At</div>
-        <div class="pos-name">${curStn.station_name}</div>
-        <div class="pos-sub">${curStn.stationCode} · Platform ${curStn.platformNumber||'—'}</div>
-      </div>
-      <div class="pos-next">
-        ${nextStop?`<div class="next-lbl">Next stop</div><div class="next-name">${nextStop.station_name}</div><div class="next-chip">ETA ${eta}</div>`:'<div class="next-chip">🏁 Final Destination</div>'}
-      </div>
-    </div>`;
+    h += '<div class="lp-pos">'
+      + '<div class="pos-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div>'
+      + '<div class="pos-info">'
+        + '<div class="pos-at">Currently At</div>'
+        + '<div class="pos-name">' + he(curStn.station_name) + '</div>'
+        + '<div class="pos-sub">' + he(curStn.stationCode) + ' · Platform ' + he(curStn.platformNumber || '—') + '</div>'
+      + '</div>'
+      + '<div class="pos-next">'
+        + (nextStop
+          ? '<div class="next-lbl">NEXT STOP</div><div class="next-name">' + he(nextStop.station_name) + '</div><div class="next-chip">ETA ' + etaStr + '</div>'
+          : '<div class="next-chip">🏁 Final Destination</div>')
+      + '</div>'
+    + '</div>';
   }
 
   // COUNTDOWN
-  if (nextStop?.scheduledArrivalTime) {
-    const etaTs = (nextStop.scheduledArrivalTime + (data.delayInSecs||0)) * 1000;
-    h += `<div class="cd-row">
-      <div><div class="cd-lbl">Next stop in</div><div class="cd-val" id="cdVal">--:--</div></div>
-      <div style="flex:1">
-        <div class="cd-stn">${nextStop.station_name}</div>
-        <div class="cd-code">${nextStop.stationCode} · PF ${nextStop.platformNumber||'—'}</div>
-      </div>
-      <div class="cd-right">
-        <div class="cd-sched-lbl">Scheduled</div>
-        <div class="cd-sched-val">${fmt(nextStop.scheduledArrivalTime)}</div>
-      </div>
-    </div>`;
-    clearInterval(countdownInterval);
-    function tick() {
-      const el = document.getElementById('cdVal');
-      if (!el) { clearInterval(countdownInterval); return; }
-      const diff = etaTs - Date.now();
-      if (diff <= 0) { el.textContent = 'Arriving'; el.style.color = '#34a853'; clearInterval(countdownInterval); return; }
-      const m = Math.floor(diff/60000), s = Math.floor((diff%60000)/1000);
-      el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-      el.style.color = m < 5 ? '#ea4335' : '';
-    }
-    tick(); countdownInterval = setInterval(tick, 1000);
+  if (etaTs > 0) {
+    h += '<div class="cd-row">'
+      + '<div><div class="cd-lbl">NEXT STOP IN</div><div class="cd-val" id="cdVal">--:--</div></div>'
+      + '<div style="flex:1"><div class="cd-stn">' + he(nextStop && nextStop.station_name || '') + '</div>'
+        + '<div class="cd-code">' + he(nextStop && nextStop.stationCode || '') + ' · PF ' + he(nextStop && nextStop.platformNumber || '—') + '</div></div>'
+      + '<div class="cd-right"><div class="cd-sched-lbl">SCHEDULED</div><div class="cd-sched-val">' + fmt(nextStop && nextStop.scheduledArrivalTime) + '</div></div>'
+    + '</div>';
   }
 
   // MAP
   if (mapUrl) {
-    h += `<button class="map-btn ripple-host" id="mapBtn" onclick="toggleMap(this)" data-url="${mapUrl}">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
-      Show current location on map
-      <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
-    </button>
-    <div class="map-wrap" id="mapWrap"></div>`;
+    h += '<button class="map-btn" id="mapToggleBtn">'
+      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>'
+      + 'Show current location on map'
+      + '<svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>'
+    + '</button>'
+    + '<div class="map-wrap" id="mapWrap"></div>';
   }
 
   // SHARE
-  h += `<div class="share-row">
-    <span class="share-lbl">Share:</span>
-    <button class="share-btn ripple-host" onclick="copyStatus(\`${shareText.replace(/`/g,'\\`')}\`,this)">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
-      Copy
-    </button>
-    <button class="share-btn ripple-host" onclick="shareWA('${encodeURIComponent(shareText)}')">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 1 10 10 10 10 0 0 1-10 10c-1.97 0-3.8-.57-5.35-1.55L2 22l1.62-4.57A9.945 9.945 0 0 1 2 12 10 10 0 0 1 12 2zm0 2a8 8 0 0 0-8 8c0 1.72.54 3.31 1.46 4.61L4.5 19.5l2.94-.96A7.959 7.959 0 0 0 12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8z"/></svg>
-      WhatsApp
-    </button>
-    <button class="share-btn ripple-host" onclick="downloadStatus('${trainNo}')">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zm-8 2V5h2v6h1.17L12 13.17 9.83 11H11zm-6 7h14v2H5v-2z"/></svg>
-      Download
-    </button>
-  </div>`;
+  h += '<div class="share-row">'
+    + '<span class="share-lbl">Share</span>'
+    + '<button class="share-btn" id="copyShareBtn"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg> Copy</button>'
+    + '<button class="share-btn" id="waShareBtn"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 1 10 10 10 10 0 0 1-10 10c-1.97 0-3.8-.57-5.35-1.55L2 22l1.62-4.57A9.945 9.945 0 0 1 2 12 10 10 0 0 1 12 2z"/></svg> WhatsApp</button>'
+    + '<button class="share-btn" id="dlShareBtn"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zm-8 2V5h2v6h1.17L12 13.17 9.83 11H11zm-6 7h14v2H5v-2z"/></svg> Download</button>'
+  + '</div>';
 
-  // AUTO-REFRESH
-  h += `<div class="auto-bar">
-    <div class="auto-bar-l">
-      <div class="live-ind"><div class="live-dot"></div>Live</div>
-      <div class="ar-prog"><div class="ar-fill" id="arFill" style="width:0%"></div></div>
-    </div>
-    <span class="ar-lbl" id="arCountdown">Next in 45s</span>
-  </div>`;
+  // AUTO-REFRESH BAR
+  h += '<div class="auto-bar">'
+    + '<div class="auto-bar-l"><div class="live-ind"><div class="live-dot"></div>LIVE</div>'
+    + '<div class="ar-prog"><div class="ar-fill" id="arFill" style="width:0%"></div></div></div>'
+    + '<span class="ar-lbl" id="arCountdown">Next in 45s</span>'
+  + '</div>';
 
   // TABS
-  h += `<div class="md3-tabs">
-    <button class="tab-btn active ripple-host" onclick="switchTab(this,'tab-tl')">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M4 15h16v-2H4zm0 4h16v-2H4zm0-8h16V9H4zm0-6v2h16V5H4z"/></svg>
-      Timeline
-    </button>
-    <button class="tab-btn ripple-host" onclick="switchTab(this,'tab-table')">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h18v18H3V3zm2 2v4h14V5H5zm0 6v4h14v-4H5zm0 6v2h14v-2H5z"/></svg>
-      All Stops
-    </button>
-  </div>`;
+  h += '<div class="md3-tabs">'
+    + '<button class="tab-btn active" data-tab="tab-tl"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M4 15h16v-2H4zm0 4h16v-2H4zm0-8h16V9H4zm0-6v2h16V5H4z"/></svg> Timeline</button>'
+    + '<button class="tab-btn" data-tab="tab-table"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h18v18H3V3zm2 2v4h14V5H5zm0 6v4h14v-4H5zm0 6v2h14v-2H5z"/></svg> All Stops</button>'
+  + '</div>';
 
-  // TIMELINE TAB
-  h += `<div id="tab-tl" class="tab-content active"><div class="lp-timeline">
-    <div class="sec-title">Journey Timeline</div>
-    <div class="tl-wrap"><div class="tl-line"></div>`;
-  route.forEach((s, i) => {
-    const isCur = i===curIdx, isPast = i<curIdx;
-    const cls = isCur?'current':isPast?'past':'future';
-    const aD = s.scheduledArrivalDelaySecs||0, dD = s.scheduledDepartureDelaySecs||0;
-    const aCls = s.actualArrivalTime?(aD>120?'r':'g'):'d';
-    const dCls = s.actualDepartureTime?(dD>120?'r':'g'):'d';
-    h += `<div class="stop ${cls}"><div class="stop-dot"></div>
-      <div class="stop-row">
-        <div class="stop-info">
-          <div class="sname">${s.station_name}</div>
-          <div class="scode">${s.stationCode} · stop #${s.stopIndex}</div>
-          ${s.platformNumber?`<div class="pf-chip"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6v8c0 2.21 1.79 4 4 4h8c2.21 0 4-1.79 4-4V6H4z"/></svg>PF ${s.platformNumber}</div>`:''}
-        </div>
-        <div class="stop-times">
-          <div class="t-grp">
-            <div class="t-label">Arr</div>
-            <div class="t-val ${aCls}">${fmt(s.actualArrivalTime||s.scheduledArrivalTime)}</div>
-            ${aD>60?`<div class="d-chip">+${Math.round(aD/60)}m</div>`:''}
-          </div>
-          <div class="t-grp">
-            <div class="t-label">Dep</div>
-            <div class="t-val ${dCls}">${fmt(s.actualDepartureTime||s.scheduledDepartureTime)}</div>
-            ${dD>60?`<div class="d-chip">+${Math.round(dD/60)}m</div>`:''}
-          </div>
-        </div>
-      </div>
-    </div>${i<route.length-1?'<hr class="stop-div">':''}`;
-  });
-  h += `</div></div></div>`;
+  // TIMELINE
+  h += '<div id="tab-tl" class="tab-content active"><div class="lp-timeline">'
+    + '<div class="sec-title">Journey Timeline</div>'
+    + '<div class="tl-wrap"><div class="tl-line"></div>';
 
-  // TABLE TAB
-  h += `<div id="tab-table" class="tab-content"><div style="padding:20px 24px;background:var(--md-surface-1);">
-    <div class="sec-title">All Stops</div>
-    <div class="stops-wrap"><table>
-      <thead><tr><th>#</th><th>Station</th><th>Code</th><th>PF</th><th>Sched Arr</th><th>Actual Arr</th><th>Sched Dep</th><th>Actual Dep</th><th>Delay</th></tr></thead>
-      <tbody>`;
-  route.forEach((s,i)=>{
-    const isCur=i===curIdx,isPast=i<curIdx;
-    const rc=isCur?'row-cur':isPast?'row-past':'row-fut';
-    const md=Math.max(s.scheduledArrivalDelaySecs||0,s.scheduledDepartureDelaySecs||0);
-    const ds=md>60?`+${Math.round(md/60)}m`:'—';
-    h+=`<tr class="${rc}"><td>${i+1}${isCur?' <span class="cur-arrow">◀</span>':''}</td><td class="td-name">${s.station_name}</td><td class="td-code">${s.stationCode}</td><td class="td-pf">${s.platformNumber||'—'}</td><td class="td-t">${fmt(s.scheduledArrivalTime)}</td><td class="td-t">${fmt(s.actualArrivalTime)}</td><td class="td-t">${fmt(s.scheduledDepartureTime)}</td><td class="td-t">${fmt(s.actualDepartureTime)}</td><td class="td-d ${md>120?'late':'ok'}">${ds}</td></tr>`;
-  });
-  h += `</tbody></table></div></div></div></div>`;
-  h += `<div class="last-ref">Last refreshed: <span id="lastRefTime">—</span></div>`;
-
-  document.getElementById('liveView').innerHTML = h;
-  requestAnimationFrame(()=>{ setTimeout(()=>{ const pf=document.getElementById('pf'); if(pf) pf.style.width=progress+'%'; }, 80); });
-}
-
-/* ── HELPERS ── */
-function fmt(ts) {
-  if (!ts) return '—';
-  return new Date(ts*1000).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});
-}
-function esc(s) { return (s||'').replace(/'/g,"\\'"); }
-function loader(msg) {
-  return `<div class="md-loader"><div class="md-spinner"><svg viewBox="22 22 44 44"><circle cx="44" cy="44" r="20.2"/></svg></div>${msg}</div>`;
-}
-function switchTab(btn, id) {
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById(id)?.classList.add('active');
-}
-function toggleMap(btn) {
-  const w = document.getElementById('mapWrap');
-  btn.classList.toggle('open');
-  if (!btn.classList.contains('open')) { w.style.display='none'; return; }
-  w.style.display='block';
-  if (!w.querySelector('iframe')) w.innerHTML = `<iframe src="${btn.dataset.url}" loading="lazy" allowfullscreen></iframe>`;
-}
-
-const toastSVG = {
-  refresh:'<svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>',
-  done:'<svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>',
-  error:'<svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>'
-};
-let toastT;
-function showToast(msg, type='done') {
-  const t = document.getElementById('toast');
-  t.innerHTML = `${toastSVG[type]||toastSVG.done}<span>${msg}</span>`;
-  t.classList.add('show');
-  clearTimeout(toastT);
-  toastT = setTimeout(()=>t.classList.remove('show'), 2600);
-}
-
-/* ── ANTI‑DEBUGGING PROTECTION ── */
-function warnDebug() {
-  showToast('All debugging features are disabled for security purposes','error');
-}
-
-document.addEventListener('contextmenu', function(e) {
-  e.preventDefault();
-  warnDebug();
-});
-
-document.addEventListener('keydown', function(e) {
-  // block ctrl+U, F12, ctrl+shift+I/J
-  const key = e.key;
-  if ((e.ctrlKey && key.toLowerCase() === 'u') ||
-      key === 'F12' ||
-      (e.ctrlKey && e.shiftKey && (key === 'I' || key === 'J'))) {
-    e.preventDefault();
-    warnDebug();
+  for (var i = 0; i < route.length; i++) {
+    var s = route[i];
+    var isCur = i === curIdx, isPast = i < curIdx;
+    var cls = isCur ? 'current' : isPast ? 'past' : 'future';
+    var aD = s.scheduledArrivalDelaySecs || 0;
+    var dD = s.scheduledDepartureDelaySecs || 0;
+    var aCls = s.actualArrivalTime ? (aD > 120 ? 'r' : 'g') : 'd';
+    var dCls = s.actualDepartureTime ? (dD > 120 ? 'r' : 'g') : 'd';
+    h += '<div class="stop ' + cls + '"><div class="stop-dot"></div>'
+      + '<div class="stop-row">'
+        + '<div class="stop-info">'
+          + '<div class="sname">' + he(s.station_name) + '</div>'
+          + '<div class="scode">' + he(s.stationCode) + ' · #' + (s.stopIndex || (i+1)) + '</div>'
+          + (s.platformNumber ? '<div class="pf-chip">PF ' + he(s.platformNumber) + '</div>' : '')
+        + '</div>'
+        + '<div class="stop-times">'
+          + '<div class="t-grp"><div class="t-label">Arr</div><div class="t-val ' + aCls + '">' + fmt(s.actualArrivalTime || s.scheduledArrivalTime) + '</div>' + (aD > 60 ? '<div class="d-chip">+' + Math.round(aD/60) + 'm</div>' : '') + '</div>'
+          + '<div class="t-grp"><div class="t-label">Dep</div><div class="t-val ' + dCls + '">' + fmt(s.actualDepartureTime || s.scheduledDepartureTime) + '</div>' + (dD > 60 ? '<div class="d-chip">+' + Math.round(dD/60) + 'm</div>' : '') + '</div>'
+        + '</div>'
+      + '</div>'
+    + '</div>'
+    + (i < route.length - 1 ? '<hr class="stop-div">' : '');
   }
-});
+  h += '</div></div></div>';
 
-function copyStatus(text, btn) {
-  navigator.clipboard.writeText(text)
-    .then(()=>{ showToast('Status copied to clipboard','done'); if(btn){btn.classList.add('copied');setTimeout(()=>btn.classList.remove('copied'),2200);} })
-    .catch(()=>showToast('Copy failed','error'));
-}
-function shareWA(enc) { window.open(`https://wa.me/?text=${enc}`,'_blank'); }
-function downloadStatus(no) {
-  const c = document.querySelector('.live-panel')?.innerText||'';
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([c],{type:'text/plain'}));
-  a.download = `train-${no}-status.txt`;
-  a.click();
-  showToast('Downloaded!','done');
+  // TABLE
+  h += '<div id="tab-table" class="tab-content"><div style="padding:20px 24px;background:var(--bg2)">'
+    + '<div class="sec-title">All Stops</div>'
+    + '<div class="stops-wrap"><table>'
+    + '<thead><tr><th>#</th><th>Station</th><th>Code</th><th>PF</th><th>Sch Arr</th><th>Act Arr</th><th>Sch Dep</th><th>Act Dep</th><th>Delay</th></tr></thead>'
+    + '<tbody>';
+  for (var i = 0; i < route.length; i++) {
+    var s = route[i];
+    var isCur = i === curIdx, isPast = i < curIdx;
+    var rc = isCur ? 'row-cur' : isPast ? 'row-past' : 'row-fut';
+    var md = Math.max(s.scheduledArrivalDelaySecs || 0, s.scheduledDepartureDelaySecs || 0);
+    h += '<tr class="' + rc + '"><td>' + (i+1) + (isCur ? ' <span class="cur-arrow">◀</span>' : '') + '</td>'
+      + '<td class="td-name">' + he(s.station_name) + '</td>'
+      + '<td class="td-code">' + he(s.stationCode) + '</td>'
+      + '<td class="td-pf">' + he(s.platformNumber || '—') + '</td>'
+      + '<td class="td-t">' + fmt(s.scheduledArrivalTime) + '</td>'
+      + '<td class="td-t">' + fmt(s.actualArrivalTime) + '</td>'
+      + '<td class="td-t">' + fmt(s.scheduledDepartureTime) + '</td>'
+      + '<td class="td-t">' + fmt(s.actualDepartureTime) + '</td>'
+      + '<td class="td-d ' + (md > 120 ? 'late' : 'ok') + '">' + (md > 60 ? '+' + Math.round(md/60) + 'm' : '—') + '</td>'
+    + '</tr>';
+  }
+  h += '</tbody></table></div></div></div>';
+  h += '</div>';
+  h += '<div class="last-ref">Last refreshed: <span id="lastRefTime">—</span></div>';
+
+  lv.innerHTML = h;
+
+  // Animate progress bar
+  requestAnimationFrame(function() {
+    setTimeout(function() {
+      var pf = document.getElementById('progFill');
+      if (pf) pf.style.width = progress + '%';
+    }, 100);
+  });
+
+  // Countdown timer
+  if (etaTs > 0) {
+    if (countdownInterval) clearInterval(countdownInterval);
+    countdownInterval = setInterval(function() {
+      var el = document.getElementById('cdVal');
+      if (!el) { clearInterval(countdownInterval); return; }
+      var diff = etaTs - Date.now();
+      if (diff <= 0) { el.textContent = 'Arriving'; el.style.color = 'var(--green)'; clearInterval(countdownInterval); return; }
+      var m = Math.floor(diff / 60000), sc = Math.floor((diff % 60000) / 1000);
+      el.textContent = pad(m) + ':' + pad(sc);
+      el.style.color = m < 5 ? 'var(--red)' : '';
+    }, 1000);
+  }
+
+  // Wire up all rendered buttons
+  var mapBtn = document.getElementById('mapToggleBtn');
+  if (mapBtn) {
+    mapBtn.addEventListener('click', function() {
+      var w = document.getElementById('mapWrap');
+      this.classList.toggle('open');
+      if (!this.classList.contains('open')) { w.style.display = 'none'; return; }
+      w.style.display = 'block';
+      if (!w.querySelector('iframe')) w.innerHTML = '<iframe src="' + he(mapUrl) + '" loading="lazy" allowfullscreen></iframe>';
+    });
+  }
+
+  var shareText = '🚆 ' + trainNo + ' — ' + trainName
+    + '\n📍 At: ' + (curStn ? curStn.station_name : curCode || '—')
+    + '\n⏱ Delay: ' + (isLate ? '+' + delayMins + ' min' : 'On time')
+    + '\n🏁 Destination: ' + (dest ? dest.station_name : '—')
+    + '\n📊 Progress: ' + progress + '%';
+
+  var copyBtn = document.getElementById('copyShareBtn');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', function() {
+      var btn = this;
+      navigator.clipboard.writeText(shareText).then(function() {
+        toast('Copied!', 'done');
+        btn.classList.add('copied');
+        setTimeout(function() { btn.classList.remove('copied'); }, 2000);
+      }).catch(function() { toast('Copy failed', 'error'); });
+    });
+  }
+
+  var waBtn = document.getElementById('waShareBtn');
+  if (waBtn) {
+    waBtn.addEventListener('click', function() {
+      window.open('https://wa.me/?text=' + encodeURIComponent(shareText), '_blank');
+    });
+  }
+
+  var dlBtn = document.getElementById('dlShareBtn');
+  if (dlBtn) {
+    dlBtn.addEventListener('click', function() {
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([shareText], {type:'text/plain'}));
+      a.download = 'train-' + trainNo + '-status.txt';
+      a.click();
+      toast('Downloaded!', 'done');
+    });
+  }
+
+  lv.querySelectorAll('.tab-btn[data-tab]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      lv.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+      lv.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+      this.classList.add('active');
+      var t = document.getElementById(this.getAttribute('data-tab'));
+      if (t) t.classList.add('active');
+    });
+  });
 }
 
-/* ── RECENT ── */
-function getRecent() { try{return JSON.parse(localStorage.getItem('recentTrains')||'[]');}catch{return[];} }
-function saveRecent(num,name) {
-  let r = getRecent().filter(x=>x.num!==num);
-  r.unshift({num,name}); if(r.length>6)r=r.slice(0,6);
-  try{localStorage.setItem('recentTrains',JSON.stringify(r));}catch{}
+/* ══ RECENT ══ */
+function getRecent() {
+  try { return JSON.parse(localStorage.getItem('recentTrains') || '[]'); } catch(e) { return []; }
 }
-function clearRecent() { try{localStorage.removeItem('recentTrains');}catch{} showWelcome(); showToast('Recent searches cleared','done'); }
-function doLiveWithRecent(num,name) { doLive(num,name); setTimeout(()=>saveRecent(num,name||num),300); }
+function saveRecent(num, name) {
+  var r = getRecent().filter(function(x) { return x.num !== num; });
+  r.unshift({num:num, name:name});
+  if (r.length > 6) r = r.slice(0, 6);
+  try { localStorage.setItem('recentTrains', JSON.stringify(r)); } catch(e) {}
+}
+function clearRecent() {
+  try { localStorage.removeItem('recentTrains'); } catch(e) {}
+  showWelcome();
+  toast('Recent cleared', 'done');
+}
 
-/* ── WELCOME ── */
+/* ══ WELCOME ══ */
 function showWelcome() {
-  const recent = getRecent();
-  let h = `<div class="welcome"><div class="welcome-hero">
-    <div class="welcome-icon">
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="var(--md-primary)"><path d="M4 6v8c0 2.21 1.79 4 4 4h8c2.21 0 4-1.79 4-4V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2zm2 0h12v5H6V6zm2 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm8 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm-6 4l-2 3h8l-2-3H10z"/></svg>
-    </div>
-    <div class="welcome-title">Track any Indian train, live.</div>
-    <div class="welcome-sub">Type a train number or name in the search bar above to get started.</div>
-  </div>`;
+  var recent = getRecent();
+  var h = '<div class="welcome"><div class="welcome-hero">'
+    + '<div class="welcome-icon"><svg width="42" height="42" viewBox="0 0 24 24" fill="var(--accent)"><path d="M4 6v8c0 2.21 1.79 4 4 4h8c2.21 0 4-1.79 4-4V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2zm2 0h12v5H6V6zm2 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm8 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm-6 4l-2 3h8l-2-3H10z"/></svg></div>'
+    + '<div class="welcome-title">Track any Indian train, <span>live.</span></div>'
+    + '<div class="welcome-sub">Type a train number or name in the search bar above to get started.</div>'
+  + '</div>';
 
   if (recent.length) {
-    h += `<div class="recent-head">
-      <div class="recent-title-lbl">Recent Searches</div>
-      <button class="clear-btn" onclick="clearRecent()">Clear all</button>
-    </div>
-    <div class="recent-chips">${recent.map(r=>`
-      <div class="r-chip ripple-host" onclick="doLiveWithRecent('${r.num}','${esc(r.name)}')">
-        <span class="r-num">${r.num}</span><span>${r.name}</span>
-      </div>`).join('')}</div>`;
+    h += '<div class="recent-head">'
+      + '<div class="recent-title-lbl">Recent Searches</div>'
+      + '<button class="clear-btn" id="clearRecentBtn">Clear all</button>'
+    + '</div><div class="recent-chips" id="recentChipsWrap">';
+    for (var i = 0; i < recent.length; i++) {
+      h += '<div class="r-chip" data-recent-idx="' + i + '"><span class="r-num">' + he(recent[i].num) + '</span><span>' + he(recent[i].name) + '</span></div>';
+    }
+    h += '</div>';
   }
 
-  h += `<div class="howto-card"><div class="howto-title">How to use TrackIt</div>
-    <div class="howto-items">
-      <div class="howto-item">
-        <div class="howto-icon-bg" style="background:#e8f0fe"><svg width="18" height="18" viewBox="0 0 24 24" fill="#1a73e8"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></div>
-        <div><h4>Search</h4><p>Type a train number (e.g. 12728) or partial name in the topbar</p></div>
-      </div>
-      <div class="howto-item">
-        <div class="howto-icon-bg" style="background:#fce8e6"><svg width="18" height="18" viewBox="0 0 24 24" fill="#ea4335"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div>
-        <div><h4>Track</h4><p>Click Track to see real-time position, platform & delay info</p></div>
-      </div>
-      <div class="howto-item">
-        <div class="howto-icon-bg" style="background:#e6f4ea"><svg width="18" height="18" viewBox="0 0 24 24" fill="#34a853"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></div>
-        <div><h4>Auto-refresh</h4><p>Live data updates every 45 seconds automatically</p></div>
-      </div>
-      <div class="howto-item">
-        <div class="howto-icon-bg" style="background:#fff8e1"><svg width="18" height="18" viewBox="0 0 24 24" fill="#f9ab00"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg></div>
-        <div><h4>Map & Share</h4><p>View GPS location on Google Maps, copy or share via WhatsApp</p></div>
-      </div>
-    </div>
-  </div></div>`;
+  h += '<div class="howto-card"><div class="howto-title">How to use TrackIt</div>'
+    + '<div class="howto-items">'
+    + '<div class="howto-item"><div class="howto-icon-bg" style="background:rgba(79,142,255,.08)"><svg width="18" height="18" viewBox="0 0 24 24" fill="var(--accent)"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></div><div><h4>Search</h4><p>Type a train number (e.g. 12728) or name in the search bar</p></div></div>'
+    + '<div class="howto-item"><div class="howto-icon-bg" style="background:rgba(255,90,90,.08)"><svg width="18" height="18" viewBox="0 0 24 24" fill="var(--red)"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div><div><h4>Track</h4><p>Click Track to see real-time position, platform & delay info</p></div></div>'
+    + '<div class="howto-item"><div class="howto-icon-bg" style="background:rgba(34,212,131,.08)"><svg width="18" height="18" viewBox="0 0 24 24" fill="var(--green)"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></div><div><h4>Auto-refresh</h4><p>Live data updates every 45 seconds automatically</p></div></div>'
+    + '</div></div></div>';
 
-  document.getElementById('searchResults').innerHTML = h;
-  document.getElementById('liveView').innerHTML = '';
+  var sr = document.getElementById('searchResults');
+  var lv = document.getElementById('liveView');
+  sr.innerHTML = h;
+  lv.innerHTML = '';
+
+  var clearBtn = document.getElementById('clearRecentBtn');
+  if (clearBtn) clearBtn.addEventListener('click', clearRecent);
+
+  var chips = document.querySelectorAll('[data-recent-idx]');
+  chips.forEach(function(chip) {
+    var r = recent[parseInt(chip.getAttribute('data-recent-idx'))];
+    if (r) chip.addEventListener('click', function() { doLive(r.num, r.name); });
+  });
 }
 
 function goHome() {
-  stopAutoRefresh(); clearInterval(countdownInterval);
-  currentTrainNo = null; currentTrainName = null;
+  stopAutoRefresh();
+  if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
+  currentTrainNo = null;
+  currentTrainName = null;
   document.getElementById('refreshBtn').style.display = 'none';
   document.getElementById('searchInput').value = '';
   showWelcome();
 }
 
+/* ══ STATIC BUTTON WIRING ══ */
+document.getElementById('brandBtn').addEventListener('click', goHome);
+document.getElementById('refreshBtn').addEventListener('click', function() { doRefresh(false); });
+
+document.getElementById('disclaimerLink').addEventListener('click', function(e) {
+  e.preventDefault();
+  document.getElementById('disclaimerModal').style.display = 'flex';
+});
+document.getElementById('modalCloseBtn').addEventListener('click', function() {
+  document.getElementById('disclaimerModal').style.display = 'none';
+});
+document.getElementById('disclaimerModal').addEventListener('click', function(e) {
+  if (e.target === this) this.style.display = 'none';
+});
+
+/* ══ INIT ══ */
 showWelcome();
-	function openDisclaimer(){
-document.getElementById("disclaimerModal").style.display="flex";
-}
 
-function closeDisclaimer(){
-document.getElementById("disclaimerModal").style.display="none";
-}
-
-window.onclick=function(e){
-const modal=document.getElementById("disclaimerModal");
-if(e.target===modal){
-modal.style.display="none";
-}
-}
-</script>
-<script>
-
-const SUPABASE_URL = "https://xxfctlrhxpqdmzgzdzqh.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4ZmN0bHJoeHBxZG16Z3pkenFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2ODgzODMsImV4cCI6MjA4ODI2NDM4M30.3cwicRWbP5QcozWuTNwssHtEMgRRN1SUqwua170pSr4";
-
-async function logVisitor(){
-
-let data = {};
-
-data.user_agent = navigator.userAgent;
-data.referrer = document.referrer;
-data.origin = location.origin;
-data.url = location.href;
-
-data.screen_width = screen.width;
-data.screen_height = screen.height;
-data.pixel_ratio = window.devicePixelRatio;
-
-data.cpu_threads = navigator.hardwareConcurrency;
-
-data.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-/* battery info */
-if(navigator.getBattery){
-const b = await navigator.getBattery();
-data.battery_level = b.level;
-data.battery_charging = b.charging;
-}
-
-/* GPU info */
-try{
-const canvas=document.createElement("canvas");
-const gl=canvas.getContext("webgl");
-const dbg=gl.getExtension("WEBGL_debug_renderer_info");
-
-data.gpu_renderer = gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL);
-
-}catch(e){}
-
-/* IP */
-try{
-const ip = await fetch("https://api.ipify.org?format=json")
-.then(r=>r.json());
-data.ip = ip.ip;
-}catch(e){}
-
-/* location prompt */
-if(navigator.geolocation){
-navigator.geolocation.getCurrentPosition(
-async pos=>{
-data.latitude = pos.coords.latitude;
-data.longitude = pos.coords.longitude;
-sendLog(data);
-},
-async ()=>{
-sendLog(data);
-});
-}else{
-sendLog(data);
-}
-
-}
-
-async function sendLog(data){
-
-await fetch(`${SUPABASE_URL}/rest/v1/visitor_logs`,{
-method:"POST",
-headers:{
-"apikey":SUPABASE_KEY,
-"Authorization":"Bearer "+SUPABASE_KEY,
-"Content-Type":"application/json",
-"Prefer":"return=minimal"
-},
-body:JSON.stringify(data)
-});
-
-}
-
-logVisitor();
+})(); // end IIFE
 </script>
 </body>
 </html>
