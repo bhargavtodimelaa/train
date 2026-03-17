@@ -52,6 +52,14 @@ body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(r
 
 /* LOADER */
 .md-loader{display:flex;align-items:center;gap:16px;padding:40px 4px;color:var(--text2);font-size:14px}
+  .skeleton {
+  height: 20px;
+  border-radius: 6px;
+  background: linear-gradient(90deg,#111,#222,#111);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
 .md-spinner{width:32px;height:32px;flex-shrink:0}
 .md-spinner svg{width:32px;height:32px;animation:rotate 1.4s linear infinite}
 .md-spinner circle{fill:none;stroke:var(--accent);stroke-width:3.5;stroke-linecap:round;stroke-dasharray:80;stroke-dashoffset:60;animation:dash 1.4s ease-in-out infinite}
