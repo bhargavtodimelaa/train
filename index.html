@@ -321,9 +321,6 @@ tr.row-fut td{opacity:.35}
 (function() {
 'use strict';
 
-/* ══ CONFIG ══ */
-const BASE = 'https://sujith.bhargavtodimela4.workers.dev';
-
 /* ══ STATE ══ */
 let searchTimer = null;
 let countdownInterval = null;
@@ -336,20 +333,42 @@ let searchResults = []; // store last search results for track button lookup
 
 /* ══ MSGPACK DECODER ══
    Worker returns str32: byte 0xdb, 4-byte big-endian length, then UTF-8 JSON */
-async function fetchData(url) {
-  const resp = await fetch(url, {
-    headers: { 'Accept': 'application/msgpack' }
-  });
-  if (!resp.ok) throw new Error('HTTP ' + resp.status);
+const BASES = [
+  "https://train-api-eight.vercel.app/api",
+  "https://sujith.bhargavtodimela4.workers.dev"
+];
+
+async function fetchData(path) {
+  // 🎲 pick random backend
+  const first = BASES[Math.floor(Math.random() * BASES.length)];
+  const second = BASES.find(b => b !== first);
+
+  try {
+    const resp = await fetch(first + path);
+    if (!resp.ok) throw new Error();
+    return await parseResponse(resp);
+  } catch {
+    // fallback to other backend
+    const resp = await fetch(second + path);
+    if (!resp.ok) throw new Error('Both endpoints failed');
+    return await parseResponse(resp);
+  }
+}
+
+/* handles BOTH json + msgpack */
+async function parseResponse(resp) {
   const buf = await resp.arrayBuffer();
   const u8 = new Uint8Array(buf);
+
   let jsonStr;
+
   if (u8.length > 5 && u8[0] === 0xdb) {
     const len = (u8[1] * 16777216) + (u8[2] << 16) + (u8[3] << 8) + u8[4];
     jsonStr = new TextDecoder().decode(u8.slice(5, 5 + len));
   } else {
     jsonStr = new TextDecoder().decode(u8);
   }
+
   return JSON.parse(jsonStr);
 }
 
@@ -432,7 +451,7 @@ async function doRefresh(silent) {
     updateARBar();
   }
   try {
-    var d = await fetchData(BASE + '/live-status?trainNo=' + encodeURIComponent(currentTrainNo));
+    var d = await fetchData('/live-status?trainNo=' + encodeURIComponent(currentTrainNo));
     lastRefreshedTs = new Date();
     renderLive(d.data, currentTrainNo, currentTrainName);
     updateLastRef();
@@ -479,7 +498,7 @@ async function doSearch(q) {
   document.getElementById('refreshBtn').style.display = 'none';
 
   try {
-    var d = await fetchData(BASE + '/search?q=' + encodeURIComponent(q));
+    var d = await fetchData('/search?q=' + encodeURIComponent(q));
     var trains = (d && d.data) ? d.data : [];
     searchResults = trains; // save for button handlers
     renderSearch(trains);
@@ -545,7 +564,7 @@ async function doLive(num, name) {
   document.getElementById('refreshBtn').style.display = 'flex';
 
   try {
-    var d = await fetchData(BASE + '/live-status?trainNo=' + encodeURIComponent(num));
+    var d = await fetchData('/live-status?trainNo=' + encodeURIComponent(num));
     lastRefreshedTs = new Date();
     renderLive(d.data, num, name || num);
     updateLastRef();
