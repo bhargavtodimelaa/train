@@ -1,1076 +1,2568 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<title>TrackIt — Live Train Tracker</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Display:wght@400;700&family=Google+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#0a0c10;--bg2:#111318;--bg3:#181c24;
-  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.12);
-  --text:#e8eaf0;--text2:#8b91a8;--text3:#555d78;
-  --accent:#4f8eff;--accent2:#7c5cff;
-  --green:#22d483;--red:#ff5a5a;--yellow:#f5c842;
-  --glow:rgba(79,142,255,.18);
-  --font:'Google Sans',sans-serif;
-  --display:'Google Sans Display',sans-serif;
-  --mono:'Google Sans Mono',monospace;
-  --r:8px;--r2:14px;--r3:20px;
-  --ease:cubic-bezier(.16,1,.3,1);
-}
-html{scroll-behavior:smooth}
-body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
-body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(79,142,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(79,142,255,.02) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+    <meta charset="UTF-8">
+    <title>TrackIt — Live Train Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://train-api-eight.vercel.app">
+    <link rel="preconnect" href="https://sujith.bhargavtodimela4.workers.dev">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Display:wght@400;700&family=Google+Sans+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
 
-/* APP BAR */
-.app-bar{   position:sticky;   top:0;   z-index:100;   background:rgba(10,12,16,.65);   backdrop-filter:blur(28px);   border-bottom:1px solid var(--border);   box-shadow:0 8px 40px rgba(0,0,0,.3);   transition:border-color .3s; }
-.app-bar.elevated{border-color:var(--border2)}
-.bar-inner{display:flex;align-items:center;gap:8px;padding:0 16px;height:62px;max-width:1000px;margin:0 auto;position:relative;z-index:1}
-.brand{display:flex;align-items:center;gap:10px;cursor:pointer;padding:6px 10px 6px 4px;border-radius:var(--r2);transition:background .2s;flex-shrink:0;user-select:none}
-.brand:hover{background:rgba(255,255,255,.04)}
-.brand-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:10px;display:grid;place-items:center;box-shadow:0 0 20px var(--glow);flex-shrink:0}
-.brand-text{font-family:var(--display);font-size:20px;font-weight:800;letter-spacing:-.5px}
-.brand-text em{color:var(--accent);font-style:normal}
-.search-wrap{flex:1;max-width:440px;margin:0 12px}
-.search-field{display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r3);padding:0 16px;height:42px;transition:border-color .2s,box-shadow .2s}
-.search-field:focus-within{   border-color:var(--accent);   box-shadow:0 0 0 2px rgba(79,142,255,.25), 0 0 25px rgba(79,142,255,.25); }
-.search-field svg{color:var(--text3);flex-shrink:0}
-.search-field input{flex:1;background:none;border:none;outline:none;font-family:var(--font);font-size:14px;color:var(--text)}
-.search-field input::placeholder{color:var(--text3)}
-.bar-right{margin-left:auto;display:flex;align-items:center;gap:6px}
-.ist-chip{display:flex;align-items:center;gap:6px;background:rgba(79,142,255,.1);border:1px solid rgba(79,142,255,.2);color:var(--accent);border-radius:var(--r3);padding:5px 12px;font-family:var(--mono);font-size:11px;white-space:nowrap;flex-shrink:0}
-.refresh-btn{display:none;align-items:center;gap:8px;background:var(--accent);color:#fff;border:none;border-radius:var(--r3);padding:0 18px;height:38px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 0 16px var(--glow);transition:opacity .2s}
-.refresh-btn:disabled{opacity:.5;cursor:not-allowed}
-.refresh-btn.spinning svg{animation:spin .9s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
+        :root {
+            /* Standard Google MD3 Light Theme */
+            --bg: #FEF7FF;
+            --bg2: #F3EDF7;
+            --bg3: #EADDFF;
+            --border: #CAC4D0;
+            --border2: #A8A29E;
+            --text: #1D1B20;
+            --text2: #49454F;
+            --text3: #79747E;
+            --accent: #0B57D0;
+            --accent2: #A8C7FA;
+            --green: #146C2E;
+            --red: #B3261E;
+            --yellow: #A08000;
+            --glow: rgba(11, 87, 208, 0.15);
+            --font: 'Google Sans', sans-serif;
+            --display: 'Google Sans Display', sans-serif;
+            --mono: 'Google Sans Mono', monospace;
+            --r: 8px;
+            --r2: 12px;
+            --r3: 24px;
+            --ease: cubic-bezier(.2, 0, 0, 1);
+            --spring: cubic-bezier(.2, 0, 0, 1);
+        }
 
-/* MAIN */
-.main{max-width:860px;margin:0 auto;padding:28px 16px 80px;position:relative;z-index:1}
+        [data-theme='dark'] {
+            --bg: #141218;
+            --bg2: #1D1B20;
+            --bg3: #2B2930;
+            --border: rgba(255, 255, 255, 0.1);
+            --border2: rgba(255, 255, 255, 0.15);
+            --text: #E6E0E9;
+            --text2: #CAC4D0;
+            --text3: #938F99;
+            --accent: #A8C7FA;
+            --accent2: #D0BCFF;
+            --green: #81C995;
+            --red: #F28B82;
+            --yellow: #FDE293;
+            --glow: rgba(168, 199, 250, 0.15);
+        }
 
-/* LOADER */
-.md-loader{display:flex;align-items:center;gap:16px;padding:40px 4px;color:var(--text2);font-size:14px}
-  .skeleton {
-  height: 20px;
-  border-radius: 8px;
-  background: linear-gradient(90deg,#151821,#222633,#151821);
-  background-size: 200% 100%;
-  animation: shimmerSkeleton 1.2s infinite linear;
-  opacity: 0.9;
-}
+        html {
+            scroll-behavior: smooth
+        }
 
-@keyframes shimmerSkeleton {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            font-size: 14px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden
+        }
 
-.md-spinner{width:32px;height:32px;flex-shrink:0}
-.md-spinner svg{width:32px;height:32px;animation:rotate 1.4s linear infinite}
-.md-spinner circle{fill:none;stroke:var(--accent);stroke-width:3.5;stroke-linecap:round;stroke-dasharray:80;stroke-dashoffset:60;animation:dash 1.4s ease-in-out infinite}
-@keyframes rotate{to{transform:rotate(360deg)}}
-@keyframes dash{0%{stroke-dashoffset:80}50%{stroke-dashoffset:20}100%{stroke-dashoffset:80}}
 
-/* SEARCH RESULTS */
-.results-header{font-size:11px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:var(--text3);padding:0 2px 14px}
-.result-card{display:flex;align-items:center;gap:14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;margin-bottom:8px;transition:border-color .2s,transform .15s}
-.result-card:hover{   border-color:rgba(79,142,255,.4);   transform:translateY(-2px) scale(1.01);   box-shadow:0 10px 30px rgba(0,0,0,.4); }
-.rnum-badge{width:56px;height:56px;flex-shrink:0;border-radius:var(--r);background:rgba(79,142,255,.08);border:1px solid rgba(79,142,255,.15);display:grid;place-items:center;font-family:var(--mono);font-size:11px;font-weight:600;color:var(--accent);text-align:center;line-height:1.3}
-.rinfo{flex:1;min-width:0}
-.rname{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rroute{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);margin-top:3px;font-family:var(--mono)}
-.track-btn{display:flex;align-items:center;gap:7px;background:var(--accent);color:#fff;border:none;border-radius:var(--r3);padding:0 18px;height:38px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 0 14px var(--glow);transition:opacity .2s}
-.track-btn:hover{   opacity:.9;   box-shadow:0 0 30px rgba(79,142,255,.4); }
-.track-btn:active{transform:scale(.97)}
-  .live-panel{
-  position:relative;
-}
-  ::-webkit-scrollbar{width:6px}
-::-webkit-scrollbar-thumb{
-  background:rgba(255,255,255,.15);
-  border-radius:10px;
-}
-::-webkit-scrollbar-thumb:hover{
-  background:rgba(79,142,255,.5);
-}
-  .result-card{
-  animation:fadeInUp .3s ease;
-}
-.map-btn:active{
-  transform:scale(.98);
-}
-body::before{
-  content:'';
-  position:fixed;
-  inset:0;
-  background:
-    radial-gradient(circle at 20% 10%,rgba(79,142,255,.08),transparent 40%),
-    radial-gradient(circle at 80% 90%,rgba(124,92,255,.08),transparent 40%);
-  z-index:0;
-  pointer-events:none;
-}
-  button{
-  transition:all .25s cubic-bezier(.16,1,.3,1);
-}
 
-button:hover{
-  transform:translateY(-1px) scale(1.02);
-}
+        /* APP BAR */
+        .app-bar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            transition: box-shadow .3s, background .3s;
+        }
 
-button:active{
-  transform:scale(.96);
-}
-.live-panel::before{
-  content:'';
-  position:absolute;
-  inset:0;
-  border-radius:var(--r3);
-  padding:1px;
-  background:linear-gradient(135deg,transparent,rgba(79,142,255,.4),transparent);
-  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
-  -webkit-mask-composite:xor;
-  mask-composite:exclude;
-  pointer-events:none;
-}
+        .app-bar.elevated {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, .2);
+            background: var(--bg2);
+        }
 
-/* LIVE PANEL */
-.live-panel{border-radius:var(--r3);overflow:hidden;border:1px solid var(--border2);background:var(--bg2);animation:fadeUp .4s var(--ease)}
-@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+        .bar-inner {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 16px;
+            height: 62px;
+            max-width: 1000px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1
+        }
 
-/* HEAD */
-.lp-head{background:linear-gradient(135deg,#0d1220 0%,#0f1726 50%,#111e30 100%);padding:24px;position:relative;overflow:hidden;border-bottom:1px solid var(--border2)}
-.lp-head-glow{position:absolute;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(79,142,255,.12),transparent 70%);top:-100px;right:-50px;pointer-events:none}
-.lp-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;position:relative;z-index:1}
-.chip{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:var(--r3);font-size:11px;font-weight:600;letter-spacing:.4px}
-.chip-num{background:rgba(79,142,255,.15);border:1px solid rgba(79,142,255,.25);color:var(--accent);font-family:var(--mono);font-size:12px}
-.chip-src{background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text2)}
-.chip-late{background:rgba(255,90,90,.12);border:1px solid rgba(255,90,90,.25);color:#ff8080}
-.chip-ok{background:rgba(34,212,131,.1);border:1px solid rgba(34,212,131,.2);color:var(--green)}
-  .chip{
-  backdrop-filter:blur(10px);
-  box-shadow:inset 0 0 10px rgba(255,255,255,.05);
-}
-.blink{width:6px;height:6px;border-radius:50%;background:currentColor;animation:bl 1.4s ease-in-out infinite}
-@keyframes bl{0%,100%{opacity:1}50%{opacity:.2}}
-.lp-title{font-family:var(--display);font-size:22px;font-weight:800;letter-spacing:-.5px;position:relative;z-index:1;line-height:1.2}
-.lp-route{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:12px;color:var(--text2);position:relative;z-index:1;font-family:var(--mono)}
-.lp-meta-row{display:flex;flex-wrap:wrap;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);position:relative;z-index:1}
-.meta-it{padding-right:28px;margin-bottom:2px}
-.mlabel{font-size:10px;color:var(--text3);letter-spacing:.8px;text-transform:uppercase}
-.mval{font-size:15px;font-weight:600;margin-top:2px;font-family:var(--mono)}
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 6px 10px 6px 4px;
+            border-radius: var(--r2);
+            transition: background .2s;
+            flex-shrink: 0;
+            user-select: none
+        }
 
-/* PROGRESS */
-.lp-progress{padding:20px 24px;border-bottom:1px solid var(--border)}
-.prog-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.prog-endpoints{font-size:11px;font-weight:500;color:var(--text2);font-family:var(--mono)}
-.prog-pct{font-size:13px;font-weight:700;color:var(--accent);font-family:var(--mono)}
-.linear-track{height:4px;background:rgba(255,255,255,.05);border-radius:99px;overflow:hidden}
-.linear-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width 1.6s var(--ease);position:relative;overflow:hidden;box-shadow:0 0 8px var(--glow)}
-.linear-fill::after{content:'';position:absolute;top:0;left:-100%;right:0;bottom:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);animation:shimmer 2.5s infinite}
-@keyframes shimmer{to{left:200%}}
-.prog-labels{display:flex;justify-content:space-between;margin-top:6px}
-.prog-lbl{font-size:11px;color:var(--text3);font-family:var(--mono)}
+        .brand:hover {
+            background: rgba(255, 255, 255, .04)
+        }
 
-/* STATS */
-.stats-row{display:flex;border-bottom:1px solid var(--border);overflow-x:auto}
-.stat-it{flex:1;min-width:90px;padding:16px 12px;text-align:center;border-right:1px solid var(--border)}
-.stat-it:last-child{border-right:none}
-.stat-icon{margin-bottom:6px}
-.sval{font-family:var(--mono);font-size:20px;font-weight:600;line-height:1}
-.sval.g{color:var(--green)}.sval.r{color:var(--red)}.sval.b{color:var(--accent)}
-.slbl{font-size:10px;color:var(--text3);margin-top:5px;letter-spacing:.4px}
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--accent);
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0
+        }
 
-/* POSITION */
-.lp-pos{display:flex;align-items:center;gap:16px;padding:18px 24px;background:rgba(79,142,255,.05);border-bottom:1px solid var(--border)}
-.pos-icon{width:50px;height:50px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:50%;display:grid;place-items:center;flex-shrink:0;animation:pulseRing 2.5s ease-out infinite}
-@keyframes pulseRing{0%{box-shadow:0 0 0 0 rgba(79,142,255,.5)}70%{box-shadow:0 0 0 16px rgba(79,142,255,0)}100%{box-shadow:0 0 0 0 rgba(79,142,255,0)}}
-.pos-info{flex:1;min-width:0}
-.pos-at{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
-.pos-name{font-size:18px;font-weight:700;line-height:1.2}
-.pos-sub{font-size:12px;color:var(--text2);margin-top:3px;font-family:var(--mono)}
-.pos-next{flex-shrink:0;text-align:right}
-.next-lbl{font-size:10px;color:var(--text3)}
-.next-name{font-size:13px;font-weight:600;margin-top:2px}
-.next-chip{display:inline-block;background:var(--accent);color:#fff;font-size:11px;font-weight:600;padding:3px 10px;border-radius:var(--r3);margin-top:5px;font-family:var(--mono)}
+        .brand-text {
+            font-family: var(--display);
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -.5px
+        }
 
-/* COUNTDOWN */
-.cd-row{display:flex;align-items:center;gap:16px;padding:14px 24px;border-bottom:1px solid var(--border)}
-.cd-lbl{font-size:10px;color:var(--text3);font-weight:600;letter-spacing:.8px;text-transform:uppercase}
-.cd-val{font-family:var(--mono);font-size:30px;font-weight:600;color:var(--accent);letter-spacing:3px;line-height:1}
-.cd-stn{font-size:14px;font-weight:600}
-.cd-code{font-size:11px;color:var(--text2);font-family:var(--mono);margin-top:2px}
-.cd-right{margin-left:auto;text-align:right}
-.cd-sched-lbl{font-size:10px;color:var(--text3)}
-.cd-sched-val{font-size:15px;font-weight:600;font-family:var(--mono);margin-top:2px}
+        .brand-text em {
+            color: var(--accent);
+            font-style: normal
+        }
 
-/* MAP */
-.map-btn{width:100%;padding:12px 24px;border:none;background:rgba(255,255,255,.02);color:var(--accent);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);transition:background .2s}
-.map-btn:hover{background:rgba(79,142,255,.06)}
-.map-btn .chevron{margin-left:auto;transition:transform .3s}
-.map-btn.open .chevron{transform:rotate(180deg)}
-.map-wrap{display:none;border-bottom:1px solid var(--border)}
-.map-wrap iframe{width:100%;height:240px;border:none;display:block}
-  button, .result-card, .r-chip, .track-btn {
-  transition: all .25s cubic-bezier(.16,1,.3,1);
-}
-  .track-btn,
-.refresh-btn {
-  box-shadow: 0 0 20px rgba(79,142,255,.25);
-}
+        .search-wrap {
+            flex: 1;
+            max-width: 440px;
+            margin: 0 12px
+        }
 
-.track-btn:hover {
-  box-shadow: 0 0 30px rgba(79,142,255,.4);
-}
-.lp-title {
-  background: linear-gradient(135deg,var(--accent),var(--accent2));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-button:hover, .track-btn:hover {
-  transform: translateY(-1px) scale(1.02);
-}
+        .search-field {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border2);
+            border-radius: 99px;
+            padding: 0 16px;
+            height: 44px;
+            transition: all .4s var(--spring);
+        }
 
-button:active {
-  transform: scale(.96);
-}
+        .search-field:focus-within {
+            border-color: var(--accent);
+            background: rgba(42, 221, 255, .05);
+            box-shadow: 0 0 0 2px rgba(42, 221, 255, .2), 0 0 30px rgba(42, 221, 255, .3);
+        }
 
-/* SHARE */
-.share-row{display:flex;align-items:center;gap:8px;padding:12px 24px;border-bottom:1px solid var(--border);flex-wrap:wrap}
-.share-lbl{font-size:11px;color:var(--text3);font-weight:600;letter-spacing:.8px;text-transform:uppercase;margin-right:4px}
-.share-btn{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:var(--r3);padding:6px 14px;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;color:var(--text);transition:background .15s,border-color .15s,color .15s}
-.share-btn:hover{background:rgba(79,142,255,.1);border-color:rgba(79,142,255,.3);color:var(--accent)}
-.share-btn.copied{background:rgba(34,212,131,.1);border-color:rgba(34,212,131,.3);color:var(--green)}
+        .search-field svg {
+            color: var(--text3);
+            flex-shrink: 0
+        }
 
-/* AUTO-REFRESH */
-.auto-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 24px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.015);flex-wrap:wrap}
-.auto-bar-l{display:flex;align-items:center;gap:10px}
-.live-ind{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--green)}
-.live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:bl 1.4s ease-in-out infinite}
-.ar-prog{flex:1;max-width:80px;height:3px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden}
-.ar-fill{height:100%;background:var(--accent);border-radius:99px;transition:width 1s linear}
-.ar-lbl{font-size:11px;color:var(--text3);font-family:var(--mono)}
-.brand-icon {
-  animation: float 4s ease-in-out infinite;
-}
+        .search-field input {
+            flex: 1;
+            background: none;
+            border: none;
+            outline: none;
+            font-family: var(--font);
+            font-size: 14px;
+            color: var(--text)
+        }
 
-@keyframes float {
-  0%,100% { transform: translateY(0); }
-  50% { transform: translateY(-3px); }
-}
-/* TABS */
-.md3-tabs{display:flex;border-bottom:1px solid var(--border)}
-.tab-btn{flex:1;padding:13px 16px;border:none;background:none;font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;transition:color .2s,border-color .2s;display:flex;align-items:center;justify-content:center;gap:8px}
-.tab-btn:hover{background:rgba(255,255,255,.03);color:var(--text)}
-.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
-.tab-content{display:none}
-.tab-content.active{display:block}
-.result-card,
-.live-panel,
-.howto-card {
-  box-shadow: 0 8px 30px rgba(0,0,0,.35);
-}
-  .main {
-  animation: fadeInUp .5s ease;
-}
+        .search-field input::placeholder {
+            color: var(--text3)
+        }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-  ::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,.15);
-  border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(79,142,255,.5);
-}
-/* TIMELINE */
-.lp-timeline{padding:24px;background:var(--bg2)}
-.sec-title{font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--text3);margin-bottom:22px}
-.tl-wrap{position:relative;padding-left:34px}
-.tl-line{position:absolute;left:8px;top:12px;bottom:12px;width:2px;background:linear-gradient(to bottom,var(--accent),rgba(79,142,255,.1))}
-.stop{position:relative;padding-bottom:24px}
-.stop:last-child{padding-bottom:0}
-.stop-dot{position:absolute;left:-26px;top:4px;width:16px;height:16px;border-radius:50%;background:var(--border);border:2px solid var(--bg2);z-index:1}
-.stop.past .stop-dot{background:var(--green)}
-.stop.current .stop-dot{width:22px;height:22px;left:-29px;top:1px;background:var(--accent);border:3px solid var(--bg2);animation:pulseRing 2.5s ease-out infinite;box-shadow:0 0 10px var(--glow)}
-.stop.future{opacity:.35}
-.stop-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.stop-info{flex:1}
-.sname{font-size:15px;font-weight:600}
-.stop.current .sname{color:var(--accent);font-weight:700}
-.scode{font-size:11px;color:var(--text3);margin-top:2px;font-family:var(--mono)}
-.pf-chip{display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.04);border:1px solid var(--border2);color:var(--text2);font-size:10px;font-weight:600;padding:2px 8px;border-radius:var(--r3);margin-top:6px;font-family:var(--mono)}
-.stop.current .pf-chip{background:rgba(79,142,255,.15);border-color:rgba(79,142,255,.25);color:var(--accent)}
-.stop.past .pf-chip{background:rgba(34,212,131,.08);border-color:rgba(34,212,131,.2);color:var(--green)}
-.stop-times{display:flex;gap:16px;flex-shrink:0;text-align:right}
-.t-label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px}
-.t-val{font-size:13px;font-weight:600;font-family:var(--mono)}
-.t-val.g{color:var(--green)}.t-val.r{color:var(--red)}.t-val.d{color:var(--text3)}
-.d-chip{display:inline-block;background:rgba(255,90,90,.1);border:1px solid rgba(255,90,90,.2);color:#ff8080;font-size:9px;font-weight:700;padding:1px 5px;border-radius:99px;margin-top:2px;font-family:var(--mono)}
-.stop-div{border:none;border-top:1px solid rgba(255,255,255,.04);margin:0 0 24px}
+        .bar-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 6px
+        }
 
-/* TABLE */
-.stops-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:12px}
-th{text-align:left;padding:10px 12px;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border2);background:rgba(255,255,255,.02);white-space:nowrap}
-td{padding:11px 12px;border-bottom:1px solid rgba(255,255,255,.03);vertical-align:middle}
-tr:last-child td{border-bottom:none}
-tr.row-past td{color:var(--text2)}
-tr.row-cur{background:rgba(79,142,255,.06)}
-tr.row-cur td{font-weight:600}
-tr.row-fut td{opacity:.35}
-.td-name{font-weight:600}
-.td-code{font-family:var(--mono);font-size:10px;color:var(--text3)}
-.td-t{font-family:var(--mono);white-space:nowrap}
-.td-d{font-family:var(--mono);font-size:10px}
-.td-d.late{color:var(--red)}.td-d.ok{color:var(--green)}
-.td-pf{text-align:center;font-family:var(--mono)}
-.cur-arrow{color:var(--accent);font-size:10px}
+        .ist-chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text);
+            padding: 4px 10px;
+            font-family: var(--display);
+            font-size: 16px;
+            font-weight: 500;
+            white-space: nowrap;
+            flex-shrink: 0
+        }
 
-/* WELCOME */
-.welcome{padding:36px 4px}
-.welcome-hero{text-align:center;padding-bottom:32px}
-.welcome-icon{width:88px;height:88px;border-radius:var(--r2);background:rgba(79,142,255,.08);border:1px solid rgba(79,142,255,.2);display:grid;place-items:center;margin:0 auto 20px;box-shadow:0 0 40px rgba(79,142,255,.12)}
-.welcome-title{font-family:var(--display);font-size:28px;font-weight:800;letter-spacing:-.5px;margin-bottom:10px}
-.welcome-title span{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.welcome-sub{font-size:15px;color:var(--text2);max-width:380px;margin:0 auto;line-height:1.7}
-.recent-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.recent-title-lbl{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3)}
-.clear-btn{background:none;border:none;font-size:12px;color:var(--accent);cursor:pointer;font-family:var(--font);font-weight:600;border-radius:var(--r);padding:4px 10px;transition:background .2s}
-.clear-btn:hover{background:rgba(79,142,255,.08)}
-.recent-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px}
-.r-chip{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r3);padding:8px 16px;cursor:pointer;font-size:13px;font-weight:500;transition:border-color .2s,transform .15s}
-.r-chip:hover{border-color:rgba(79,142,255,.3);transform:translateY(-1px)}
-.r-num{font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:600}
-.howto-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r3);padding:22px 24px}
-.howto-title{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);margin-bottom:18px}
-.howto-items{display:flex;flex-direction:column;gap:16px}
-.howto-item{display:flex;align-items:flex-start;gap:14px}
-.howto-icon-bg{width:38px;height:38px;border-radius:var(--r);display:grid;place-items:center;flex-shrink:0}
-.howto-item h4{font-size:14px;font-weight:600;margin-bottom:3px}
-.howto-item p{font-size:12px;color:var(--text2);line-height:1.6}
+        .icon-btn {
+            background: transparent;
+            border: none;
+            color: var(--text);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            transition: background .2s;
+            flex-shrink: 0;
+        }
 
-/* TOAST */
-#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#1a1d27;border:1px solid var(--border2);color:var(--text);padding:12px 20px;border-radius:var(--r2);font-size:13px;font-weight:500;z-index:999;transition:transform .25s var(--ease);pointer-events:none;white-space:nowrap;display:flex;align-items:center;gap:10px;box-shadow:0 4px 24px rgba(0,0,0,.4)}
-#toast.show{transform:translateX(-50%) translateY(0)}
+        .icon-btn:hover {
+            background: var(--border);
+        }
 
-/* FOOTER */
-.footer{text-align:center;padding:28px 16px;font-size:12px;color:var(--text3);line-height:2.2;position:relative;z-index:1}
-.footer a{color:var(--accent);text-decoration:none}
-.footer a:hover{text-decoration:underline}
-.beta{display:inline-flex;align-items:center;background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.2);color:var(--yellow);font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;letter-spacing:.7px;vertical-align:middle;margin-left:6px;font-family:var(--mono)}
-.last-ref{text-align:center;padding:10px 0 4px;font-size:11px;color:var(--text3);font-family:var(--mono)}
+        .refresh-btn {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: var(--r3);
+            padding: 0 18px;
+            height: 38px;
+            font-family: var(--font);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 0 16px var(--glow);
+            transition: opacity .2s
+        }
 
-/* MODAL */
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:9999;justify-content:center;align-items:center}
-.modal-box{background:var(--bg3);border:1px solid var(--border2);padding:28px 32px;max-width:620px;width:90%;border-radius:var(--r3);box-shadow:0 20px 60px rgba(0,0,0,.5);line-height:1.7;position:relative;max-height:80vh;overflow-y:auto}
-.modal-box h2{font-family:var(--display);margin-bottom:14px;font-size:22px}
-.modal-box p{font-size:13px;color:var(--text2);margin-bottom:12px}
-.modal-close{position:absolute;right:16px;top:12px;font-size:24px;cursor:pointer;color:var(--text3);width:32px;height:32px;display:grid;place-items:center;border-radius:50%;background:none;border:none;transition:background .2s,color .2s}
-.modal-close:hover{background:rgba(255,255,255,.06);color:var(--text)}
+        .refresh-btn:disabled {
+            opacity: .5;
+            cursor: not-allowed
+        }
 
-@media(max-width:540px){
-  .lp-head,.lp-progress,.cd-row,.share-row,.auto-bar,.lp-timeline{padding-left:16px;padding-right:16px}
-  .bar-inner{padding:0 10px}
-  .brand-text{font-size:18px}
-  .pos-next{display:none}
-  .meta-it{padding-right:16px}
-}
-</style>
+        .refresh-btn.spinning svg {
+            animation: spin .9s linear infinite;
+            will-change: transform
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        /* MAIN */
+        .main {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 28px 16px 80px;
+            position: relative;
+            z-index: 1
+        }
+
+        /* LOADER */
+        .md-loader {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 40px 4px;
+            color: var(--text2);
+            font-size: 14px
+        }
+
+        .skeleton {
+            height: 20px;
+            border-radius: 8px;
+            background: linear-gradient(90deg, #151821, #222633, #151821);
+            background-size: 200% 100%;
+            animation: shimmerSkeleton 1.2s infinite linear;
+            opacity: 0.9;
+        }
+
+        @keyframes shimmerSkeleton {
+            0% {
+                background-position: -200% 0;
+            }
+
+            100% {
+                background-position: 200% 0;
+            }
+        }
+
+        .md-spinner {
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0
+        }
+
+        .md-spinner svg {
+            width: 32px;
+            height: 32px;
+            animation: rotate 2s linear infinite;
+        }
+
+        .md-spinner circle {
+            fill: none;
+            stroke-width: 3.5;
+            stroke-linecap: round;
+            stroke-dasharray: 1, 200;
+            stroke-dashoffset: 0;
+            animation: google-dash 1.5s ease-in-out infinite, google-color 6s ease-in-out infinite;
+        }
+
+        @keyframes google-dash {
+            0% { stroke-dasharray: 1, 200; stroke-dashoffset: 0; }
+            50% { stroke-dasharray: 89, 200; stroke-dashoffset: -35px; }
+            100% { stroke-dasharray: 89, 200; stroke-dashoffset: -124px; }
+        }
+
+        @keyframes google-color {
+            0%, 100% { stroke: #4285F4; }
+            25% { stroke: #EA4335; }
+            50% { stroke: #FBBC05; }
+            75% { stroke: #34A853; }
+        }
+
+        /* SEARCH RESULTS */
+        .results-header {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            color: var(--text3);
+            padding: 0 2px 14px
+        }
+
+        .result-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: var(--bg2);
+            border-radius: var(--r2);
+            padding: 16px 18px;
+            margin-bottom: 12px;
+            transition: all .2s var(--ease);
+            will-change: transform, box-shadow;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+            content-visibility: auto;
+            contain-intrinsic-size: 0 86px
+        }
+
+        .result-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, .3);
+            background: var(--bg3);
+        }
+
+        .rnum-badge {
+            width: 56px;
+            height: 56px;
+            flex-shrink: 0;
+            border-radius: var(--r);
+            background: rgba(79, 142, 255, .08);
+            border: 1px solid rgba(79, 142, 255, .15);
+            display: grid;
+            place-items: center;
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--accent);
+            text-align: center;
+            line-height: 1.3
+        }
+
+        .rinfo {
+            flex: 1;
+            min-width: 0
+        }
+
+        .rname {
+            font-size: 15px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+
+        .rroute {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text2);
+            margin-top: 3px;
+            font-family: var(--mono)
+        }
+
+        .track-btn {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            border-radius: 99px;
+            padding: 0 20px;
+            height: 40px;
+            font-family: var(--font);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
+            transition: all .2s var(--ease);
+        }
+
+        .track-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(42, 221, 255, .4);
+            color: #111;
+        }
+
+        .track-btn:active {
+            transform: scale(.94);
+        }
+
+        .live-panel {
+            position: relative;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, .15);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(79, 142, 255, .5);
+        }
+
+        .result-card {
+            animation: fadeInUp .3s ease;
+        }
+
+        .map-btn:active {
+            transform: scale(.98);
+        }
+
+        button,
+        .result-card,
+        .r-chip {
+            transition: all .4s var(--spring);
+        }
+
+        button:hover {
+            transform: translateY(-2px) scale(1.02);
+        }
+
+        button:active {
+            transform: scale(.94);
+        }
+
+        .live-panel::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: var(--r3);
+            padding: 1px;
+            background: linear-gradient(135deg, transparent, rgba(79, 142, 255, .4), transparent);
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        /* LIVE PANEL */
+        .live-panel {
+            border-radius: var(--r2);
+            overflow: hidden;
+            background: var(--bg2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .3);
+            animation: fadeUp .3s var(--ease);
+            will-change: transform, opacity;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: none; }
+        }
+
+        /* HEAD */
+        .lp-head {
+            background: var(--bg3);
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .lp-head-glow {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(79, 142, 255, .12), transparent 70%);
+            top: -100px;
+            right: -50px;
+            pointer-events: none
+        }
+
+        .lp-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 14px;
+            position: relative;
+            z-index: 1
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 12px;
+            border-radius: var(--r3);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .4px
+        }
+
+        .chip-num {
+            background: rgba(79, 142, 255, .15);
+            border: 1px solid rgba(79, 142, 255, .25);
+            color: var(--accent);
+            font-family: var(--mono);
+            font-size: 12px
+        }
+
+        .chip-src {
+            background: rgba(255, 255, 255, .05);
+            border: 1px solid var(--border);
+            color: var(--text2)
+        }
+
+        .chip-late {
+            background: rgba(255, 90, 90, .12);
+            border: 1px solid rgba(255, 90, 90, .25);
+            color: #ff8080
+        }
+
+        .chip-ok {
+            background: rgba(34, 212, 131, .1);
+            border: 1px solid rgba(34, 212, 131, .2);
+            color: var(--green)
+        }
+
+        .chip {
+            backdrop-filter: blur(10px);
+            box-shadow: inset 0 0 10px rgba(255, 255, 255, .05);
+        }
+
+        .blink {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: bl 1.4s ease-in-out infinite
+        }
+
+        @keyframes bl {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: .2
+            }
+        }
+
+        .lp-title {
+            font-family: var(--display);
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -.5px;
+            position: relative;
+            z-index: 1;
+            line-height: 1.2
+        }
+
+        .lp-route {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 6px;
+            font-size: 12px;
+            color: var(--text2);
+            position: relative;
+            z-index: 1;
+            font-family: var(--mono)
+        }
+
+        .lp-meta-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            position: relative;
+            z-index: 1
+        }
+
+        .meta-it {
+            padding-right: 28px;
+            margin-bottom: 2px
+        }
+
+        .mlabel {
+            font-size: 10px;
+            color: var(--text3);
+            letter-spacing: .8px;
+            text-transform: uppercase
+        }
+
+        .mval {
+            font-size: 15px;
+            font-weight: 600;
+            margin-top: 2px;
+            font-family: var(--mono)
+        }
+
+        /* PROGRESS */
+        .lp-progress {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border)
+        }
+
+        .prog-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px
+        }
+
+        .prog-endpoints {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text2);
+            font-family: var(--mono)
+        }
+
+        .prog-pct {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--accent);
+            font-family: var(--mono)
+        }
+
+        .linear-track {
+            height: 4px;
+            background: rgba(255, 255, 255, .05);
+            border-radius: 99px;
+            overflow: hidden
+        }
+
+        .linear-fill {
+            height: 100%;
+            border-radius: 99px;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            transition: width 1.6s var(--ease);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 8px var(--glow);
+            will-change: width
+        }
+
+        .linear-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .3), transparent);
+            animation: shimmer 2.5s infinite;
+            will-change: left
+        }
+
+        @keyframes shimmer {
+            to {
+                left: 200%
+            }
+        }
+
+        .prog-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 6px
+        }
+
+        .prog-lbl {
+            font-size: 11px;
+            color: var(--text3);
+            font-family: var(--mono)
+        }
+
+        /* STATS */
+        .stats-row {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            overflow-x: auto
+        }
+
+        .stat-it {
+            flex: 1;
+            min-width: 90px;
+            padding: 16px 12px;
+            text-align: center;
+            border-right: 1px solid var(--border)
+        }
+
+        .stat-it:last-child {
+            border-right: none
+        }
+
+        .stat-icon {
+            margin-bottom: 6px
+        }
+
+        .sval {
+            font-family: var(--mono);
+            font-size: 20px;
+            font-weight: 600;
+            line-height: 1
+        }
+
+        .sval.g {
+            color: var(--green)
+        }
+
+        .sval.r {
+            color: var(--red)
+        }
+
+        .sval.b {
+            color: var(--accent)
+        }
+
+        .slbl {
+            font-size: 10px;
+            color: var(--text3);
+            margin-top: 5px;
+            letter-spacing: .4px
+        }
+
+        /* POSITION */
+        .lp-pos {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 18px 24px;
+            background: rgba(79, 142, 255, .05);
+            border-bottom: 1px solid var(--border)
+        }
+
+        .pos-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+            animation: pulseRing 2.5s ease-out infinite;
+            will-change: box-shadow
+        }
+
+        @keyframes pulseRing {
+            0% {
+                box-shadow: 0 0 0 0 rgba(79, 142, 255, .5)
+            }
+
+            70% {
+                box-shadow: 0 0 0 16px rgba(79, 142, 255, 0)
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(79, 142, 255, 0)
+            }
+        }
+
+        .pos-info {
+            flex: 1;
+            min-width: 0
+        }
+
+        .pos-at {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 3px
+        }
+
+        .pos-name {
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1.2
+        }
+
+        .pos-sub {
+            font-size: 12px;
+            color: var(--text2);
+            margin-top: 3px;
+            font-family: var(--mono)
+        }
+
+        .pos-next {
+            flex-shrink: 0;
+            text-align: right
+        }
+
+        .next-lbl {
+            font-size: 10px;
+            color: var(--text3)
+        }
+
+        .next-name {
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 2px
+        }
+
+        .next-chip {
+            display: inline-block;
+            background: var(--accent);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: var(--r3);
+            margin-top: 5px;
+            font-family: var(--mono)
+        }
+
+        /* COUNTDOWN */
+        .cd-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 24px;
+            border-bottom: 1px solid var(--border)
+        }
+
+        .cd-lbl {
+            font-size: 10px;
+            color: var(--text3);
+            font-weight: 600;
+            letter-spacing: .8px;
+            text-transform: uppercase
+        }
+
+        .cd-val {
+            font-family: var(--mono);
+            font-size: 30px;
+            font-weight: 600;
+            color: var(--accent);
+            letter-spacing: 3px;
+            line-height: 1
+        }
+
+        .cd-stn {
+            font-size: 14px;
+            font-weight: 600
+        }
+
+        .cd-code {
+            font-size: 11px;
+            color: var(--text2);
+            font-family: var(--mono);
+            margin-top: 2px
+        }
+
+        .cd-right {
+            margin-left: auto;
+            text-align: right
+        }
+
+        .cd-sched-lbl {
+            font-size: 10px;
+            color: var(--text3)
+        }
+
+        .cd-sched-val {
+            font-size: 15px;
+            font-weight: 600;
+            font-family: var(--mono);
+            margin-top: 2px
+        }
+
+        /* MAP */
+        .map-btn {
+            width: 100%;
+            padding: 12px 24px;
+            border: none;
+            background: rgba(255, 255, 255, .02);
+            color: var(--accent);
+            font-family: var(--font);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border);
+            transition: background .2s
+        }
+
+        .map-btn:hover {
+            background: rgba(79, 142, 255, .06)
+        }
+
+        .map-btn .chevron {
+            margin-left: auto;
+            transition: transform .3s
+        }
+
+        .map-btn.open .chevron {
+            transform: rotate(180deg)
+        }
+
+        .map-wrap {
+            display: none;
+            border-bottom: 1px solid var(--border)
+        }
+
+        .map-wrap iframe {
+            width: 100%;
+            height: 240px;
+            border: none;
+            display: block
+        }
+
+        button,
+        .result-card,
+        .r-chip,
+        .track-btn {
+            transition: all .25s cubic-bezier(.16, 1, .3, 1);
+        }
+
+        .track-btn,
+        .refresh-btn {
+            box-shadow: 0 0 20px rgba(79, 142, 255, .25);
+        }
+
+        .track-btn:hover {
+            box-shadow: 0 0 30px rgba(79, 142, 255, .4);
+        }
+
+        .lp-title {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        button:hover,
+        .track-btn:hover {
+            transform: translateY(-1px) scale(1.02);
+        }
+
+        button:active {
+            transform: scale(.96);
+        }
+
+        /* SHARE */
+        .share-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap
+        }
+
+        .share-lbl {
+            font-size: 11px;
+            color: var(--text3);
+            font-weight: 600;
+            letter-spacing: .8px;
+            text-transform: uppercase;
+            margin-right: 4px
+        }
+
+        .share-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid var(--border2);
+            border-radius: var(--r3);
+            padding: 6px 14px;
+            font-family: var(--font);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text);
+            transition: background .15s, border-color .15s, color .15s
+        }
+
+        .share-btn:hover {
+            background: rgba(79, 142, 255, .1);
+            border-color: rgba(79, 142, 255, .3);
+            color: var(--accent)
+        }
+
+        .share-btn.copied {
+            background: rgba(34, 212, 131, .1);
+            border-color: rgba(34, 212, 131, .3);
+            color: var(--green)
+        }
+
+        /* AUTO-REFRESH */
+        .auto-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 24px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(255, 255, 255, .015);
+            flex-wrap: wrap
+        }
+
+        .auto-bar-l {
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        .live-ind {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--green)
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: bl 1.4s ease-in-out infinite
+        }
+
+        .ar-prog {
+            flex: 1;
+            max-width: 80px;
+            height: 3px;
+            background: rgba(255, 255, 255, .06);
+            border-radius: 99px;
+            overflow: hidden
+        }
+
+        .ar-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 99px;
+            transition: width 1s linear
+        }
+
+        .ar-lbl {
+            font-size: 11px;
+            color: var(--text3);
+            font-family: var(--mono)
+        }
+
+        .brand-icon {
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-3px);
+            }
+        }
+
+        /* TABS - Pill Design */
+        .md3-tabs {
+            display: flex;
+            gap: 12px;
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            justify-content: center;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid transparent;
+            background: rgba(255, 255, 255, .03);
+            border-radius: 99px;
+            font-family: var(--font);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text2);
+            transition: all .4s var(--spring);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, .08);
+            color: var(--text);
+            transform: translateY(-2px);
+        }
+
+        .tab-btn.active {
+            color: #111;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            box-shadow: 0 4px 16px var(--glow);
+            transform: translateY(-2px);
+            font-weight: 700;
+        }
+
+        .tab-content {
+            display: none
+        }
+
+        .tab-content.active {
+            display: block
+        }
+
+        .result-card,
+        .live-panel,
+        .howto-card {
+            box-shadow: 0 8px 30px rgba(0, 0, 0, .35);
+        }
+
+        .main {
+            animation: fadeInUp .5s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, .15);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(79, 142, 255, .5);
+        }
+
+        /* TIMELINE */
+        .lp-timeline {
+            padding: 24px;
+            background: var(--bg2)
+        }
+
+        .sec-title {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            color: var(--text3);
+            margin-bottom: 22px
+        }
+
+        .tl-wrap {
+            position: relative;
+            padding-left: 34px
+        }
+
+        .tl-line {
+            position: absolute;
+            left: 8px;
+            top: 12px;
+            bottom: 12px;
+            width: 2px;
+            background: linear-gradient(to bottom, var(--accent), rgba(79, 142, 255, .1))
+        }
+
+        .stop {
+            position: relative;
+            padding-bottom: 24px;
+            content-visibility: auto;
+            contain-intrinsic-size: 0 70px
+        }
+
+        .stop:last-child {
+            padding-bottom: 0
+        }
+
+        .stop-dot {
+            position: absolute;
+            left: -26px;
+            top: 4px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--border);
+            border: 2px solid var(--bg2);
+            z-index: 1
+        }
+
+        .stop.past .stop-dot {
+            background: var(--green)
+        }
+
+        .stop.current .stop-dot {
+            width: 22px;
+            height: 22px;
+            left: -29px;
+            top: 1px;
+            background: var(--accent);
+            border: 3px solid var(--bg2);
+            animation: pulseRing 2.5s ease-out infinite;
+            box-shadow: 0 0 10px var(--glow);
+            will-change: box-shadow
+        }
+
+        .stop.future {
+            opacity: .35
+        }
+
+        .stop-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap
+        }
+
+        .stop-info {
+            flex: 1
+        }
+
+        .sname {
+            font-size: 15px;
+            font-weight: 600
+        }
+
+        .stop.current .sname {
+            color: var(--accent);
+            font-weight: 700
+        }
+
+        .scode {
+            font-size: 11px;
+            color: var(--text3);
+            margin-top: 2px;
+            font-family: var(--mono)
+        }
+
+        .pf-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid var(--border2);
+            color: var(--text2);
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: var(--r3);
+            margin-top: 6px;
+            font-family: var(--mono)
+        }
+
+        .stop.current .pf-chip {
+            background: rgba(79, 142, 255, .15);
+            border-color: rgba(79, 142, 255, .25);
+            color: var(--accent)
+        }
+
+        .stop.past .pf-chip {
+            background: rgba(34, 212, 131, .08);
+            border-color: rgba(34, 212, 131, .2);
+            color: var(--green)
+        }
+
+        .stop-times {
+            display: flex;
+            gap: 16px;
+            flex-shrink: 0;
+            text-align: right
+        }
+
+        .t-label {
+            font-size: 9px;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: .8px
+        }
+
+        .t-val {
+            font-size: 13px;
+            font-weight: 600;
+            font-family: var(--mono)
+        }
+
+        .t-val.g {
+            color: var(--green)
+        }
+
+        .t-val.r {
+            color: var(--red)
+        }
+
+        .t-val.d {
+            color: var(--text3)
+        }
+
+        .d-chip {
+            display: inline-block;
+            background: rgba(255, 90, 90, .1);
+            border: 1px solid rgba(255, 90, 90, .2);
+            color: #ff8080;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 1px 5px;
+            border-radius: 99px;
+            margin-top: 2px;
+            font-family: var(--mono)
+        }
+
+        .stop-div {
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, .04);
+            margin: 0 0 24px
+        }
+
+        /* TABLE */
+        .stops-wrap {
+            overflow-x: auto
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px
+        }
+
+        th {
+            text-align: left;
+            padding: 10px 12px;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text3);
+            border-bottom: 1px solid var(--border2);
+            background: rgba(255, 255, 255, .02);
+            white-space: nowrap
+        }
+
+        td {
+            padding: 11px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, .03);
+            vertical-align: middle
+        }
+
+        tr:last-child td {
+            border-bottom: none
+        }
+
+        tr.row-past td {
+            color: var(--text2)
+        }
+
+        tr.row-cur {
+            background: rgba(79, 142, 255, .06)
+        }
+
+        tr.row-cur td {
+            font-weight: 600
+        }
+
+        tr.row-fut td {
+            opacity: .35
+        }
+
+        .td-name {
+            font-weight: 600
+        }
+
+        .td-code {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text3)
+        }
+
+        .td-t {
+            font-family: var(--mono);
+            white-space: nowrap
+        }
+
+        .td-d {
+            font-family: var(--mono);
+            font-size: 10px
+        }
+
+        .td-d.late {
+            color: var(--red)
+        }
+
+        .td-d.ok {
+            color: var(--green)
+        }
+
+        .td-pf {
+            text-align: center;
+            font-family: var(--mono)
+        }
+
+        .cur-arrow {
+            color: var(--accent);
+            font-size: 10px
+        }
+
+        /* WELCOME */
+        .welcome {
+            padding: 36px 4px
+        }
+
+        .welcome-hero {
+            text-align: center;
+            padding-bottom: 32px
+        }
+
+        .welcome-icon {
+            width: 88px;
+            height: 88px;
+            border-radius: var(--r2);
+            background: rgba(79, 142, 255, .08);
+            border: 1px solid rgba(79, 142, 255, .2);
+            display: grid;
+            place-items: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 0 40px rgba(79, 142, 255, .12)
+        }
+
+        .welcome-title {
+            font-family: var(--display);
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -.5px;
+            margin-bottom: 10px
+        }
+
+        .welcome-title span {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text
+        }
+
+        .welcome-sub {
+            font-size: 15px;
+            color: var(--text2);
+            max-width: 380px;
+            margin: 0 auto;
+            line-height: 1.7
+        }
+
+        .recent-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px
+        }
+
+        .recent-title-lbl {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--text3)
+        }
+
+        .clear-btn {
+            background: none;
+            border: none;
+            font-size: 12px;
+            color: var(--accent);
+            cursor: pointer;
+            font-family: var(--font);
+            font-weight: 600;
+            border-radius: var(--r);
+            padding: 4px 10px;
+            transition: background .2s
+        }
+
+        .clear-btn:hover {
+            background: rgba(79, 142, 255, .08)
+        }
+
+        .recent-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 32px
+        }
+
+        .r-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg2);
+            border: 1px solid var(--border2);
+            border-radius: var(--r3);
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: border-color .2s, transform .15s
+        }
+
+        .r-chip:hover {
+            border-color: rgba(79, 142, 255, .3);
+            transform: translateY(-1px)
+        }
+
+        .r-num {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--accent);
+            font-weight: 600
+        }
+
+        .howto-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: var(--r3);
+            padding: 22px 24px
+        }
+
+        .howto-title {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--text3);
+            margin-bottom: 18px
+        }
+
+        .howto-items {
+            display: flex;
+            flex-direction: column;
+            gap: 16px
+        }
+
+        .howto-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px
+        }
+
+        .howto-icon-bg {
+            width: 38px;
+            height: 38px;
+            border-radius: var(--r);
+            display: grid;
+            place-items: center;
+            flex-shrink: 0
+        }
+
+        .howto-item h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 3px
+        }
+
+        .howto-item p {
+            font-size: 12px;
+            color: var(--text2);
+            line-height: 1.6
+        }
+
+        /* TOAST */
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: #1a1d27;
+            border: 1px solid var(--border2);
+            color: var(--text);
+            padding: 12px 20px;
+            border-radius: var(--r2);
+            font-size: 13px;
+            font-weight: 500;
+            z-index: 999;
+            transition: transform .25s var(--ease);
+            pointer-events: none;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, .4)
+        }
+
+        #toast.show {
+            transform: translateX(-50%) translateY(0)
+        }
+
+        /* FOOTER */
+        .footer {
+            text-align: center;
+            padding: 28px 16px;
+            font-size: 12px;
+            color: var(--text3);
+            line-height: 2.2;
+            position: relative;
+            z-index: 1
+        }
+
+        .footer a {
+            color: var(--accent);
+            text-decoration: none
+        }
+
+        .footer a:hover {
+            text-decoration: underline
+        }
+
+        .beta {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(245, 200, 66, .1);
+            border: 1px solid rgba(245, 200, 66, .2);
+            color: var(--yellow);
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 99px;
+            letter-spacing: .7px;
+            vertical-align: middle;
+            margin-left: 6px;
+            font-family: var(--mono)
+        }
+
+        .last-ref {
+            text-align: center;
+            padding: 10px 0 4px;
+            font-size: 11px;
+            color: var(--text3);
+            font-family: var(--mono)
+        }
+
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .7);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center
+        }
+
+        .modal-box {
+            background: var(--bg3);
+            border: 1px solid var(--border2);
+            padding: 28px 32px;
+            max-width: 620px;
+            width: 90%;
+            border-radius: var(--r3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
+            line-height: 1.7;
+            position: relative;
+            max-height: 80vh;
+            overflow-y: auto
+        }
+
+        .modal-box h2 {
+            font-family: var(--display);
+            margin-bottom: 14px;
+            font-size: 22px
+        }
+
+        .modal-box p {
+            font-size: 13px;
+            color: var(--text2);
+            margin-bottom: 12px
+        }
+
+        .modal-close {
+            position: absolute;
+            right: 16px;
+            top: 12px;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text3);
+            width: 32px;
+            height: 32px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            background: none;
+            border: none;
+            transition: background .2s, color .2s
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, .06);
+            color: var(--text)
+        }
+
+        /* NETWORK STATUS BADGE */
+        .network-badge {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--bg3);
+            color: var(--text);
+            padding: 8px 16px;
+            border-radius: 99px;
+            font-family: var(--font);
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: transform 0.4s var(--spring);
+            z-index: 1000;
+        }
+
+        .network-badge.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .network-badge.offline { background: var(--bg2); color: var(--text2); }
+        .network-badge.offline .icon { color: var(--text3); }
+        .network-badge.weak { background: var(--bg3); color: var(--text); }
+        .network-badge.weak .icon { color: var(--yellow); }
+        .network-badge.online { background: var(--green); color: #fff; }
+        .network-badge.online .icon { color: #fff; }
+
+        @media(max-width:600px) {
+            .app-bar { padding: 0; }
+            .bar-inner { padding: 0 8px; gap: 4px; }
+            .brand-text { display: none; }
+            .search-wrap { margin: 0 4px; }
+            .search-field { padding: 0 12px; height: 40px; }
+            .search-field input { font-size: 13px; }
+            .ist-chip { font-size: 14px; padding: 4px; }
+            .ist-chip span:first-child { font-size: 16px !important; }
+
+            .lp-head,
+            .lp-progress,
+            .cd-row,
+            .share-row,
+            .auto-bar,
+            .lp-timeline {
+                padding-left: 16px;
+                padding-right: 16px
+            }
+
+            .pos-next {
+                display: none
+            }
+
+            .meta-it {
+                padding-right: 16px
+            }
+        }
+    </style>
+    <script>
+        (function() {
+            var theme = localStorage.getItem('trackit-theme');
+            if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
 </head>
+
 <body>
 
-<div class="app-bar" id="appBar">
-  <div class="bar-inner">
-    <div class="brand" id="brandBtn">
-      <div class="brand-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M4 6v8c0 2.21 1.79 4 4 4h8c2.21 0 4-1.79 4-4V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2zm2 0h12v5H6V6zm2 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm8 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm-6 4l-2 3h8l-2-3H10z"/></svg>
-      </div>
-      <div class="brand-text">Track<em>It</em></div>
+    <div class="app-bar" id="appBar">
+        <div class="bar-inner">
+            <div class="brand" id="brandBtn">
+                <div class="brand-icon">
+                    <span class="material-symbols-rounded" style="color:white; font-size:20px;">train</span>
+                </div>
+                <div class="brand-text">Track<em>It</em></div>
+            </div>
+            <div class="search-wrap">
+                <div class="search-field">
+                    <span class="material-symbols-rounded" style="color:var(--text3); font-size:20px;">search</span>
+                    <input id="searchInput" type="search" placeholder="Search by train number or name…"
+                        autocomplete="off">
+                </div>
+            </div>
+            <div class="bar-right">
+                <div class="ist-chip">
+                    <span class="material-symbols-rounded" style="font-size:16px;">schedule</span>
+                    <span id="istText">--:--:-- IST</span>
+                </div>
+                <button class="icon-btn" id="themeToggleBtn" aria-label="Toggle Theme">
+                    <span class="material-symbols-rounded" id="themeIcon">light_mode</span>
+                </button>
+                <button class="refresh-btn" id="refreshBtn">
+                    <span class="material-symbols-rounded" style="font-size:18px;">refresh</span>
+                    Refresh
+                </button>
+            </div>
+        </div>
     </div>
-    <div class="search-wrap">
-      <div class="search-field">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-        <input id="searchInput" type="search" placeholder="Search by train number or name…" autocomplete="off">
-      </div>
+
+    <div class="main">
+        <div id="searchResults"></div>
+        <div id="liveView"></div>
     </div>
-    <div class="bar-right">
-      <div class="ist-chip">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L11 13V7h1.5v5.25l4.5 2.67L16.23 18z"/></svg>
-        <span id="istText">--:--:-- IST</span>
-      </div>
-      <button class="refresh-btn" id="refreshBtn">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
-        Refresh
-      </button>
+
+    <div class="footer">
+        <div><strong>TrackIt</strong><span class="beta">BETA</span></div>
+        <div>Made with ❤️ by <strong>Bhargav Todimela</strong> · <a href="#" id="disclaimerLink">Disclaimer</a></div>
+        <div>Found a bug? <a href="https://github.com" target="_blank">Report an issue →</a></div>
+        <div style="margin-top:4px;font-size:10px;opacity:.5;font-family:var(--mono)">Auto-refreshes every 45s · Data:
+            Indian Railways</div>
     </div>
-  </div>
-</div>
-
-<div class="main">
-  <div id="searchResults"></div>
-  <div id="liveView"></div>
-</div>
-
-<div class="footer">
-  <div><strong>TrackIt</strong><span class="beta">BETA</span></div>
-  <div>Made with ❤️ by <strong>Bhargav Todimela</strong> · <a href="#" id="disclaimerLink">Disclaimer</a></div>
-  <div>Found a bug? <a href="https://github.com" target="_blank">Report an issue →</a></div>
-  <div style="margin-top:4px;font-size:10px;opacity:.5;font-family:var(--mono)">Auto-refreshes every 45s · Data: Indian Railways</div>
-</div>
-
-<div id="disclaimerModal" class="modal">
-  <div class="modal-box">
-    <button class="modal-close" id="modalCloseBtn">×</button>
-    <h2>Disclaimer</h2>
-    <p>The train information displayed on this platform is provided strictly for informational purposes only. While efforts are made to keep the data accurate and up to date, the information may not always reflect the exact real-time status of trains due to possible delays in data updates, network issues, or restrictions from upstream data sources.</p>
-    <p>Users are advised not to rely solely on this information for travel decisions and should verify the latest train status through official railway sources before planning their journey.</p>
-    <p>Platform numbers displayed are based on historical patterns and may not represent the actual platform assigned at a station.</p>
-    <p>This platform does not guarantee the accuracy, completeness, or timeliness of the information provided and shall not be held responsible for any inconvenience or loss resulting from its use.</p>
-  </div>
-</div>
-
-<div id="toast"></div>
-
-<script>
-(function() {
-'use strict';
-
-/* ══ STATE ══ */
-let searchTimer = null;
-let countdownInterval = null;
-let autoRefreshTick = null;
-let autoRefreshSecsLeft = 45;
-let currentTrainNo = null;
-let currentTrainName = null;
-let lastRefreshedTs = null;
-let searchResults = []; // store last search results for track button lookup
-
-/* ══ MSGPACK DECODER ══
-   Worker returns str32: byte 0xdb, 4-byte big-endian length, then UTF-8 JSON */
-const BASES = [
-  "https://train-api-eight.vercel.app/api",
-  "https://sujith.bhargavtodimela4.workers.dev"
-];
-
-async function fetchData(path) {
-  // 🎲 pick random backend
-  const first = BASES[Math.floor(Math.random() * BASES.length)];
-  const second = BASES.find(b => b !== first);
-
-  try {
-    const resp = await fetch(first + path);
-    if (!resp.ok) throw new Error();
-    return await parseResponse(resp);
-  } catch {
-    // fallback to other backend
-    const resp = await fetch(second + path);
-    if (!resp.ok) throw new Error('Both endpoints failed');
-    return await parseResponse(resp);
-  }
-}
-
-/* handles BOTH json + msgpack */
-async function parseResponse(resp) {
-  const buf = await resp.arrayBuffer();
-  const u8 = new Uint8Array(buf);
-
-  let jsonStr;
-
-  if (u8.length > 5 && u8[0] === 0xdb) {
-    const len = (u8[1] * 16777216) + (u8[2] << 16) + (u8[3] << 8) + u8[4];
-    jsonStr = new TextDecoder().decode(u8.slice(5, 5 + len));
-  } else {
-    jsonStr = new TextDecoder().decode(u8);
-  }
-
-  return JSON.parse(jsonStr);
-}
-
-/* ══ HELPERS ══ */
-function pad(n) { return String(n).padStart(2, '0'); }
-
-function fmt(ts) {
-  if (!ts) return '—';
-  return new Date(ts * 1000).toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit', hour12:true});
-}
-
-function he(s) { // html escape
-  return String(s == null ? '' : s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
-
-function loader(msg) {
-  return '<div class="md-loader"><div class="md-spinner"><svg viewBox="22 22 44 44"><circle cx="44" cy="44" r="20.2"/></svg></div>' + he(msg) + '</div>';
-}
-
-function toast(msg, type) {
-  const colors = {done:'var(--green)', error:'var(--red)', info:'var(--accent)'};
-  const el = document.getElementById('toast');
-  el.innerHTML = '<span style="color:' + (colors[type]||colors.done) + '">●</span> ' + he(msg);
-  el.classList.add('show');
-  clearTimeout(toast._t);
-  toast._t = setTimeout(() => el.classList.remove('show'), 2800);
-}
-
-/* ══ CLOCK ══ */
-function tickClock() {
-  const el = document.getElementById('istText');
-  if (!el) return;
-  try {
-    const d = new Date(new Date().toLocaleString('en-US', {timeZone:'Asia/Kolkata'}));
-    el.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) + ' IST';
-  } catch(e) {}
-}
-tickClock();
-setInterval(tickClock, 1000);
-
-/* ══ SCROLL ══ */
-window.addEventListener('scroll', function() {
-  document.getElementById('appBar').classList.toggle('elevated', window.scrollY > 4);
-}, {passive:true});
-
-/* ══ AUTO-REFRESH ══ */
-function startAutoRefresh() {
-  stopAutoRefresh();
-  autoRefreshSecsLeft = 45;
-  updateARBar();
-  autoRefreshTick = setInterval(function() {
-    autoRefreshSecsLeft--;
-    updateARBar();
-    if (autoRefreshSecsLeft <= 0) {
-      autoRefreshSecsLeft = 45;
-      doRefresh(true);
-    }
-  }, 1000);
-}
-
-function stopAutoRefresh() {
-  if (autoRefreshTick) { clearInterval(autoRefreshTick); autoRefreshTick = null; }
-}
-
-function updateARBar() {
-  var f = document.getElementById('arFill');
-  var l = document.getElementById('arCountdown');
-  if (f) f.style.width = ((45 - autoRefreshSecsLeft) / 45 * 100) + '%';
-  if (l) l.textContent = 'Next in ' + autoRefreshSecsLeft + 's';
-}
-
-async function doRefresh(silent) {
-  if (!currentTrainNo) return;
-  if (!silent) {
-    var btn = document.getElementById('refreshBtn');
-    if (btn) { btn.classList.add('spinning'); btn.disabled = true; }
-    autoRefreshSecsLeft = 45;
-    updateARBar();
-  }
-  try {
-    var d = await fetchData('/live-status?trainNo=' + encodeURIComponent(currentTrainNo));
-    lastRefreshedTs = new Date();
-    renderLive(d.data, currentTrainNo, currentTrainName);
-    updateLastRef();
-    if (!silent) toast('Refreshed!', 'done');
-    else toast('Auto-refreshed', 'info');
-  } catch(err) {
-    toast('Refresh failed: ' + err.message, 'error');
-  } finally {
-    if (!silent) {
-      var btn2 = document.getElementById('refreshBtn');
-      if (btn2) { btn2.classList.remove('spinning'); btn2.disabled = false; }
-    }
-  }
-}
-
-function updateLastRef() {
-  var el = document.getElementById('lastRefTime');
-  if (el && lastRefreshedTs) {
-    try {
-      var d = new Date(lastRefreshedTs.toLocaleString('en-US', {timeZone:'Asia/Kolkata'}));
-      el.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) + ' IST';
-    } catch(e) {}
-  }
-}
-
-/* ══ SEARCH ══ */
-document.getElementById('searchInput').addEventListener('input', function() {
-  var q = this.value.trim();
-  clearTimeout(searchTimer);
-  if (!q) { showWelcome(); return; }
-  if (q.length < 2) return;
-  searchTimer = setTimeout(function() { doSearch(q); }, 400);
-});
-
-async function doSearch(q) {
-  var sr = document.getElementById('searchResults');
-  var lv = document.getElementById('liveView');
-  sr.innerHTML = loader('Searching trains…');
-  lv.innerHTML = '';
-  clearInterval(countdownInterval);
-  stopAutoRefresh();
-  currentTrainNo = null;
-  currentTrainName = null;
-  document.getElementById('refreshBtn').style.display = 'none';
-
-  try {
-    var d = await fetchData('/search?q=' + encodeURIComponent(q));
-    var trains = (d && d.data) ? d.data : [];
-    searchResults = trains; // save for button handlers
-    renderSearch(trains);
-  } catch(err) {
-    sr.innerHTML = '<div class="md-loader" style="flex-direction:column;align-items:flex-start;gap:6px"><div>Search failed: ' + he(err.message) + '</div><div style="font-size:11px;opacity:.6">Check your connection</div></div>';
-  }
-}
-
-function renderSearch(trains) {
-  var sr = document.getElementById('searchResults');
-  if (!trains || !trains.length) {
-    sr.innerHTML = '<div class="md-loader">No trains found.</div>';
-    return;
-  }
-
-  var html = '<div class="results-header">' + trains.length + ' result' + (trains.length > 1 ? 's' : '') + ' found</div>';
-
-  for (var i = 0; i < trains.length; i++) {
-    var t = trains[i];
-    html += '<div class="result-card">'
-      + '<div class="rnum-badge">' + he(t.number) + '</div>'
-      + '<div class="rinfo">'
-        + '<div class="rname">' + he(t.name) + '</div>'
-        + '<div class="rroute">'
-          + '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>'
-          + he(t.fromStnCode) + ' → ' + he(t.toStnCode)
-        + '</div>'
-      + '</div>'
-      + '<button class="track-btn" data-train-idx="' + i + '">'
-        + '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>'
-        + 'Track'
-      + '</button>'
-    + '</div>';
-  }
-
-  sr.innerHTML = html;
-
-  // Attach click listeners immediately after setting innerHTML
-  var btns = sr.querySelectorAll('[data-train-idx]');
-  btns.forEach(function(btn) {
-    btn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      var idx = parseInt(this.getAttribute('data-train-idx'));
-      var train = searchResults[idx];
-      if (train) {
-        doLive(String(train.number), train.name);
-        saveRecent(String(train.number), train.name);
-      }
-    });
-  });
-}
-
-/* ══ LIVE STATUS ══ */
-async function doLive(num, name) {
-  var sr = document.getElementById('searchResults');
-  var lv = document.getElementById('liveView');
-  sr.innerHTML = '';
-  lv.innerHTML = loader('Fetching live status for ' + num + '…');
-  if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
-  stopAutoRefresh();
-  currentTrainNo = num;
-  currentTrainName = name || num;
-  document.getElementById('refreshBtn').style.display = 'flex';
-
-  try {
-    var d = await fetchData('/live-status?trainNo=' + encodeURIComponent(num));
-    lastRefreshedTs = new Date();
-    renderLive(d.data, num, name || num);
-    updateLastRef();
-    startAutoRefresh();
-  } catch(err) {
-    lv.innerHTML = '<div class="md-loader" style="flex-direction:column;align-items:flex-start;gap:6px">'
-      + '<div>Failed to load: ' + he(err.message) + '</div>'
-      + '<div style="font-size:11px;opacity:.6">The train may not be running today</div>'
-      + '</div>';
-  }
-}
-
-/* ══ RENDER LIVE PANEL ══ */
-function renderLive(data, trainNo, trainName) {
-  var lv = document.getElementById('liveView');
-  if (!data || !data.route || !data.route.length) {
-    lv.innerHTML = '<div class="md-loader">No route data available for this train today.</div>';
-    return;
-  }
-
-  var route = data.route;
-  var curCode = data.currentPosition && data.currentPosition.stationCode;
-  var curIdx = -1;
-  for (var i = 0; i < route.length; i++) {
-    if (route[i].stationCode === curCode) { curIdx = i; break; }
-  }
-
-  var delayMins = Math.round((data.delayInSecs || 0) / 60);
-  var isLate = delayMins > 1;
-  var progress = curIdx >= 0 ? Math.round(curIdx / Math.max(route.length - 1, 1) * 100) : 0;
-  var distOrig = (data.currentPosition && data.currentPosition.distanceFromOriginKm != null)
-    ? Number(data.currentPosition.distanceFromOriginKm).toFixed(1) : '—';
-  var distLast = (data.currentPosition && data.currentPosition.distanceFromLastStationKm != null)
-    ? Number(data.currentPosition.distanceFromLastStationKm).toFixed(1) : '—';
-  var origin = route[0];
-  var dest = route[route.length - 1];
-  var curStn = curIdx >= 0 ? route[curIdx] : null;
-  var nextStop = (curIdx >= 0 && curIdx < route.length - 1) ? route[curIdx + 1] : null;
-  var lat = data.currentPosition && data.currentPosition.latLng && data.currentPosition.latLng.latitude;
-  var lng = data.currentPosition && data.currentPosition.latLng && data.currentPosition.latLng.longitude;
-  var mapUrl = (lat && lng) ? 'https://maps.google.com/maps?q=' + lat + ',' + lng + '&z=13&output=embed' : null;
-  var remaining = route.length - 1 - curIdx;
-
-  var etaStr = '—';
-  var etaTs = 0;
-  if (nextStop && nextStop.scheduledArrivalTime) {
-    etaTs = (nextStop.scheduledArrivalTime + (data.delayInSecs || 0)) * 1000;
-    etaStr = new Date(etaTs).toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit', hour12:true});
-  }
-
-  var h = '<div class="live-panel">';
-
-  // HEAD
-  h += '<div class="lp-head">'
-    + '<div class="lp-head-glow"></div>'
-    + '<div class="lp-chips">'
-      + '<span class="chip chip-num">' + he(trainNo) + '</span>'
-      + '<span class="chip chip-src">' + he(data.dataSource || 'LIVE') + '</span>'
-      + '<span class="chip ' + (isLate ? 'chip-late' : 'chip-ok') + '">'
-        + '<span class="blink"></span>' + (isLate ? '+' + delayMins + ' min late' : 'On Time')
-      + '</span>'
-    + '</div>'
-    + '<div class="lp-title">' + he(trainName) + '</div>'
-    + '<div class="lp-route">'
-      + '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6v8c0 2.21 1.79 4 4 4h8c2.21 0 4-1.79 4-4V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2zm2 0h12v5H6V6z"/></svg>'
-      + he(origin && origin.station_name || '—') + ' → ' + he(dest && dest.station_name || '—')
-    + '</div>'
-    + '<div class="lp-meta-row">'
-      + '<div class="meta-it"><div class="mlabel">Updated</div><div class="mval">' + fmt(data.lastUpdatedTimestamp) + '</div></div>'
-      + '<div class="meta-it"><div class="mlabel">Covered</div><div class="mval">' + distOrig + ' km</div></div>'
-      + '<div class="meta-it"><div class="mlabel">Stops left</div><div class="mval">' + remaining + '</div></div>'
-      + '<div class="meta-it"><div class="mlabel">Total stops</div><div class="mval">' + route.length + '</div></div>'
-    + '</div>'
-  + '</div>';
-
-  // PROGRESS
-  h += '<div class="lp-progress">'
-    + '<div class="prog-head">'
-      + '<span class="prog-endpoints">' + he(origin && origin.stationCode || '') + ' → ' + he(dest && dest.stationCode || '') + '</span>'
-      + '<span class="prog-pct">' + progress + '%</span>'
-    + '</div>'
-    + '<div class="linear-track"><div class="linear-fill" id="progFill" style="width:0%"></div></div>'
-    + '<div class="prog-labels">'
-      + '<span class="prog-lbl">' + he(origin && origin.station_name || '') + '</span>'
-      + '<span class="prog-lbl">' + he(dest && dest.station_name || '') + '</span>'
-    + '</div>'
-  + '</div>';
-
-  // STATS
-  h += '<div class="stats-row">'
-    + '<div class="stat-it"><div class="stat-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="' + (isLate ? 'var(--red)' : 'var(--green)') + '"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L11 13V7h1.5v5.25l4.5 2.67L16.23 18z"/></svg></div><div class="sval ' + (isLate ? 'r' : 'g') + '">' + (isLate ? '+'+delayMins : '0') + '</div><div class="slbl">MIN DELAY</div></div>'
-    + '<div class="stat-it"><div class="stat-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="var(--accent)"><path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/></svg></div><div class="sval b">' + distOrig + '</div><div class="slbl">KM COVERED</div></div>'
-    + '<div class="stat-it"><div class="stat-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="var(--text3)"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div><div class="sval">' + distLast + '</div><div class="slbl">KM FROM LAST</div></div>'
-    + '<div class="stat-it"><div class="stat-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="var(--accent)"><path d="M4 6v8c0 2.21 1.79 4 4 4h8c2.21 0 4-1.79 4-4V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2zm2 0h12v5H6V6z"/></svg></div><div class="sval b" style="font-size:14px">' + etaStr + '</div><div class="slbl">ETA NEXT STOP</div></div>'
-  + '</div>';
-
-  // POSITION
-  if (curStn) {
-    h += '<div class="lp-pos">'
-      + '<div class="pos-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div>'
-      + '<div class="pos-info">'
-        + '<div class="pos-at">Currently At</div>'
-        + '<div class="pos-name">' + he(curStn.station_name) + '</div>'
-        + '<div class="pos-sub">' + he(curStn.stationCode) + ' · Platform ' + he(curStn.platformNumber || '—') + '</div>'
-      + '</div>'
-      + '<div class="pos-next">'
-        + (nextStop
-          ? '<div class="next-lbl">NEXT STOP</div><div class="next-name">' + he(nextStop.station_name) + '</div><div class="next-chip">ETA ' + etaStr + '</div>'
-          : '<div class="next-chip">🏁 Final Destination</div>')
-      + '</div>'
-    + '</div>';
-  }
-
-  // COUNTDOWN
-  if (etaTs > 0) {
-    h += '<div class="cd-row">'
-      + '<div><div class="cd-lbl">NEXT STOP IN</div><div class="cd-val" id="cdVal">--:--</div></div>'
-      + '<div style="flex:1"><div class="cd-stn">' + he(nextStop && nextStop.station_name || '') + '</div>'
-        + '<div class="cd-code">' + he(nextStop && nextStop.stationCode || '') + ' · PF ' + he(nextStop && nextStop.platformNumber || '—') + '</div></div>'
-      + '<div class="cd-right"><div class="cd-sched-lbl">SCHEDULED</div><div class="cd-sched-val">' + fmt(nextStop && nextStop.scheduledArrivalTime) + '</div></div>'
-    + '</div>';
-  }
-
-  // MAP
-  if (mapUrl) {
-    h += '<button class="map-btn" id="mapToggleBtn">'
-      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>'
-      + 'Show current location on map'
-      + '<svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>'
-    + '</button>'
-    + '<div class="map-wrap" id="mapWrap"></div>';
-  }
-
-  // SHARE
-  h += '<div class="share-row">'
-    + '<span class="share-lbl">Share</span>'
-    + '<button class="share-btn" id="copyShareBtn"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg> Copy</button>'
-    + '<button class="share-btn" id="waShareBtn"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 1 10 10 10 10 0 0 1-10 10c-1.97 0-3.8-.57-5.35-1.55L2 22l1.62-4.57A9.945 9.945 0 0 1 2 12 10 10 0 0 1 12 2z"/></svg> WhatsApp</button>'
-    + '<button class="share-btn" id="dlShareBtn"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zm-8 2V5h2v6h1.17L12 13.17 9.83 11H11zm-6 7h14v2H5v-2z"/></svg> Download</button>'
-  + '</div>';
-
-  // AUTO-REFRESH BAR
-  h += '<div class="auto-bar">'
-    + '<div class="auto-bar-l"><div class="live-ind"><div class="live-dot"></div>LIVE</div>'
-    + '<div class="ar-prog"><div class="ar-fill" id="arFill" style="width:0%"></div></div></div>'
-    + '<span class="ar-lbl" id="arCountdown">Next in 45s</span>'
-  + '</div>';
-
-  // TABS
-  h += '<div class="md3-tabs">'
-    + '<button class="tab-btn active" data-tab="tab-tl"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M4 15h16v-2H4zm0 4h16v-2H4zm0-8h16V9H4zm0-6v2h16V5H4z"/></svg> Timeline</button>'
-    + '<button class="tab-btn" data-tab="tab-table"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h18v18H3V3zm2 2v4h14V5H5zm0 6v4h14v-4H5zm0 6v2h14v-2H5z"/></svg> All Stops</button>'
-  + '</div>';
-
-  // TIMELINE
-  h += '<div id="tab-tl" class="tab-content active"><div class="lp-timeline">'
-    + '<div class="sec-title">Journey Timeline</div>'
-    + '<div class="tl-wrap"><div class="tl-line"></div>';
-
-  for (var i = 0; i < route.length; i++) {
-    var s = route[i];
-    var isCur = i === curIdx, isPast = i < curIdx;
-    var cls = isCur ? 'current' : isPast ? 'past' : 'future';
-    var aD = s.scheduledArrivalDelaySecs || 0;
-    var dD = s.scheduledDepartureDelaySecs || 0;
-    var aCls = s.actualArrivalTime ? (aD > 120 ? 'r' : 'g') : 'd';
-    var dCls = s.actualDepartureTime ? (dD > 120 ? 'r' : 'g') : 'd';
-    h += '<div class="stop ' + cls + '"><div class="stop-dot"></div>'
-      + '<div class="stop-row">'
-        + '<div class="stop-info">'
-          + '<div class="sname">' + he(s.station_name) + '</div>'
-          + '<div class="scode">' + he(s.stationCode) + ' · #' + (s.stopIndex || (i+1)) + '</div>'
-          + (s.platformNumber ? '<div class="pf-chip">PF ' + he(s.platformNumber) + '</div>' : '')
-        + '</div>'
-        + '<div class="stop-times">'
-          + '<div class="t-grp"><div class="t-label">Arr</div><div class="t-val ' + aCls + '">' + fmt(s.actualArrivalTime || s.scheduledArrivalTime) + '</div>' + (aD > 60 ? '<div class="d-chip">+' + Math.round(aD/60) + 'm</div>' : '') + '</div>'
-          + '<div class="t-grp"><div class="t-label">Dep</div><div class="t-val ' + dCls + '">' + fmt(s.actualDepartureTime || s.scheduledDepartureTime) + '</div>' + (dD > 60 ? '<div class="d-chip">+' + Math.round(dD/60) + 'm</div>' : '') + '</div>'
-        + '</div>'
-      + '</div>'
-    + '</div>'
-    + (i < route.length - 1 ? '<hr class="stop-div">' : '');
-  }
-  h += '</div></div></div>';
-
-  // TABLE
-  h += '<div id="tab-table" class="tab-content"><div style="padding:20px 24px;background:var(--bg2)">'
-    + '<div class="sec-title">All Stops</div>'
-    + '<div class="stops-wrap"><table>'
-    + '<thead><tr><th>#</th><th>Station</th><th>Code</th><th>PF</th><th>Sch Arr</th><th>Act Arr</th><th>Sch Dep</th><th>Act Dep</th><th>Delay</th></tr></thead>'
-    + '<tbody>';
-  for (var i = 0; i < route.length; i++) {
-    var s = route[i];
-    var isCur = i === curIdx, isPast = i < curIdx;
-    var rc = isCur ? 'row-cur' : isPast ? 'row-past' : 'row-fut';
-    var md = Math.max(s.scheduledArrivalDelaySecs || 0, s.scheduledDepartureDelaySecs || 0);
-    h += '<tr class="' + rc + '"><td>' + (i+1) + (isCur ? ' <span class="cur-arrow">◀</span>' : '') + '</td>'
-      + '<td class="td-name">' + he(s.station_name) + '</td>'
-      + '<td class="td-code">' + he(s.stationCode) + '</td>'
-      + '<td class="td-pf">' + he(s.platformNumber || '—') + '</td>'
-      + '<td class="td-t">' + fmt(s.scheduledArrivalTime) + '</td>'
-      + '<td class="td-t">' + fmt(s.actualArrivalTime) + '</td>'
-      + '<td class="td-t">' + fmt(s.scheduledDepartureTime) + '</td>'
-      + '<td class="td-t">' + fmt(s.actualDepartureTime) + '</td>'
-      + '<td class="td-d ' + (md > 120 ? 'late' : 'ok') + '">' + (md > 60 ? '+' + Math.round(md/60) + 'm' : '—') + '</td>'
-    + '</tr>';
-  }
-  h += '</tbody></table></div></div></div>';
-  h += '</div>';
-  h += '<div class="last-ref">Last refreshed: <span id="lastRefTime">—</span></div>';
-
-  lv.innerHTML = h;
-
-  // Animate progress bar
-  requestAnimationFrame(function() {
-    setTimeout(function() {
-      var pf = document.getElementById('progFill');
-      if (pf) pf.style.width = progress + '%';
-    }, 100);
-  });
-
-  // Countdown timer
-  if (etaTs > 0) {
-    if (countdownInterval) clearInterval(countdownInterval);
-    countdownInterval = setInterval(function() {
-      var el = document.getElementById('cdVal');
-      if (!el) { clearInterval(countdownInterval); return; }
-      var diff = etaTs - Date.now();
-      if (diff <= 0) { el.textContent = 'Arriving'; el.style.color = 'var(--green)'; clearInterval(countdownInterval); return; }
-      var m = Math.floor(diff / 60000), sc = Math.floor((diff % 60000) / 1000);
-      el.textContent = pad(m) + ':' + pad(sc);
-      el.style.color = m < 5 ? 'var(--red)' : '';
-    }, 1000);
-  }
-
-  // Wire up all rendered buttons
-  var mapBtn = document.getElementById('mapToggleBtn');
-  if (mapBtn) {
-    mapBtn.addEventListener('click', function() {
-      var w = document.getElementById('mapWrap');
-      this.classList.toggle('open');
-      if (!this.classList.contains('open')) { w.style.display = 'none'; return; }
-      w.style.display = 'block';
-      if (!w.querySelector('iframe')) w.innerHTML = '<iframe src="' + he(mapUrl) + '" loading="lazy" allowfullscreen></iframe>';
-    });
-  }
-
-  var shareText = '🚆 ' + trainNo + ' — ' + trainName
-    + '\n📍 At: ' + (curStn ? curStn.station_name : curCode || '—')
-    + '\n⏱ Delay: ' + (isLate ? '+' + delayMins + ' min' : 'On time')
-    + '\n🏁 Destination: ' + (dest ? dest.station_name : '—')
-    + '\n📊 Progress: ' + progress + '%';
-
-  var copyBtn = document.getElementById('copyShareBtn');
-  if (copyBtn) {
-    copyBtn.addEventListener('click', function() {
-      var btn = this;
-      navigator.clipboard.writeText(shareText).then(function() {
-        toast('Copied!', 'done');
-        btn.classList.add('copied');
-        setTimeout(function() { btn.classList.remove('copied'); }, 2000);
-      }).catch(function() { toast('Copy failed', 'error'); });
-    });
-  }
-
-  var waBtn = document.getElementById('waShareBtn');
-  if (waBtn) {
-    waBtn.addEventListener('click', function() {
-      window.open('https://wa.me/?text=' + encodeURIComponent(shareText), '_blank');
-    });
-  }
-
-  var dlBtn = document.getElementById('dlShareBtn');
-  if (dlBtn) {
-    dlBtn.addEventListener('click', function() {
-      var a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([shareText], {type:'text/plain'}));
-      a.download = 'train-' + trainNo + '-status.txt';
-      a.click();
-      toast('Downloaded!', 'done');
-    });
-  }
-
-  lv.querySelectorAll('.tab-btn[data-tab]').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      lv.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
-      lv.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
-      this.classList.add('active');
-      var t = document.getElementById(this.getAttribute('data-tab'));
-      if (t) t.classList.add('active');
-    });
-  });
-}
-
-/* ══ RECENT ══ */
-function getRecent() {
-  try { return JSON.parse(localStorage.getItem('recentTrains') || '[]'); } catch(e) { return []; }
-}
-function saveRecent(num, name) {
-  var r = getRecent().filter(function(x) { return x.num !== num; });
-  r.unshift({num:num, name:name});
-  if (r.length > 6) r = r.slice(0, 6);
-  try { localStorage.setItem('recentTrains', JSON.stringify(r)); } catch(e) {}
-}
-function clearRecent() {
-  try { localStorage.removeItem('recentTrains'); } catch(e) {}
-  showWelcome();
-  toast('Recent cleared', 'done');
-}
-
-/* ══ WELCOME ══ */
-function showWelcome() {
-  var recent = getRecent();
-  var h = '<div class="welcome"><div class="welcome-hero">'
-    + '<div class="welcome-icon"><svg width="42" height="42" viewBox="0 0 24 24" fill="var(--accent)"><path d="M4 6v8c0 2.21 1.79 4 4 4h8c2.21 0 4-1.79 4-4V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2zm2 0h12v5H6V6zm2 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm8 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm-6 4l-2 3h8l-2-3H10z"/></svg></div>'
-    + '<div class="welcome-title">Track any Indian train, <span>live.</span></div>'
-    + '<div class="welcome-sub">Type a train number or name in the search bar above to get started.</div>'
-  + '</div>';
-
-  if (recent.length) {
-    h += '<div class="recent-head">'
-      + '<div class="recent-title-lbl">Recent Searches</div>'
-      + '<button class="clear-btn" id="clearRecentBtn">Clear all</button>'
-    + '</div><div class="recent-chips" id="recentChipsWrap">';
-    for (var i = 0; i < recent.length; i++) {
-      h += '<div class="r-chip" data-recent-idx="' + i + '"><span class="r-num">' + he(recent[i].num) + '</span><span>' + he(recent[i].name) + '</span></div>';
-    }
-    h += '</div>';
-  }
-
-  h += '<div class="howto-card"><div class="howto-title">How to use TrackIt</div>'
-    + '<div class="howto-items">'
-    + '<div class="howto-item"><div class="howto-icon-bg" style="background:rgba(79,142,255,.08)"><svg width="18" height="18" viewBox="0 0 24 24" fill="var(--accent)"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></div><div><h4>Search</h4><p>Type a train number (e.g. 12728) or name in the search bar</p></div></div>'
-    + '<div class="howto-item"><div class="howto-icon-bg" style="background:rgba(255,90,90,.08)"><svg width="18" height="18" viewBox="0 0 24 24" fill="var(--red)"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div><div><h4>Track</h4><p>Click Track to see real-time position, platform & delay info</p></div></div>'
-    + '<div class="howto-item"><div class="howto-icon-bg" style="background:rgba(34,212,131,.08)"><svg width="18" height="18" viewBox="0 0 24 24" fill="var(--green)"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></div><div><h4>Auto-refresh</h4><p>Live data updates every 45 seconds automatically</p></div></div>'
-    + '</div></div></div>';
-
-  var sr = document.getElementById('searchResults');
-  var lv = document.getElementById('liveView');
-  sr.innerHTML = h;
-  lv.innerHTML = '';
-
-  var clearBtn = document.getElementById('clearRecentBtn');
-  if (clearBtn) clearBtn.addEventListener('click', clearRecent);
-
-  var chips = document.querySelectorAll('[data-recent-idx]');
-  chips.forEach(function(chip) {
-    var r = recent[parseInt(chip.getAttribute('data-recent-idx'))];
-    if (r) chip.addEventListener('click', function() { doLive(r.num, r.name); });
-  });
-}
-
-function goHome() {
-  stopAutoRefresh();
-  if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
-  currentTrainNo = null;
-  currentTrainName = null;
-  document.getElementById('refreshBtn').style.display = 'none';
-  document.getElementById('searchInput').value = '';
-  showWelcome();
-}
-
-/* ══ STATIC BUTTON WIRING ══ */
-document.getElementById('brandBtn').addEventListener('click', goHome);
-document.getElementById('refreshBtn').addEventListener('click', function() { doRefresh(false); });
-
-document.getElementById('disclaimerLink').addEventListener('click', function(e) {
-  e.preventDefault();
-  document.getElementById('disclaimerModal').style.display = 'flex';
-});
-document.getElementById('modalCloseBtn').addEventListener('click', function() {
-  document.getElementById('disclaimerModal').style.display = 'none';
-});
-document.getElementById('disclaimerModal').addEventListener('click', function(e) {
-  if (e.target === this) this.style.display = 'none';
-});
-
-/* ══ INIT ══ */
-showWelcome();
-
-})(); // end IIFE
-</script>
+
+    <div id="disclaimerModal" class="modal">
+        <div class="modal-box">
+            <button class="modal-close" id="modalCloseBtn">×</button>
+            <h2>Disclaimer</h2>
+            <p>The train information displayed on this platform is provided strictly for informational purposes only.
+                While efforts are made to keep the data accurate and up to date, the information may not always reflect
+                the exact real-time status of trains due to possible delays in data updates, network issues, or
+                restrictions from upstream data sources.</p>
+            <p>Users are advised not to rely solely on this information for travel decisions and should verify the
+                latest train status through official railway sources before planning their journey.</p>
+            <p>Platform numbers displayed are based on historical patterns and may not represent the actual platform
+                assigned at a station.</p>
+            <p>This platform does not guarantee the accuracy, completeness, or timeliness of the information provided
+                and shall not be held responsible for any inconvenience or loss resulting from its use.</p>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+    <div id="networkBadge" class="network-badge"></div>
+
+    <script>
+        (function () {
+            'use strict';
+
+            /* ══ STATE ══ */
+            let searchTimer = null;
+            let countdownInterval = null;
+            let autoRefreshTick = null;
+            let autoRefreshSecsLeft = 45;
+            let currentTrainNo = null;
+            let currentTrainName = null;
+            let lastRefreshedTs = null;
+            let searchResults = []; // store last search results for track button lookup
+
+            /* ══ MSGPACK DECODER ══
+               Worker returns str32: byte 0xdb, 4-byte big-endian length, then UTF-8 JSON */
+            const BASES = [
+                "https://train-api-eight.vercel.app/api",
+                "https://sujith.bhargavtodimela4.workers.dev"
+            ];
+
+            async function fetchData(path) {
+                // 🎲 pick random backend
+                const first = BASES[Math.floor(Math.random() * BASES.length)];
+                const second = BASES.find(b => b !== first);
+
+                try {
+                    const resp = await fetch(first + path);
+                    if (!resp.ok) throw new Error();
+                    return await parseResponse(resp);
+                } catch {
+                    // fallback to other backend
+                    const resp = await fetch(second + path);
+                    if (!resp.ok) throw new Error('Both endpoints failed');
+                    return await parseResponse(resp);
+                }
+            }
+
+            /* handles BOTH json + msgpack */
+            async function parseResponse(resp) {
+                const buf = await resp.arrayBuffer();
+                const u8 = new Uint8Array(buf);
+
+                let jsonStr;
+
+                if (u8.length > 5 && u8[0] === 0xdb) {
+                    const len = (u8[1] * 16777216) + (u8[2] << 16) + (u8[3] << 8) + u8[4];
+                    jsonStr = new TextDecoder().decode(u8.slice(5, 5 + len));
+                } else {
+                    jsonStr = new TextDecoder().decode(u8);
+                }
+
+                return JSON.parse(jsonStr);
+            }
+
+            /* ══ HELPERS ══ */
+            function pad(n) { return String(n).padStart(2, '0'); }
+
+            function fmt(ts) {
+                if (!ts) return '—';
+                return new Date(ts * 1000).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+            }
+
+            function he(s) { // html escape
+                return String(s == null ? '' : s)
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            }
+
+            function loader(msg) {
+                return '<div class="md-loader"><div class="md-spinner"><svg viewBox="22 22 44 44"><circle cx="44" cy="44" r="20.2"/></svg></div>' + he(msg) + '</div>';
+            }
+
+            function toast(msg, type) {
+                const colors = { done: 'var(--green)', error: 'var(--red)', info: 'var(--accent)' };
+                const el = document.getElementById('toast');
+                el.innerHTML = '<span style="color:' + (colors[type] || colors.done) + '">●</span> ' + he(msg);
+                el.classList.add('show');
+                clearTimeout(toast._t);
+                toast._t = setTimeout(() => el.classList.remove('show'), 2800);
+            }
+
+            /* ══ CLOCK ══ */
+            function tickClock() {
+                const el = document.getElementById('istText');
+                if (!el) return;
+                try {
+                    const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+                    el.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) + ' IST';
+                } catch (e) { }
+            }
+            tickClock();
+            setInterval(tickClock, 1000);
+
+            /* ══ SCROLL ══ */
+            window.addEventListener('scroll', function () {
+                document.getElementById('appBar').classList.toggle('elevated', window.scrollY > 4);
+            }, { passive: true });
+
+            /* ══ AUTO-REFRESH ══ */
+            function startAutoRefresh() {
+                stopAutoRefresh();
+                autoRefreshSecsLeft = 45;
+                updateARBar();
+                autoRefreshTick = setInterval(function () {
+                    autoRefreshSecsLeft--;
+                    updateARBar();
+                    if (autoRefreshSecsLeft <= 0) {
+                        autoRefreshSecsLeft = 45;
+                        doRefresh(true);
+                    }
+                }, 1000);
+            }
+
+            function stopAutoRefresh() {
+                if (autoRefreshTick) { clearInterval(autoRefreshTick); autoRefreshTick = null; }
+            }
+
+            function updateARBar() {
+                var f = document.getElementById('arFill');
+                var l = document.getElementById('arCountdown');
+                if (f) f.style.width = ((45 - autoRefreshSecsLeft) / 45 * 100) + '%';
+                if (l) l.textContent = 'Next in ' + autoRefreshSecsLeft + 's';
+            }
+
+            async function doRefresh(silent) {
+                if (!currentTrainNo) return;
+                if (!silent) {
+                    var btn = document.getElementById('refreshBtn');
+                    if (btn) { btn.classList.add('spinning'); btn.disabled = true; }
+                    autoRefreshSecsLeft = 45;
+                    updateARBar();
+                }
+                try {
+                    var d = await fetchData('/live-status?trainNo=' + encodeURIComponent(currentTrainNo));
+                    lastRefreshedTs = new Date();
+                    renderLive(d.data, currentTrainNo, currentTrainName);
+                    updateLastRef();
+                    if (!silent) toast('Refreshed!', 'done');
+                    else toast('Auto-refreshed', 'info');
+                } catch (err) {
+                    toast('Refresh failed: ' + err.message, 'error');
+                } finally {
+                    if (!silent) {
+                        var btn2 = document.getElementById('refreshBtn');
+                        if (btn2) { btn2.classList.remove('spinning'); btn2.disabled = false; }
+                    }
+                }
+            }
+
+            function updateLastRef() {
+                var el = document.getElementById('lastRefTime');
+                if (el && lastRefreshedTs) {
+                    try {
+                        var d = new Date(lastRefreshedTs.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+                        el.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) + ' IST';
+                    } catch (e) { }
+                }
+            }
+
+            /* ══ SEARCH ══ */
+            document.getElementById('searchInput').addEventListener('input', function () {
+                var q = this.value.trim();
+                clearTimeout(searchTimer);
+                if (!q) { showWelcome(); return; }
+                if (q.length < 2) return;
+                searchTimer = setTimeout(function () { doSearch(q); }, 400);
+            });
+
+            async function doSearch(q) {
+                var sr = document.getElementById('searchResults');
+                var lv = document.getElementById('liveView');
+                sr.innerHTML = loader('Searching trains…');
+                lv.innerHTML = '';
+                clearInterval(countdownInterval);
+                stopAutoRefresh();
+                currentTrainNo = null;
+                currentTrainName = null;
+                document.getElementById('refreshBtn').style.display = 'none';
+
+                try {
+                    var d = await fetchData('/search?q=' + encodeURIComponent(q));
+                    var trains = (d && d.data) ? d.data : [];
+                    searchResults = trains; // save for button handlers
+                    renderSearch(trains);
+                } catch (err) {
+                    sr.innerHTML = '<div class="md-loader" style="flex-direction:column;align-items:flex-start;gap:6px"><div>Search failed: ' + he(err.message) + '</div><div style="font-size:11px;opacity:.6">Check your connection</div></div>';
+                }
+            }
+
+            function renderSearch(trains) {
+                var sr = document.getElementById('searchResults');
+                if (!trains || !trains.length) {
+                    sr.innerHTML = '<div class="md-loader">No trains found.</div>';
+                    return;
+                }
+
+                var html = '<div class="results-header">' + trains.length + ' result' + (trains.length > 1 ? 's' : '') + ' found</div>';
+
+                for (var i = 0; i < trains.length; i++) {
+                    var t = trains[i];
+                    html += '<div class="result-card">'
+                        + '<div class="rnum-badge">' + he(t.number) + '</div>'
+                        + '<div class="rinfo">'
+                        + '<div class="rname">' + he(t.name) + '</div>'
+                        + '<div class="rroute">'
+                        + '<span class="material-symbols-rounded" style="font-size:14px;vertical-align:-2px">location_on</span>'
+                        + he(t.fromStnCode) + ' → ' + he(t.toStnCode)
+                        + '</div>'
+                        + '</div>'
+                        + '<button class="track-btn" data-train-idx="' + i + '">'
+                        + '<span class="material-symbols-rounded" style="font-size:18px">my_location</span>'
+                        + ' Track'
+                        + '</button>'
+                        + '</div>';
+                }
+
+                sr.innerHTML = html;
+
+                // Attach click listeners immediately after setting innerHTML
+                var btns = sr.querySelectorAll('[data-train-idx]');
+                btns.forEach(function (btn) {
+                    btn.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        var idx = parseInt(this.getAttribute('data-train-idx'));
+                        var train = searchResults[idx];
+                        if (train) {
+                            doLive(String(train.number), train.name);
+                            saveRecent(String(train.number), train.name);
+                        }
+                    });
+                });
+            }
+
+            /* ══ LIVE STATUS ══ */
+            async function doLive(num, name) {
+                var sr = document.getElementById('searchResults');
+                var lv = document.getElementById('liveView');
+                sr.innerHTML = '';
+                lv.innerHTML = loader('Fetching live status for ' + num + '…');
+                if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
+                stopAutoRefresh();
+                currentTrainNo = num;
+                currentTrainName = name || num;
+                document.getElementById('refreshBtn').style.display = 'flex';
+
+                try {
+                    var d = await fetchData('/live-status?trainNo=' + encodeURIComponent(num));
+                    lastRefreshedTs = new Date();
+                    renderLive(d.data, num, name || num);
+                    updateLastRef();
+                    startAutoRefresh();
+                } catch (err) {
+                    lv.innerHTML = '<div class="md-loader" style="flex-direction:column;align-items:flex-start;gap:6px">'
+                        + '<div>Failed to load: ' + he(err.message) + '</div>'
+                        + '<div style="font-size:11px;opacity:.6">The train may not be running today</div>'
+                        + '</div>';
+                }
+            }
+
+            /* ══ RENDER LIVE PANEL ══ */
+            function renderLive(data, trainNo, trainName) {
+                var lv = document.getElementById('liveView');
+                if (!data || !data.route || !data.route.length) {
+                    lv.innerHTML = '<div class="md-loader">No route data available for this train today.</div>';
+                    return;
+                }
+
+                var route = data.route;
+                var curCode = data.currentPosition && data.currentPosition.stationCode;
+                var curIdx = -1;
+                for (var i = 0; i < route.length; i++) {
+                    if (route[i].stationCode === curCode) { curIdx = i; break; }
+                }
+
+                var delayMins = Math.round((data.delayInSecs || 0) / 60);
+                var isLate = delayMins > 1;
+                var progress = curIdx >= 0 ? Math.round(curIdx / Math.max(route.length - 1, 1) * 100) : 0;
+                var distOrig = (data.currentPosition && data.currentPosition.distanceFromOriginKm != null)
+                    ? Number(data.currentPosition.distanceFromOriginKm).toFixed(1) : '—';
+                var distLast = (data.currentPosition && data.currentPosition.distanceFromLastStationKm != null)
+                    ? Number(data.currentPosition.distanceFromLastStationKm).toFixed(1) : '—';
+                var origin = route[0];
+                var dest = route[route.length - 1];
+                var curStn = curIdx >= 0 ? route[curIdx] : null;
+                var nextStop = (curIdx >= 0 && curIdx < route.length - 1) ? route[curIdx + 1] : null;
+                var lat = data.currentPosition && data.currentPosition.latLng && data.currentPosition.latLng.latitude;
+                var lng = data.currentPosition && data.currentPosition.latLng && data.currentPosition.latLng.longitude;
+                var mapUrl = (lat && lng) ? 'https://maps.google.com/maps?q=' + lat + ',' + lng + '&z=13&output=embed' : null;
+                var remaining = route.length - 1 - curIdx;
+
+                var etaStr = '—';
+                var etaTs = 0;
+                if (nextStop && nextStop.scheduledArrivalTime) {
+                    etaTs = (nextStop.scheduledArrivalTime + (data.delayInSecs || 0)) * 1000;
+                    etaStr = new Date(etaTs).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+                }
+
+                var h = '<div class="live-panel">';
+
+                // HEAD
+                h += '<div class="lp-head">'
+                    + '<div class="lp-head-glow"></div>'
+                    + '<div class="lp-chips">'
+                    + '<span class="chip chip-num">' + he(trainNo) + '</span>'
+                    + '<span class="chip chip-src">' + he(data.dataSource || 'LIVE') + '</span>'
+                    + '<span class="chip ' + (isLate ? 'chip-late' : 'chip-ok') + '">'
+                    + '<span class="blink"></span>' + (isLate ? '+' + delayMins + ' min late' : 'On Time')
+                    + '</span>'
+                    + '</div>'
+                    + '<div class="lp-title">' + he(trainName) + '</div>'
+                    + '<div class="lp-route">'
+                    + '<span class="material-symbols-rounded" style="font-size:16px;vertical-align:bottom;margin-right:4px">train</span>'
+                    + he(origin && origin.station_name || '—') + ' → ' + he(dest && dest.station_name || '—')
+                    + '</div>'
+                    + '<div class="lp-meta-row">'
+                    + '<div class="meta-it"><div class="mlabel">Updated</div><div class="mval">' + fmt(data.lastUpdatedTimestamp) + '</div></div>'
+                    + '<div class="meta-it"><div class="mlabel">Covered</div><div class="mval">' + distOrig + ' km</div></div>'
+                    + '<div class="meta-it"><div class="mlabel">Stops left</div><div class="mval">' + remaining + '</div></div>'
+                    + '<div class="meta-it"><div class="mlabel">Total stops</div><div class="mval">' + route.length + '</div></div>'
+                    + '</div>'
+                    + '</div>';
+
+                // PROGRESS
+                h += '<div class="lp-progress">'
+                    + '<div class="prog-head">'
+                    + '<span class="prog-endpoints">' + he(origin && origin.stationCode || '') + ' → ' + he(dest && dest.stationCode || '') + '</span>'
+                    + '<span class="prog-pct">' + progress + '%</span>'
+                    + '</div>'
+                    + '<div class="linear-track"><div class="linear-fill" id="progFill" style="width:0%"></div></div>'
+                    + '<div class="prog-labels">'
+                    + '<span class="prog-lbl">' + he(origin && origin.station_name || '') + '</span>'
+                    + '<span class="prog-lbl">' + he(dest && dest.station_name || '') + '</span>'
+                    + '</div>'
+                    + '</div>';
+
+                // STATS
+                h += '<div class="stats-row">'
+                    + '<div class="stat-it"><div class="stat-icon"><span class="material-symbols-rounded" style="font-size:20px;color:' + (isLate ? 'var(--red)' : 'var(--green)') + '">schedule</span></div><div class="sval ' + (isLate ? 'r' : 'g') + '">' + (isLate ? '+' + delayMins : '0') + '</div><div class="slbl">MIN DELAY</div></div>'
+                    + '<div class="stat-it"><div class="stat-icon"><span class="material-symbols-rounded" style="font-size:20px;color:var(--accent)">directions_run</span></div><div class="sval b">' + distOrig + '</div><div class="slbl">KM COVERED</div></div>'
+                    + '<div class="stat-it"><div class="stat-icon"><span class="material-symbols-rounded" style="font-size:20px;color:var(--text3)">location_on</span></div><div class="sval">' + distLast + '</div><div class="slbl">KM FROM LAST</div></div>'
+                    + '<div class="stat-it"><div class="stat-icon"><span class="material-symbols-rounded" style="font-size:20px;color:var(--accent)">train</span></div><div class="sval b" style="font-size:14px">' + etaStr + '</div><div class="slbl">ETA NEXT STOP</div></div>'
+                    + '</div>';
+
+                // POSITION
+                if (curStn) {
+                    h += '<div class="lp-pos">'
+                        + '<div class="pos-icon"><span class="material-symbols-rounded" style="font-size:24px;color:var(--bg)">my_location</span></div>'
+                        + '<div class="pos-info">'
+                        + '<div class="pos-at">Currently At</div>'
+                        + '<div class="pos-name">' + he(curStn.station_name) + '</div>'
+                        + '<div class="pos-sub">' + he(curStn.stationCode) + ' · Platform ' + he(curStn.platformNumber || '—') + '</div>'
+                        + '</div>'
+                        + '<div class="pos-next">'
+                        + (nextStop
+                            ? '<div class="next-lbl">NEXT STOP</div><div class="next-name">' + he(nextStop.station_name) + '</div><div class="next-chip">ETA ' + etaStr + '</div>'
+                            : '<div class="next-chip">🏁 Final Destination</div>')
+                        + '</div>'
+                        + '</div>';
+                }
+
+                // COUNTDOWN
+                if (etaTs > 0) {
+                    h += '<div class="cd-row">'
+                        + '<div><div class="cd-lbl">NEXT STOP IN</div><div class="cd-val" id="cdVal">--:--</div></div>'
+                        + '<div style="flex:1"><div class="cd-stn">' + he(nextStop && nextStop.station_name || '') + '</div>'
+                        + '<div class="cd-code">' + he(nextStop && nextStop.stationCode || '') + ' · PF ' + he(nextStop && nextStop.platformNumber || '—') + '</div></div>'
+                        + '<div class="cd-right"><div class="cd-sched-lbl">SCHEDULED</div><div class="cd-sched-val">' + fmt(nextStop && nextStop.scheduledArrivalTime) + '</div></div>'
+                        + '</div>';
+                }
+
+                // MAP
+                if (mapUrl) {
+                    h += '<button class="map-btn" id="mapToggleBtn">'
+                        + '<span class="material-symbols-rounded" style="font-size:18px;margin-right:8px">map</span>'
+                        + 'Show current location on map'
+                        + '<span class="material-symbols-rounded chevron" style="font-size:20px; margin-left:auto;">keyboard_arrow_down</span>'
+                        + '</button>'
+                        + '<div class="map-wrap" id="mapWrap"></div>';
+                }
+
+                // SHARE
+                h += '<div class="share-row">'
+                    + '<span class="share-lbl">Share</span>'
+                    + '<button class="share-btn" id="copyShareBtn"><span class="material-symbols-rounded" style="font-size:16px">content_copy</span> Copy</button>'
+                    + '<button class="share-btn" id="waShareBtn"><span class="material-symbols-rounded" style="font-size:16px">chat</span> WhatsApp</button>'
+                    + '<button class="share-btn" id="dlShareBtn"><span class="material-symbols-rounded" style="font-size:16px">download</span> Download</button>'
+                    + '</div>';
+
+                // AUTO-REFRESH BAR
+                h += '<div class="auto-bar">'
+                    + '<div class="auto-bar-l"><div class="live-ind"><div class="live-dot"></div>LIVE</div>'
+                    + '<div class="ar-prog"><div class="ar-fill" id="arFill" style="width:0%"></div></div></div>'
+                    + '<span class="ar-lbl" id="arCountdown">Next in 45s</span>'
+                    + '</div>';
+
+                // TABS
+                h += '<div class="md3-tabs">'
+                    + '<button class="tab-btn active" data-tab="tab-tl"><span class="material-symbols-rounded" style="font-size:18px">format_list_bulleted</span> Timeline</button>'
+                    + '<button class="tab-btn" data-tab="tab-table"><span class="material-symbols-rounded" style="font-size:18px">table_rows</span> All Stops</button>'
+                    + '</div>';
+
+                // TIMELINE
+                h += '<div id="tab-tl" class="tab-content active"><div class="lp-timeline">'
+                    + '<div class="sec-title">Journey Timeline</div>'
+                    + '<div class="tl-wrap"><div class="tl-line"></div>';
+
+                for (var i = 0; i < route.length; i++) {
+                    var s = route[i];
+                    var isCur = i === curIdx, isPast = i < curIdx;
+                    var cls = isCur ? 'current' : isPast ? 'past' : 'future';
+                    var aD = s.scheduledArrivalDelaySecs || 0;
+                    var dD = s.scheduledDepartureDelaySecs || 0;
+                    var aCls = s.actualArrivalTime ? (aD > 120 ? 'r' : 'g') : 'd';
+                    var dCls = s.actualDepartureTime ? (dD > 120 ? 'r' : 'g') : 'd';
+                    h += '<div class="stop ' + cls + '"><div class="stop-dot"></div>'
+                        + '<div class="stop-row">'
+                        + '<div class="stop-info">'
+                        + '<div class="sname">' + he(s.station_name) + '</div>'
+                        + '<div class="scode">' + he(s.stationCode) + ' · #' + (s.stopIndex || (i + 1)) + '</div>'
+                        + (s.platformNumber ? '<div class="pf-chip">PF ' + he(s.platformNumber) + '</div>' : '')
+                        + '</div>'
+                        + '<div class="stop-times">'
+                        + '<div class="t-grp"><div class="t-label">Arr</div><div class="t-val ' + aCls + '">' + fmt(s.actualArrivalTime || s.scheduledArrivalTime) + '</div>' + (aD > 60 ? '<div class="d-chip">+' + Math.round(aD / 60) + 'm</div>' : '') + '</div>'
+                        + '<div class="t-grp"><div class="t-label">Dep</div><div class="t-val ' + dCls + '">' + fmt(s.actualDepartureTime || s.scheduledDepartureTime) + '</div>' + (dD > 60 ? '<div class="d-chip">+' + Math.round(dD / 60) + 'm</div>' : '') + '</div>'
+                        + '</div>'
+                        + '</div>'
+                        + '</div>'
+                        + (i < route.length - 1 ? '<hr class="stop-div">' : '');
+                }
+                h += '</div></div></div>';
+
+                // TABLE
+                h += '<div id="tab-table" class="tab-content"><div style="padding:20px 24px;background:var(--bg2)">'
+                    + '<div class="sec-title">All Stops</div>'
+                    + '<div class="stops-wrap"><table>'
+                    + '<thead><tr><th>#</th><th>Station</th><th>Code</th><th>PF</th><th>Sch Arr</th><th>Act Arr</th><th>Sch Dep</th><th>Act Dep</th><th>Delay</th></tr></thead>'
+                    + '<tbody>';
+                for (var i = 0; i < route.length; i++) {
+                    var s = route[i];
+                    var isCur = i === curIdx, isPast = i < curIdx;
+                    var rc = isCur ? 'row-cur' : isPast ? 'row-past' : 'row-fut';
+                    var md = Math.max(s.scheduledArrivalDelaySecs || 0, s.scheduledDepartureDelaySecs || 0);
+                    h += '<tr class="' + rc + '"><td>' + (i + 1) + (isCur ? ' <span class="cur-arrow">◀</span>' : '') + '</td>'
+                        + '<td class="td-name">' + he(s.station_name) + '</td>'
+                        + '<td class="td-code">' + he(s.stationCode) + '</td>'
+                        + '<td class="td-pf">' + he(s.platformNumber || '—') + '</td>'
+                        + '<td class="td-t">' + fmt(s.scheduledArrivalTime) + '</td>'
+                        + '<td class="td-t">' + fmt(s.actualArrivalTime) + '</td>'
+                        + '<td class="td-t">' + fmt(s.scheduledDepartureTime) + '</td>'
+                        + '<td class="td-t">' + fmt(s.actualDepartureTime) + '</td>'
+                        + '<td class="td-d ' + (md > 120 ? 'late' : 'ok') + '">' + (md > 60 ? '+' + Math.round(md / 60) + 'm' : '—') + '</td>'
+                        + '</tr>';
+                }
+                h += '</tbody></table></div></div></div>';
+                h += '</div>';
+                h += '<div class="last-ref">Last refreshed: <span id="lastRefTime">—</span></div>';
+
+                lv.innerHTML = h;
+
+                // Animate progress bar
+                requestAnimationFrame(function () {
+                    setTimeout(function () {
+                        var pf = document.getElementById('progFill');
+                        if (pf) pf.style.width = progress + '%';
+                    }, 100);
+                });
+
+                // Countdown timer
+                if (etaTs > 0) {
+                    if (countdownInterval) clearInterval(countdownInterval);
+                    countdownInterval = setInterval(function () {
+                        var el = document.getElementById('cdVal');
+                        if (!el) { clearInterval(countdownInterval); return; }
+                        var diff = etaTs - Date.now();
+                        if (diff <= 0) { el.textContent = 'Arriving'; el.style.color = 'var(--green)'; clearInterval(countdownInterval); return; }
+                        var m = Math.floor(diff / 60000), sc = Math.floor((diff % 60000) / 1000);
+                        el.textContent = pad(m) + ':' + pad(sc);
+                        el.style.color = m < 5 ? 'var(--red)' : '';
+                    }, 1000);
+                }
+
+                // Wire up all rendered buttons
+                var mapBtn = document.getElementById('mapToggleBtn');
+                if (mapBtn) {
+                    mapBtn.addEventListener('click', function () {
+                        var w = document.getElementById('mapWrap');
+                        this.classList.toggle('open');
+                        if (!this.classList.contains('open')) { w.style.display = 'none'; return; }
+                        w.style.display = 'block';
+                        if (!w.querySelector('iframe')) w.innerHTML = '<iframe src="' + he(mapUrl) + '" loading="lazy" allowfullscreen></iframe>';
+                    });
+                }
+
+                var shareText = '🚆 ' + trainNo + ' — ' + trainName
+                    + '\n📍 At: ' + (curStn ? curStn.station_name : curCode || '—')
+                    + '\n⏱ Delay: ' + (isLate ? '+' + delayMins + ' min' : 'On time')
+                    + '\n🏁 Destination: ' + (dest ? dest.station_name : '—')
+                    + '\n📊 Progress: ' + progress + '%';
+
+                var copyBtn = document.getElementById('copyShareBtn');
+                if (copyBtn) {
+                    copyBtn.addEventListener('click', function () {
+                        var btn = this;
+                        navigator.clipboard.writeText(shareText).then(function () {
+                            toast('Copied!', 'done');
+                            btn.classList.add('copied');
+                            setTimeout(function () { btn.classList.remove('copied'); }, 2000);
+                        }).catch(function () { toast('Copy failed', 'error'); });
+                    });
+                }
+
+                var waBtn = document.getElementById('waShareBtn');
+                if (waBtn) {
+                    waBtn.addEventListener('click', function () {
+                        window.open('https://wa.me/?text=' + encodeURIComponent(shareText), '_blank');
+                    });
+                }
+
+                var dlBtn = document.getElementById('dlShareBtn');
+                if (dlBtn) {
+                    dlBtn.addEventListener('click', function () {
+                        var a = document.createElement('a');
+                        a.href = URL.createObjectURL(new Blob([shareText], { type: 'text/plain' }));
+                        a.download = 'train-' + trainNo + '-status.txt';
+                        a.click();
+                        toast('Downloaded!', 'done');
+                    });
+                }
+
+                lv.querySelectorAll('.tab-btn[data-tab]').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        lv.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
+                        lv.querySelectorAll('.tab-content').forEach(function (c) { c.classList.remove('active'); });
+                        this.classList.add('active');
+                        var t = document.getElementById(this.getAttribute('data-tab'));
+                        if (t) t.classList.add('active');
+                    });
+                });
+            }
+
+            /* ══ RECENT ══ */
+            function getRecent() {
+                try { return JSON.parse(localStorage.getItem('recentTrains') || '[]'); } catch (e) { return []; }
+            }
+            function saveRecent(num, name) {
+                var r = getRecent().filter(function (x) { return x.num !== num; });
+                r.unshift({ num: num, name: name });
+                if (r.length > 6) r = r.slice(0, 6);
+                try { localStorage.setItem('recentTrains', JSON.stringify(r)); } catch (e) { }
+            }
+            function clearRecent() {
+                try { localStorage.removeItem('recentTrains'); } catch (e) { }
+                showWelcome();
+                toast('Recent cleared', 'done');
+            }
+
+            /* ══ WELCOME ══ */
+            function showWelcome() {
+                var recent = getRecent();
+                var h = '<div class="welcome"><div class="welcome-hero">'
+                    + '<div class="welcome-icon"><span class="material-symbols-rounded" style="font-size:42px;color:var(--accent)">train</span></div>'
+                    + '<div class="welcome-title">Track any Indian train, <span>live.</span></div>'
+                    + '<div class="welcome-sub">Type a train number or name in the search bar above to get started.</div>'
+                    + '</div>';
+
+                if (recent.length) {
+                    h += '<div class="recent-head">'
+                        + '<div class="recent-title-lbl">Recent Searches</div>'
+                        + '<button class="clear-btn" id="clearRecentBtn">Clear all</button>'
+                        + '</div><div class="recent-chips" id="recentChipsWrap">';
+                    for (var i = 0; i < recent.length; i++) {
+                        h += '<div class="r-chip" data-recent-idx="' + i + '"><span class="r-num">' + he(recent[i].num) + '</span><span>' + he(recent[i].name) + '</span></div>';
+                    }
+                    h += '</div>';
+                }
+
+                h += '<div class="howto-card"><div class="howto-title">How to use TrackIt</div>'
+                    + '<div class="howto-items">'
+                    + '<div class="howto-item"><div class="howto-icon-bg" style="background:rgba(168,199,250,.08)"><span class="material-symbols-rounded" style="color:var(--accent);font-size:20px">search</span></div><div><h4>Search</h4><p>Type a train number (e.g. 12728) or name in the search bar</p></div></div>'
+                    + '<div class="howto-item"><div class="howto-icon-bg" style="background:rgba(242,139,130,.08)"><span class="material-symbols-rounded" style="color:var(--red);font-size:20px">my_location</span></div><div><h4>Track</h4><p>Click Track to see real-time position, platform & delay info</p></div></div>'
+                    + '<div class="howto-item"><div class="howto-icon-bg" style="background:rgba(129,201,149,.08)"><span class="material-symbols-rounded" style="color:var(--green);font-size:20px">refresh</span></div><div><h4>Auto-refresh</h4><p>Live data updates every 45 seconds automatically</p></div></div>'
+                    + '</div></div></div>';
+
+                var sr = document.getElementById('searchResults');
+                var lv = document.getElementById('liveView');
+                sr.innerHTML = h;
+                lv.innerHTML = '';
+
+                var clearBtn = document.getElementById('clearRecentBtn');
+                if (clearBtn) clearBtn.addEventListener('click', clearRecent);
+
+                var chips = document.querySelectorAll('[data-recent-idx]');
+                chips.forEach(function (chip) {
+                    var r = recent[parseInt(chip.getAttribute('data-recent-idx'))];
+                    if (r) chip.addEventListener('click', function () { doLive(r.num, r.name); });
+                });
+            }
+
+            function goHome() {
+                stopAutoRefresh();
+                if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
+                currentTrainNo = null;
+                currentTrainName = null;
+                document.getElementById('refreshBtn').style.display = 'none';
+                document.getElementById('searchInput').value = '';
+                showWelcome();
+            }
+
+            /* ══ STATIC BUTTON WIRING ══ */
+            document.getElementById('brandBtn').addEventListener('click', goHome);
+            document.getElementById('refreshBtn').addEventListener('click', function () { doRefresh(false); });
+
+            document.getElementById('disclaimerLink').addEventListener('click', function (e) {
+                e.preventDefault();
+                document.getElementById('disclaimerModal').style.display = 'flex';
+            });
+            document.getElementById('modalCloseBtn').addEventListener('click', function () {
+                document.getElementById('disclaimerModal').style.display = 'none';
+            });
+            document.getElementById('disclaimerModal').addEventListener('click', function (e) {
+                if (e.target === this) this.style.display = 'none';
+            });
+
+            /* ══ THEME ══ */
+            var themeToggleBtn = document.getElementById('themeToggleBtn');
+            var themeIcon = document.getElementById('themeIcon');
+            if (themeToggleBtn && themeIcon) {
+                var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                themeIcon.textContent = isDark ? 'light_mode' : 'dark_mode';
+
+                themeToggleBtn.addEventListener('click', function() {
+                    isDark = !isDark;
+                    if (isDark) {
+                        document.documentElement.setAttribute('data-theme', 'dark');
+                    } else {
+                        document.documentElement.removeAttribute('data-theme');
+                    }
+                    try { localStorage.setItem('trackit-theme', isDark ? 'dark' : 'light'); } catch(e){}
+                    themeIcon.textContent = isDark ? 'light_mode' : 'dark_mode';
+                });
+            }
+
+            /* ══ NETWORK STATUS ══ */
+            function updateNetworkStatus(e) {
+                var nb = document.getElementById('networkBadge');
+                if (!nb) return;
+                var isOnline = navigator.onLine;
+                var ef = navigator.connection ? navigator.connection.effectiveType : null;
+                
+                if (!isOnline) {
+                    nb.className = 'network-badge show offline';
+                    nb.innerHTML = '<span class="material-symbols-rounded icon" style="font-size:20px">cloud_off</span> You are offline';
+                    return;
+                }
+                
+                if (ef === 'slow-2g' || ef === '2g') {
+                    nb.className = 'network-badge show weak';
+                    nb.innerHTML = '<span class="material-symbols-rounded icon" style="font-size:20px">signal_cellular_connected_no_internet_4_bar</span> Weak connection';
+                    return;
+                }
+                
+                if (e && e.type === 'online') {
+                    nb.className = 'network-badge show online';
+                    nb.innerHTML = '<span class="material-symbols-rounded icon" style="font-size:20px">cloud_done</span> Connected to server';
+                    setTimeout(function() { nb.classList.remove('show'); }, 3000);
+                } else {
+                    nb.classList.remove('show');
+                }
+            }
+            window.addEventListener('online', updateNetworkStatus);
+            window.addEventListener('offline', updateNetworkStatus);
+            updateNetworkStatus();
+
+            /* ══ INIT ══ */
+            showWelcome();
+
+        })(); // end IIFE
+    </script>
 </body>
-</html>
+
+</ht
