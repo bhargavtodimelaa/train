@@ -74,6 +74,28 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .refresh-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px var(--glow)}
 .refresh-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
 .refresh-btn.spinning .ms{animation:spin .8s linear infinite}
+/* NETWORK HEALTH PILL */
+.net-pill{display:flex;align-items:center;gap:0;border-radius:var(--r4);overflow:hidden;border:1px solid var(--border2);flex-shrink:0;cursor:pointer;transition:box-shadow .2s;position:relative;-webkit-tap-highlight-color:transparent}
+.net-pill:hover{box-shadow:var(--shadow2)}
+.net-pill-sig{display:flex;align-items:center;gap:5px;padding:5px 10px;font-family:var(--mono);font-size:11px;font-weight:700;transition:background .3s,color .3s;white-space:nowrap}
+.net-pill-loc{display:flex;align-items:center;gap:4px;padding:5px 10px;font-family:var(--mono);font-size:11px;font-weight:500;border-left:1px solid var(--border2);background:var(--bg2);color:var(--text2);white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis;transition:background .3s}
+.net-pill:hover .net-pill-loc{background:var(--bg3)}
+.net-pill-sig.s5{background:rgba(5,150,105,.15);color:#059669}
+.net-pill-sig.s4{background:rgba(5,150,105,.1);color:#10b981}
+.net-pill-sig.s3{background:rgba(217,119,6,.12);color:#d97706}
+.net-pill-sig.s2{background:rgba(220,38,38,.1);color:#dc2626}
+.net-pill-sig.s1{background:rgba(220,38,38,.15);color:#b91c1c}
+.net-pill-sig.s0{background:rgba(100,100,100,.15);color:var(--text3)}
+.sig-bars{display:flex;align-items:flex-end;gap:1.5px;height:13px}
+.sig-bars span{width:3px;border-radius:1px;background:currentColor;opacity:.25;transition:opacity .3s}
+.sig-bars span.lit{opacity:1}
+/* NET POPOVER */
+.net-popover{position:absolute;top:calc(100% + 8px);right:0;width:260px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r2);box-shadow:var(--shadow2);z-index:999;padding:14px;display:none;animation:fadeUp .2s var(--ease)}
+.net-popover.open{display:block}
+.net-pop-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);gap:8px}
+.net-pop-row:last-child{border-bottom:none;padding-bottom:0}
+.net-pop-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;flex-shrink:0}
+.net-pop-val{font-family:var(--mono);font-size:11px;font-weight:600;text-align:right;word-break:break-all}
 /* MAIN */
 .main{max-width:860px;margin:0 auto;padding:24px 16px 100px;position:relative;z-index:1}
 /* LOADER */
@@ -308,6 +330,9 @@ tr.row-fut td{opacity:.4}
 .search-field{padding:0 10px;height:38px}
 .search-field input{font-size:13px}
 .ist-badge{font-size:11px;padding:4px 8px;gap:4px}
+.net-pill-loc{display:none}
+.net-pill-sig{padding:5px 8px;font-size:10px}
+.net-popover{right:-10px;width:230px}
 .lp-head,.lp-progress,.cd-row,.share-row,.auto-bar,.lp-timeline,.map-btn,.md3-tabs{padding-left:14px;padding-right:14px}
 .pos-next{display:none}
 .meta-it{padding-right:12px}
@@ -321,6 +346,7 @@ tr.row-fut td{opacity:.4}
 @media(max-width:380px){
 .ist-badge .ist-txt{display:none}
 .refresh-btn span.txt{display:none}
+.net-pill-sig #netLabel{display:none}
 }
 </style>
 </head>
@@ -340,6 +366,23 @@ tr.row-fut td{opacity:.4}
     </div>
     <div class="bar-right">
       <div class="ist-badge"><div class="dot"></div><span id="istText" class="ist-txt">--:--</span><span style="color:var(--text3);font-size:10px">IST</span></div>
+      <div class="net-pill" id="netPill" title="Network Health">
+        <div class="net-pill-sig s0" id="netSig">
+          <div class="sig-bars" id="sigBars"><span></span><span></span><span></span><span></span><span></span></div>
+          <span id="netLabel">—</span>
+        </div>
+        <div class="net-pill-loc" id="netLoc"><span class="material-symbols-rounded" style="font-size:13px;flex-shrink:0">location_on</span><span id="netLocTxt">…</span></div>
+        <div class="net-popover" id="netPopover">
+          <div class="net-pop-row"><span class="net-pop-lbl">Signal</span><span class="net-pop-val" id="popSignal">—</span></div>
+          <div class="net-pop-row"><span class="net-pop-lbl">Type</span><span class="net-pop-val" id="popType">—</span></div>
+          <div class="net-pop-row"><span class="net-pop-lbl">Speed</span><span class="net-pop-val" id="popSpeed">—</span></div>
+          <div class="net-pop-row"><span class="net-pop-lbl">Public IP</span><span class="net-pop-val" id="popIp">—</span></div>
+          <div class="net-pop-row"><span class="net-pop-lbl">ISP</span><span class="net-pop-val" id="popIsp">—</span></div>
+          <div class="net-pop-row"><span class="net-pop-lbl">Location</span><span class="net-pop-val" id="popLoc">—</span></div>
+          <div class="net-pop-row"><span class="net-pop-lbl">Coords</span><span class="net-pop-val" id="popCoords">—</span></div>
+          <div class="net-pop-row"><span class="net-pop-lbl">Latency</span><span class="net-pop-val" id="popPing">—</span></div>
+        </div>
+      </div>
       <button class="icon-btn" id="themeToggleBtn" aria-label="Toggle theme"><span class="material-symbols-rounded" id="themeIcon">light_mode</span></button>
       <button class="icon-btn" id="favMenuBtn" aria-label="Favourites"><span class="material-symbols-rounded">star</span></button>
       <button class="refresh-btn" id="refreshBtn"><span class="material-symbols-rounded ms" style="font-size:18px">refresh</span><span class="txt">Refresh</span></button>
@@ -821,17 +864,110 @@ themeBtn.addEventListener('click',()=>{
   try{localStorage.setItem('tt',isDark?'dark':'light');}catch(e){}
   themeIcon.textContent=isDark?'light_mode':'dark_mode';
 });
-/* NETWORK */
+/* ══ NETWORK HEALTH ══ */
+const netSig=document.getElementById('netSig');
+const netLabel=document.getElementById('netLabel');
+const sigBars=document.getElementById('sigBars');
+const netLocTxt=document.getElementById('netLocTxt');
+const netPill=document.getElementById('netPill');
+const netPopover=document.getElementById('netPopover');
+// popover toggle
+netPill.addEventListener('click',e=>{e.stopPropagation();netPopover.classList.toggle('open');});
+document.addEventListener('click',()=>netPopover.classList.remove('open'));
+// set pill signal level 0-5
+function setSignalLevel(lvl,label,cls){
+  netSig.className='net-pill-sig '+cls;
+  netLabel.textContent=label;
+  const bars=sigBars.querySelectorAll('span');
+  bars.forEach((b,i)=>b.classList.toggle('lit',i<lvl));
+  document.getElementById('popSignal').textContent=label;
+}
+// measure latency by timing a tiny fetch
+async function measurePing(){
+  try{
+    const t0=performance.now();
+    await fetch('https://www.google.com/favicon.ico?_='+Date.now(),{mode:'no-cors',cache:'no-store'});
+    return Math.round(performance.now()-t0);
+  }catch{return null;}
+}
+// determine signal from Network Information API + ping
+async function assessSignal(){
+  if(!navigator.onLine){setSignalLevel(0,'Offline','s0');document.getElementById('popType').textContent='Offline';return;}
+  const conn=navigator.connection||navigator.mozConnection||navigator.webkitConnection;
+  const ef=conn?conn.effectiveType:null;
+  const dl=conn?conn.downlink:null; // Mbps
+  const rtt=conn?conn.rtt:null;
+  const ping=await measurePing();
+  document.getElementById('popPing').textContent=ping!=null?ping+'ms':'—';
+  // connection type label
+  let typeStr=ef?ef.toUpperCase():'Unknown';
+  if(conn&&conn.type&&conn.type!=='unknown')typeStr=conn.type.charAt(0).toUpperCase()+conn.type.slice(1)+' ('+typeStr+')';
+  document.getElementById('popType').textContent=typeStr;
+  document.getElementById('popSpeed').textContent=dl!=null?dl+' Mbps downlink'+(rtt!=null?', RTT '+rtt+'ms':''):'—';
+  // scoring
+  let score=5;
+  if(ef==='slow-2g')score=1;
+  else if(ef==='2g')score=2;
+  else if(ef==='3g')score=3;
+  else if(ef==='4g'){
+    // further refine by ping/downlink
+    if(ping&&ping>300)score=3;
+    else if(ping&&ping>150)score=4;
+    else score=5;
+  }
+  // downlink override
+  if(dl!=null){
+    if(dl<0.2)score=Math.min(score,1);
+    else if(dl<1)score=Math.min(score,2);
+    else if(dl<5)score=Math.min(score,3);
+    else if(dl<15)score=Math.min(score,4);
+  }
+  const labels=['Offline','Very Weak','Weak','Moderate','Strong','Very Strong'];
+  const classes=['s0','s1','s2','s3','s4','s5'];
+  setSignalLevel(score,labels[score],classes[score]);
+}
+// fetch IP + location from ipapi.co
+async function fetchIpInfo(){
+  try{
+    const r=await fetch('https://ipapi.co/json/',{cache:'no-store'});
+    const d=await r.json();
+    if(d.error)throw new Error(d.reason);
+    const ip=d.ip||'—';
+    const isp=d.org||d.asn||'—';
+    const city=d.city||'';
+    const region=d.region||'';
+    const country=d.country_name||'';
+    const lat=d.latitude?Number(d.latitude).toFixed(4):'—';
+    const lon=d.longitude?Number(d.longitude).toFixed(4):'—';
+    const locStr=[city,region,country].filter(Boolean).join(', ')||'—';
+    // update pill location
+    netLocTxt.textContent=[city||region,country].filter(Boolean).join(', ')||ip;
+    // update popover
+    document.getElementById('popIp').textContent=ip;
+    document.getElementById('popIsp').textContent=isp.length>30?isp.slice(0,30)+'…':isp;
+    document.getElementById('popLoc').textContent=locStr;
+    document.getElementById('popCoords').textContent=lat+'°, '+lon+'°';
+  }catch(e){
+    netLocTxt.textContent='No location';
+    document.getElementById('popIp').textContent='Unavailable';
+    document.getElementById('popLoc').textContent='—';
+  }
+}
+// update net pill on old netBadge events too (keep backward compat)
 function updateNet(e){
   const nb=document.getElementById('netBadge');if(!nb)return;
-  const online=navigator.onLine;
-  const ef=navigator.connection?navigator.connection.effectiveType:null;
-  if(!online){nb.className='net-badge show offline';nb.innerHTML='<span class="material-symbols-rounded" style="font-size:18px">cloud_off</span> Offline';return;}
-  if(ef==='slow-2g'||ef==='2g'){nb.className='net-badge show weak';nb.innerHTML='<span class="material-symbols-rounded" style="font-size:18px">signal_wifi_bad</span> Weak connection';return;}
-  if(e&&e.type==='online'){nb.className='net-badge show online';nb.innerHTML='<span class="material-symbols-rounded" style="font-size:18px">cloud_done</span> Back online';setTimeout(()=>nb.classList.remove('show'),3000);}
+  if(!navigator.onLine){nb.className='net-badge show offline';nb.innerHTML='<span class="material-symbols-rounded" style="font-size:18px">cloud_off</span> Offline';}
+  else if(e&&e.type==='online'){nb.className='net-badge show online';nb.innerHTML='<span class="material-symbols-rounded" style="font-size:18px">cloud_done</span> Back online';setTimeout(()=>nb.classList.remove('show'),3000);}
   else nb.classList.remove('show');
+  assessSignal();
 }
-window.addEventListener('online',updateNet);window.addEventListener('offline',updateNet);updateNet();
+window.addEventListener('online',updateNet);
+window.addEventListener('offline',()=>{setSignalLevel(0,'Offline','s0');netLocTxt.textContent='—';updateNet();});
+if(navigator.connection)navigator.connection.addEventListener('change',assessSignal);
+// init
+assessSignal();fetchIpInfo();
+// re-assess every 30s
+setInterval(()=>{assessSignal();},30000);
 /* INIT */
 showWelcome();
 })();
