@@ -1,2568 +1,840 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <title>TrackIt — Live Train Tracker</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://train-api-eight.vercel.app">
-    <link rel="preconnect" href="https://sujith.bhargavtodimela4.workers.dev">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet" />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Display:wght@400;700&family=Google+Sans+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
-    <style>
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0
-        }
-
-        :root {
-            /* Standard Google MD3 Light Theme */
-            --bg: #FEF7FF;
-            --bg2: #F3EDF7;
-            --bg3: #EADDFF;
-            --border: #CAC4D0;
-            --border2: #A8A29E;
-            --text: #1D1B20;
-            --text2: #49454F;
-            --text3: #79747E;
-            --accent: #0B57D0;
-            --accent2: #A8C7FA;
-            --green: #146C2E;
-            --red: #B3261E;
-            --yellow: #A08000;
-            --glow: rgba(11, 87, 208, 0.15);
-            --font: 'Google Sans', sans-serif;
-            --display: 'Google Sans Display', sans-serif;
-            --mono: 'Google Sans Mono', monospace;
-            --r: 8px;
-            --r2: 12px;
-            --r3: 24px;
-            --ease: cubic-bezier(.2, 0, 0, 1);
-            --spring: cubic-bezier(.2, 0, 0, 1);
-        }
-
-        [data-theme='dark'] {
-            --bg: #141218;
-            --bg2: #1D1B20;
-            --bg3: #2B2930;
-            --border: rgba(255, 255, 255, 0.1);
-            --border2: rgba(255, 255, 255, 0.15);
-            --text: #E6E0E9;
-            --text2: #CAC4D0;
-            --text3: #938F99;
-            --accent: #A8C7FA;
-            --accent2: #D0BCFF;
-            --green: #81C995;
-            --red: #F28B82;
-            --yellow: #FDE293;
-            --glow: rgba(168, 199, 250, 0.15);
-        }
-
-        html {
-            scroll-behavior: smooth
-        }
-
-        body {
-            font-family: var(--font);
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            font-size: 14px;
-            line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
-            overflow-x: hidden
-        }
-
-
-
-        /* APP BAR */
-        .app-bar {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: var(--bg);
-            border-bottom: 1px solid var(--border);
-            transition: box-shadow .3s, background .3s;
-        }
-
-        .app-bar.elevated {
-            box-shadow: 0 4px 8px rgba(0, 0, 0, .2);
-            background: var(--bg2);
-        }
-
-        .bar-inner {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 0 16px;
-            height: 62px;
-            max-width: 1000px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 1
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            padding: 6px 10px 6px 4px;
-            border-radius: var(--r2);
-            transition: background .2s;
-            flex-shrink: 0;
-            user-select: none
-        }
-
-        .brand:hover {
-            background: rgba(255, 255, 255, .04)
-        }
-
-        .brand-icon {
-            width: 38px;
-            height: 38px;
-            background: var(--accent);
-            border-radius: 12px;
-            display: grid;
-            place-items: center;
-            flex-shrink: 0
-        }
-
-        .brand-text {
-            font-family: var(--display);
-            font-size: 20px;
-            font-weight: 800;
-            letter-spacing: -.5px
-        }
-
-        .brand-text em {
-            color: var(--accent);
-            font-style: normal
-        }
-
-        .search-wrap {
-            flex: 1;
-            max-width: 440px;
-            margin: 0 12px
-        }
-
-        .search-field {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid var(--border2);
-            border-radius: 99px;
-            padding: 0 16px;
-            height: 44px;
-            transition: all .4s var(--spring);
-        }
-
-        .search-field:focus-within {
-            border-color: var(--accent);
-            background: rgba(42, 221, 255, .05);
-            box-shadow: 0 0 0 2px rgba(42, 221, 255, .2), 0 0 30px rgba(42, 221, 255, .3);
-        }
-
-        .search-field svg {
-            color: var(--text3);
-            flex-shrink: 0
-        }
-
-        .search-field input {
-            flex: 1;
-            background: none;
-            border: none;
-            outline: none;
-            font-family: var(--font);
-            font-size: 14px;
-            color: var(--text)
-        }
-
-        .search-field input::placeholder {
-            color: var(--text3)
-        }
-
-        .bar-right {
-            margin-left: auto;
-            display: flex;
-            align-items: center;
-            gap: 6px
-        }
-
-        .ist-chip {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            color: var(--text);
-            padding: 4px 10px;
-            font-family: var(--display);
-            font-size: 16px;
-            font-weight: 500;
-            white-space: nowrap;
-            flex-shrink: 0
-        }
-
-        .icon-btn {
-            background: transparent;
-            border: none;
-            color: var(--text);
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: grid;
-            place-items: center;
-            cursor: pointer;
-            transition: background .2s;
-            flex-shrink: 0;
-        }
-
-        .icon-btn:hover {
-            background: var(--border);
-        }
-
-        .refresh-btn {
-            display: none;
-            align-items: center;
-            gap: 8px;
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            border-radius: var(--r3);
-            padding: 0 18px;
-            height: 38px;
-            font-family: var(--font);
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 0 16px var(--glow);
-            transition: opacity .2s
-        }
-
-        .refresh-btn:disabled {
-            opacity: .5;
-            cursor: not-allowed
-        }
-
-        .refresh-btn.spinning svg {
-            animation: spin .9s linear infinite;
-            will-change: transform
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg)
-            }
-        }
-
-        /* MAIN */
-        .main {
-            max-width: 860px;
-            margin: 0 auto;
-            padding: 28px 16px 80px;
-            position: relative;
-            z-index: 1
-        }
-
-        /* LOADER */
-        .md-loader {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 40px 4px;
-            color: var(--text2);
-            font-size: 14px
-        }
-
-        .skeleton {
-            height: 20px;
-            border-radius: 8px;
-            background: linear-gradient(90deg, #151821, #222633, #151821);
-            background-size: 200% 100%;
-            animation: shimmerSkeleton 1.2s infinite linear;
-            opacity: 0.9;
-        }
-
-        @keyframes shimmerSkeleton {
-            0% {
-                background-position: -200% 0;
-            }
-
-            100% {
-                background-position: 200% 0;
-            }
-        }
-
-        .md-spinner {
-            width: 32px;
-            height: 32px;
-            flex-shrink: 0
-        }
-
-        .md-spinner svg {
-            width: 32px;
-            height: 32px;
-            animation: rotate 2s linear infinite;
-        }
-
-        .md-spinner circle {
-            fill: none;
-            stroke-width: 3.5;
-            stroke-linecap: round;
-            stroke-dasharray: 1, 200;
-            stroke-dashoffset: 0;
-            animation: google-dash 1.5s ease-in-out infinite, google-color 6s ease-in-out infinite;
-        }
-
-        @keyframes google-dash {
-            0% { stroke-dasharray: 1, 200; stroke-dashoffset: 0; }
-            50% { stroke-dasharray: 89, 200; stroke-dashoffset: -35px; }
-            100% { stroke-dasharray: 89, 200; stroke-dashoffset: -124px; }
-        }
-
-        @keyframes google-color {
-            0%, 100% { stroke: #4285F4; }
-            25% { stroke: #EA4335; }
-            50% { stroke: #FBBC05; }
-            75% { stroke: #34A853; }
-        }
-
-        /* SEARCH RESULTS */
-        .results-header {
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 1.4px;
-            text-transform: uppercase;
-            color: var(--text3);
-            padding: 0 2px 14px
-        }
-
-        .result-card {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            background: var(--bg2);
-            border-radius: var(--r2);
-            padding: 16px 18px;
-            margin-bottom: 12px;
-            transition: all .2s var(--ease);
-            will-change: transform, box-shadow;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
-            content-visibility: auto;
-            contain-intrinsic-size: 0 86px
-        }
-
-        .result-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, .3);
-            background: var(--bg3);
-        }
-
-        .rnum-badge {
-            width: 56px;
-            height: 56px;
-            flex-shrink: 0;
-            border-radius: var(--r);
-            background: rgba(79, 142, 255, .08);
-            border: 1px solid rgba(79, 142, 255, .15);
-            display: grid;
-            place-items: center;
-            font-family: var(--mono);
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--accent);
-            text-align: center;
-            line-height: 1.3
-        }
-
-        .rinfo {
-            flex: 1;
-            min-width: 0
-        }
-
-        .rname {
-            font-size: 15px;
-            font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis
-        }
-
-        .rroute {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            color: var(--text2);
-            margin-top: 3px;
-            font-family: var(--mono)
-        }
-
-        .track-btn {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            background: var(--accent);
-            color: var(--bg);
-            border: none;
-            border-radius: 99px;
-            padding: 0 20px;
-            height: 40px;
-            font-family: var(--font);
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            white-space: nowrap;
-            flex-shrink: 0;
-            transition: all .2s var(--ease);
-        }
-
-        .track-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(42, 221, 255, .4);
-            color: #111;
-        }
-
-        .track-btn:active {
-            transform: scale(.94);
-        }
-
-        .live-panel {
-            position: relative;
-        }
-
-        ::-webkit-scrollbar {
-            width: 6px
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, .15);
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(79, 142, 255, .5);
-        }
-
-        .result-card {
-            animation: fadeInUp .3s ease;
-        }
-
-        .map-btn:active {
-            transform: scale(.98);
-        }
-
-        button,
-        .result-card,
-        .r-chip {
-            transition: all .4s var(--spring);
-        }
-
-        button:hover {
-            transform: translateY(-2px) scale(1.02);
-        }
-
-        button:active {
-            transform: scale(.94);
-        }
-
-        .live-panel::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: var(--r3);
-            padding: 1px;
-            background: linear-gradient(135deg, transparent, rgba(79, 142, 255, .4), transparent);
-            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none;
-        }
-
-        /* LIVE PANEL */
-        .live-panel {
-            border-radius: var(--r2);
-            overflow: hidden;
-            background: var(--bg2);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, .3);
-            animation: fadeUp .3s var(--ease);
-            will-change: transform, opacity;
-        }
-
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(16px); }
-            to { opacity: 1; transform: none; }
-        }
-
-        /* HEAD */
-        .lp-head {
-            background: var(--bg3);
-            padding: 24px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .lp-head-glow {
-            position: absolute;
-            width: 300px;
-            height: 300px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(79, 142, 255, .12), transparent 70%);
-            top: -100px;
-            right: -50px;
-            pointer-events: none
-        }
-
-        .lp-chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 14px;
-            position: relative;
-            z-index: 1
-        }
-
-        .chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 4px 12px;
-            border-radius: var(--r3);
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: .4px
-        }
-
-        .chip-num {
-            background: rgba(79, 142, 255, .15);
-            border: 1px solid rgba(79, 142, 255, .25);
-            color: var(--accent);
-            font-family: var(--mono);
-            font-size: 12px
-        }
-
-        .chip-src {
-            background: rgba(255, 255, 255, .05);
-            border: 1px solid var(--border);
-            color: var(--text2)
-        }
-
-        .chip-late {
-            background: rgba(255, 90, 90, .12);
-            border: 1px solid rgba(255, 90, 90, .25);
-            color: #ff8080
-        }
-
-        .chip-ok {
-            background: rgba(34, 212, 131, .1);
-            border: 1px solid rgba(34, 212, 131, .2);
-            color: var(--green)
-        }
-
-        .chip {
-            backdrop-filter: blur(10px);
-            box-shadow: inset 0 0 10px rgba(255, 255, 255, .05);
-        }
-
-        .blink {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: currentColor;
-            animation: bl 1.4s ease-in-out infinite
-        }
-
-        @keyframes bl {
-
-            0%,
-            100% {
-                opacity: 1
-            }
-
-            50% {
-                opacity: .2
-            }
-        }
-
-        .lp-title {
-            font-family: var(--display);
-            font-size: 22px;
-            font-weight: 800;
-            letter-spacing: -.5px;
-            position: relative;
-            z-index: 1;
-            line-height: 1.2
-        }
-
-        .lp-route {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 6px;
-            font-size: 12px;
-            color: var(--text2);
-            position: relative;
-            z-index: 1;
-            font-family: var(--mono)
-        }
-
-        .lp-meta-row {
-            display: flex;
-            flex-wrap: wrap;
-            margin-top: 20px;
-            padding-top: 16px;
-            border-top: 1px solid var(--border);
-            position: relative;
-            z-index: 1
-        }
-
-        .meta-it {
-            padding-right: 28px;
-            margin-bottom: 2px
-        }
-
-        .mlabel {
-            font-size: 10px;
-            color: var(--text3);
-            letter-spacing: .8px;
-            text-transform: uppercase
-        }
-
-        .mval {
-            font-size: 15px;
-            font-weight: 600;
-            margin-top: 2px;
-            font-family: var(--mono)
-        }
-
-        /* PROGRESS */
-        .lp-progress {
-            padding: 20px 24px;
-            border-bottom: 1px solid var(--border)
-        }
-
-        .prog-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px
-        }
-
-        .prog-endpoints {
-            font-size: 11px;
-            font-weight: 500;
-            color: var(--text2);
-            font-family: var(--mono)
-        }
-
-        .prog-pct {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--accent);
-            font-family: var(--mono)
-        }
-
-        .linear-track {
-            height: 4px;
-            background: rgba(255, 255, 255, .05);
-            border-radius: 99px;
-            overflow: hidden
-        }
-
-        .linear-fill {
-            height: 100%;
-            border-radius: 99px;
-            background: linear-gradient(90deg, var(--accent), var(--accent2));
-            transition: width 1.6s var(--ease);
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 0 8px var(--glow);
-            will-change: width
-        }
-
-        .linear-fill::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .3), transparent);
-            animation: shimmer 2.5s infinite;
-            will-change: left
-        }
-
-        @keyframes shimmer {
-            to {
-                left: 200%
-            }
-        }
-
-        .prog-labels {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 6px
-        }
-
-        .prog-lbl {
-            font-size: 11px;
-            color: var(--text3);
-            font-family: var(--mono)
-        }
-
-        /* STATS */
-        .stats-row {
-            display: flex;
-            border-bottom: 1px solid var(--border);
-            overflow-x: auto
-        }
-
-        .stat-it {
-            flex: 1;
-            min-width: 90px;
-            padding: 16px 12px;
-            text-align: center;
-            border-right: 1px solid var(--border)
-        }
-
-        .stat-it:last-child {
-            border-right: none
-        }
-
-        .stat-icon {
-            margin-bottom: 6px
-        }
-
-        .sval {
-            font-family: var(--mono);
-            font-size: 20px;
-            font-weight: 600;
-            line-height: 1
-        }
-
-        .sval.g {
-            color: var(--green)
-        }
-
-        .sval.r {
-            color: var(--red)
-        }
-
-        .sval.b {
-            color: var(--accent)
-        }
-
-        .slbl {
-            font-size: 10px;
-            color: var(--text3);
-            margin-top: 5px;
-            letter-spacing: .4px
-        }
-
-        /* POSITION */
-        .lp-pos {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 18px 24px;
-            background: rgba(79, 142, 255, .05);
-            border-bottom: 1px solid var(--border)
-        }
-
-        .pos-icon {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, var(--accent), var(--accent2));
-            border-radius: 50%;
-            display: grid;
-            place-items: center;
-            flex-shrink: 0;
-            animation: pulseRing 2.5s ease-out infinite;
-            will-change: box-shadow
-        }
-
-        @keyframes pulseRing {
-            0% {
-                box-shadow: 0 0 0 0 rgba(79, 142, 255, .5)
-            }
-
-            70% {
-                box-shadow: 0 0 0 16px rgba(79, 142, 255, 0)
-            }
-
-            100% {
-                box-shadow: 0 0 0 0 rgba(79, 142, 255, 0)
-            }
-        }
-
-        .pos-info {
-            flex: 1;
-            min-width: 0
-        }
-
-        .pos-at {
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 1.2px;
-            text-transform: uppercase;
-            color: var(--accent);
-            margin-bottom: 3px
-        }
-
-        .pos-name {
-            font-size: 18px;
-            font-weight: 700;
-            line-height: 1.2
-        }
-
-        .pos-sub {
-            font-size: 12px;
-            color: var(--text2);
-            margin-top: 3px;
-            font-family: var(--mono)
-        }
-
-        .pos-next {
-            flex-shrink: 0;
-            text-align: right
-        }
-
-        .next-lbl {
-            font-size: 10px;
-            color: var(--text3)
-        }
-
-        .next-name {
-            font-size: 13px;
-            font-weight: 600;
-            margin-top: 2px
-        }
-
-        .next-chip {
-            display: inline-block;
-            background: var(--accent);
-            color: #fff;
-            font-size: 11px;
-            font-weight: 600;
-            padding: 3px 10px;
-            border-radius: var(--r3);
-            margin-top: 5px;
-            font-family: var(--mono)
-        }
-
-        /* COUNTDOWN */
-        .cd-row {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 14px 24px;
-            border-bottom: 1px solid var(--border)
-        }
-
-        .cd-lbl {
-            font-size: 10px;
-            color: var(--text3);
-            font-weight: 600;
-            letter-spacing: .8px;
-            text-transform: uppercase
-        }
-
-        .cd-val {
-            font-family: var(--mono);
-            font-size: 30px;
-            font-weight: 600;
-            color: var(--accent);
-            letter-spacing: 3px;
-            line-height: 1
-        }
-
-        .cd-stn {
-            font-size: 14px;
-            font-weight: 600
-        }
-
-        .cd-code {
-            font-size: 11px;
-            color: var(--text2);
-            font-family: var(--mono);
-            margin-top: 2px
-        }
-
-        .cd-right {
-            margin-left: auto;
-            text-align: right
-        }
-
-        .cd-sched-lbl {
-            font-size: 10px;
-            color: var(--text3)
-        }
-
-        .cd-sched-val {
-            font-size: 15px;
-            font-weight: 600;
-            font-family: var(--mono);
-            margin-top: 2px
-        }
-
-        /* MAP */
-        .map-btn {
-            width: 100%;
-            padding: 12px 24px;
-            border: none;
-            background: rgba(255, 255, 255, .02);
-            color: var(--accent);
-            font-family: var(--font);
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border-bottom: 1px solid var(--border);
-            transition: background .2s
-        }
-
-        .map-btn:hover {
-            background: rgba(79, 142, 255, .06)
-        }
-
-        .map-btn .chevron {
-            margin-left: auto;
-            transition: transform .3s
-        }
-
-        .map-btn.open .chevron {
-            transform: rotate(180deg)
-        }
-
-        .map-wrap {
-            display: none;
-            border-bottom: 1px solid var(--border)
-        }
-
-        .map-wrap iframe {
-            width: 100%;
-            height: 240px;
-            border: none;
-            display: block
-        }
-
-        button,
-        .result-card,
-        .r-chip,
-        .track-btn {
-            transition: all .25s cubic-bezier(.16, 1, .3, 1);
-        }
-
-        .track-btn,
-        .refresh-btn {
-            box-shadow: 0 0 20px rgba(79, 142, 255, .25);
-        }
-
-        .track-btn:hover {
-            box-shadow: 0 0 30px rgba(79, 142, 255, .4);
-        }
-
-        .lp-title {
-            background: linear-gradient(135deg, var(--accent), var(--accent2));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        button:hover,
-        .track-btn:hover {
-            transform: translateY(-1px) scale(1.02);
-        }
-
-        button:active {
-            transform: scale(.96);
-        }
-
-        /* SHARE */
-        .share-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 24px;
-            border-bottom: 1px solid var(--border);
-            flex-wrap: wrap
-        }
-
-        .share-lbl {
-            font-size: 11px;
-            color: var(--text3);
-            font-weight: 600;
-            letter-spacing: .8px;
-            text-transform: uppercase;
-            margin-right: 4px
-        }
-
-        .share-btn {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(255, 255, 255, .04);
-            border: 1px solid var(--border2);
-            border-radius: var(--r3);
-            padding: 6px 14px;
-            font-family: var(--font);
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            color: var(--text);
-            transition: background .15s, border-color .15s, color .15s
-        }
-
-        .share-btn:hover {
-            background: rgba(79, 142, 255, .1);
-            border-color: rgba(79, 142, 255, .3);
-            color: var(--accent)
-        }
-
-        .share-btn.copied {
-            background: rgba(34, 212, 131, .1);
-            border-color: rgba(34, 212, 131, .3);
-            color: var(--green)
-        }
-
-        /* AUTO-REFRESH */
-        .auto-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            padding: 10px 24px;
-            border-bottom: 1px solid var(--border);
-            background: rgba(255, 255, 255, .015);
-            flex-wrap: wrap
-        }
-
-        .auto-bar-l {
-            display: flex;
-            align-items: center;
-            gap: 10px
-        }
-
-        .live-ind {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--green)
-        }
-
-        .live-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--green);
-            animation: bl 1.4s ease-in-out infinite
-        }
-
-        .ar-prog {
-            flex: 1;
-            max-width: 80px;
-            height: 3px;
-            background: rgba(255, 255, 255, .06);
-            border-radius: 99px;
-            overflow: hidden
-        }
-
-        .ar-fill {
-            height: 100%;
-            background: var(--accent);
-            border-radius: 99px;
-            transition: width 1s linear
-        }
-
-        .ar-lbl {
-            font-size: 11px;
-            color: var(--text3);
-            font-family: var(--mono)
-        }
-
-        .brand-icon {
-            animation: float 4s ease-in-out infinite;
-        }
-
-        @keyframes float {
-
-            0%,
-            100% {
-                transform: translateY(0);
-            }
-
-            50% {
-                transform: translateY(-3px);
-            }
-        }
-
-        /* TABS - Pill Design */
-        .md3-tabs {
-            display: flex;
-            gap: 12px;
-            padding: 16px 24px;
-            border-bottom: 1px solid var(--border);
-            justify-content: center;
-        }
-
-        .tab-btn {
-            flex: 1;
-            padding: 12px 16px;
-            border: 1px solid transparent;
-            background: rgba(255, 255, 255, .03);
-            border-radius: 99px;
-            font-family: var(--font);
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            color: var(--text2);
-            transition: all .4s var(--spring);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .tab-btn:hover {
-            background: rgba(255, 255, 255, .08);
-            color: var(--text);
-            transform: translateY(-2px);
-        }
-
-        .tab-btn.active {
-            color: #111;
-            background: linear-gradient(135deg, var(--accent), var(--accent2));
-            box-shadow: 0 4px 16px var(--glow);
-            transform: translateY(-2px);
-            font-weight: 700;
-        }
-
-        .tab-content {
-            display: none
-        }
-
-        .tab-content.active {
-            display: block
-        }
-
-        .result-card,
-        .live-panel,
-        .howto-card {
-            box-shadow: 0 8px 30px rgba(0, 0, 0, .35);
-        }
-
-        .main {
-            animation: fadeInUp .5s ease;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: none;
-            }
-        }
-
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, .15);
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(79, 142, 255, .5);
-        }
-
-        /* TIMELINE */
-        .lp-timeline {
-            padding: 24px;
-            background: var(--bg2)
-        }
-
-        .sec-title {
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 1.4px;
-            text-transform: uppercase;
-            color: var(--text3);
-            margin-bottom: 22px
-        }
-
-        .tl-wrap {
-            position: relative;
-            padding-left: 34px
-        }
-
-        .tl-line {
-            position: absolute;
-            left: 8px;
-            top: 12px;
-            bottom: 12px;
-            width: 2px;
-            background: linear-gradient(to bottom, var(--accent), rgba(79, 142, 255, .1))
-        }
-
-        .stop {
-            position: relative;
-            padding-bottom: 24px;
-            content-visibility: auto;
-            contain-intrinsic-size: 0 70px
-        }
-
-        .stop:last-child {
-            padding-bottom: 0
-        }
-
-        .stop-dot {
-            position: absolute;
-            left: -26px;
-            top: 4px;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: var(--border);
-            border: 2px solid var(--bg2);
-            z-index: 1
-        }
-
-        .stop.past .stop-dot {
-            background: var(--green)
-        }
-
-        .stop.current .stop-dot {
-            width: 22px;
-            height: 22px;
-            left: -29px;
-            top: 1px;
-            background: var(--accent);
-            border: 3px solid var(--bg2);
-            animation: pulseRing 2.5s ease-out infinite;
-            box-shadow: 0 0 10px var(--glow);
-            will-change: box-shadow
-        }
-
-        .stop.future {
-            opacity: .35
-        }
-
-        .stop-row {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 12px;
-            flex-wrap: wrap
-        }
-
-        .stop-info {
-            flex: 1
-        }
-
-        .sname {
-            font-size: 15px;
-            font-weight: 600
-        }
-
-        .stop.current .sname {
-            color: var(--accent);
-            font-weight: 700
-        }
-
-        .scode {
-            font-size: 11px;
-            color: var(--text3);
-            margin-top: 2px;
-            font-family: var(--mono)
-        }
-
-        .pf-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            background: rgba(255, 255, 255, .04);
-            border: 1px solid var(--border2);
-            color: var(--text2);
-            font-size: 10px;
-            font-weight: 600;
-            padding: 2px 8px;
-            border-radius: var(--r3);
-            margin-top: 6px;
-            font-family: var(--mono)
-        }
-
-        .stop.current .pf-chip {
-            background: rgba(79, 142, 255, .15);
-            border-color: rgba(79, 142, 255, .25);
-            color: var(--accent)
-        }
-
-        .stop.past .pf-chip {
-            background: rgba(34, 212, 131, .08);
-            border-color: rgba(34, 212, 131, .2);
-            color: var(--green)
-        }
-
-        .stop-times {
-            display: flex;
-            gap: 16px;
-            flex-shrink: 0;
-            text-align: right
-        }
-
-        .t-label {
-            font-size: 9px;
-            color: var(--text3);
-            text-transform: uppercase;
-            letter-spacing: .8px
-        }
-
-        .t-val {
-            font-size: 13px;
-            font-weight: 600;
-            font-family: var(--mono)
-        }
-
-        .t-val.g {
-            color: var(--green)
-        }
-
-        .t-val.r {
-            color: var(--red)
-        }
-
-        .t-val.d {
-            color: var(--text3)
-        }
-
-        .d-chip {
-            display: inline-block;
-            background: rgba(255, 90, 90, .1);
-            border: 1px solid rgba(255, 90, 90, .2);
-            color: #ff8080;
-            font-size: 9px;
-            font-weight: 700;
-            padding: 1px 5px;
-            border-radius: 99px;
-            margin-top: 2px;
-            font-family: var(--mono)
-        }
-
-        .stop-div {
-            border: none;
-            border-top: 1px solid rgba(255, 255, 255, .04);
-            margin: 0 0 24px
-        }
-
-        /* TABLE */
-        .stops-wrap {
-            overflow-x: auto
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 12px
-        }
-
-        th {
-            text-align: left;
-            padding: 10px 12px;
-            font-size: 9px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: var(--text3);
-            border-bottom: 1px solid var(--border2);
-            background: rgba(255, 255, 255, .02);
-            white-space: nowrap
-        }
-
-        td {
-            padding: 11px 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, .03);
-            vertical-align: middle
-        }
-
-        tr:last-child td {
-            border-bottom: none
-        }
-
-        tr.row-past td {
-            color: var(--text2)
-        }
-
-        tr.row-cur {
-            background: rgba(79, 142, 255, .06)
-        }
-
-        tr.row-cur td {
-            font-weight: 600
-        }
-
-        tr.row-fut td {
-            opacity: .35
-        }
-
-        .td-name {
-            font-weight: 600
-        }
-
-        .td-code {
-            font-family: var(--mono);
-            font-size: 10px;
-            color: var(--text3)
-        }
-
-        .td-t {
-            font-family: var(--mono);
-            white-space: nowrap
-        }
-
-        .td-d {
-            font-family: var(--mono);
-            font-size: 10px
-        }
-
-        .td-d.late {
-            color: var(--red)
-        }
-
-        .td-d.ok {
-            color: var(--green)
-        }
-
-        .td-pf {
-            text-align: center;
-            font-family: var(--mono)
-        }
-
-        .cur-arrow {
-            color: var(--accent);
-            font-size: 10px
-        }
-
-        /* WELCOME */
-        .welcome {
-            padding: 36px 4px
-        }
-
-        .welcome-hero {
-            text-align: center;
-            padding-bottom: 32px
-        }
-
-        .welcome-icon {
-            width: 88px;
-            height: 88px;
-            border-radius: var(--r2);
-            background: rgba(79, 142, 255, .08);
-            border: 1px solid rgba(79, 142, 255, .2);
-            display: grid;
-            place-items: center;
-            margin: 0 auto 20px;
-            box-shadow: 0 0 40px rgba(79, 142, 255, .12)
-        }
-
-        .welcome-title {
-            font-family: var(--display);
-            font-size: 28px;
-            font-weight: 800;
-            letter-spacing: -.5px;
-            margin-bottom: 10px
-        }
-
-        .welcome-title span {
-            background: linear-gradient(135deg, var(--accent), var(--accent2));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text
-        }
-
-        .welcome-sub {
-            font-size: 15px;
-            color: var(--text2);
-            max-width: 380px;
-            margin: 0 auto;
-            line-height: 1.7
-        }
-
-        .recent-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px
-        }
-
-        .recent-title-lbl {
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 1.2px;
-            text-transform: uppercase;
-            color: var(--text3)
-        }
-
-        .clear-btn {
-            background: none;
-            border: none;
-            font-size: 12px;
-            color: var(--accent);
-            cursor: pointer;
-            font-family: var(--font);
-            font-weight: 600;
-            border-radius: var(--r);
-            padding: 4px 10px;
-            transition: background .2s
-        }
-
-        .clear-btn:hover {
-            background: rgba(79, 142, 255, .08)
-        }
-
-        .recent-chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 32px
-        }
-
-        .r-chip {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--bg2);
-            border: 1px solid var(--border2);
-            border-radius: var(--r3);
-            padding: 8px 16px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
-            transition: border-color .2s, transform .15s
-        }
-
-        .r-chip:hover {
-            border-color: rgba(79, 142, 255, .3);
-            transform: translateY(-1px)
-        }
-
-        .r-num {
-            font-family: var(--mono);
-            font-size: 11px;
-            color: var(--accent);
-            font-weight: 600
-        }
-
-        .howto-card {
-            background: var(--bg2);
-            border: 1px solid var(--border);
-            border-radius: var(--r3);
-            padding: 22px 24px
-        }
-
-        .howto-title {
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 1.2px;
-            text-transform: uppercase;
-            color: var(--text3);
-            margin-bottom: 18px
-        }
-
-        .howto-items {
-            display: flex;
-            flex-direction: column;
-            gap: 16px
-        }
-
-        .howto-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 14px
-        }
-
-        .howto-icon-bg {
-            width: 38px;
-            height: 38px;
-            border-radius: var(--r);
-            display: grid;
-            place-items: center;
-            flex-shrink: 0
-        }
-
-        .howto-item h4 {
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 3px
-        }
-
-        .howto-item p {
-            font-size: 12px;
-            color: var(--text2);
-            line-height: 1.6
-        }
-
-        /* TOAST */
-        #toast {
-            position: fixed;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%) translateY(80px);
-            background: #1a1d27;
-            border: 1px solid var(--border2);
-            color: var(--text);
-            padding: 12px 20px;
-            border-radius: var(--r2);
-            font-size: 13px;
-            font-weight: 500;
-            z-index: 999;
-            transition: transform .25s var(--ease);
-            pointer-events: none;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, .4)
-        }
-
-        #toast.show {
-            transform: translateX(-50%) translateY(0)
-        }
-
-        /* FOOTER */
-        .footer {
-            text-align: center;
-            padding: 28px 16px;
-            font-size: 12px;
-            color: var(--text3);
-            line-height: 2.2;
-            position: relative;
-            z-index: 1
-        }
-
-        .footer a {
-            color: var(--accent);
-            text-decoration: none
-        }
-
-        .footer a:hover {
-            text-decoration: underline
-        }
-
-        .beta {
-            display: inline-flex;
-            align-items: center;
-            background: rgba(245, 200, 66, .1);
-            border: 1px solid rgba(245, 200, 66, .2);
-            color: var(--yellow);
-            font-size: 9px;
-            font-weight: 700;
-            padding: 2px 7px;
-            border-radius: 99px;
-            letter-spacing: .7px;
-            vertical-align: middle;
-            margin-left: 6px;
-            font-family: var(--mono)
-        }
-
-        .last-ref {
-            text-align: center;
-            padding: 10px 0 4px;
-            font-size: 11px;
-            color: var(--text3);
-            font-family: var(--mono)
-        }
-
-        /* MODAL */
-        .modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, .7);
-            backdrop-filter: blur(8px);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center
-        }
-
-        .modal-box {
-            background: var(--bg3);
-            border: 1px solid var(--border2);
-            padding: 28px 32px;
-            max-width: 620px;
-            width: 90%;
-            border-radius: var(--r3);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
-            line-height: 1.7;
-            position: relative;
-            max-height: 80vh;
-            overflow-y: auto
-        }
-
-        .modal-box h2 {
-            font-family: var(--display);
-            margin-bottom: 14px;
-            font-size: 22px
-        }
-
-        .modal-box p {
-            font-size: 13px;
-            color: var(--text2);
-            margin-bottom: 12px
-        }
-
-        .modal-close {
-            position: absolute;
-            right: 16px;
-            top: 12px;
-            font-size: 24px;
-            cursor: pointer;
-            color: var(--text3);
-            width: 32px;
-            height: 32px;
-            display: grid;
-            place-items: center;
-            border-radius: 50%;
-            background: none;
-            border: none;
-            transition: background .2s, color .2s
-        }
-
-        .modal-close:hover {
-            background: rgba(255, 255, 255, .06);
-            color: var(--text)
-        }
-
-        /* NETWORK STATUS BADGE */
-        .network-badge {
-            position: fixed;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: var(--bg3);
-            color: var(--text);
-            padding: 8px 16px;
-            border-radius: 99px;
-            font-family: var(--font);
-            font-size: 14px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            transition: transform 0.4s var(--spring);
-            z-index: 1000;
-        }
-
-        .network-badge.show {
-            transform: translateX(-50%) translateY(0);
-        }
-
-        .network-badge.offline { background: var(--bg2); color: var(--text2); }
-        .network-badge.offline .icon { color: var(--text3); }
-        .network-badge.weak { background: var(--bg3); color: var(--text); }
-        .network-badge.weak .icon { color: var(--yellow); }
-        .network-badge.online { background: var(--green); color: #fff; }
-        .network-badge.online .icon { color: #fff; }
-
-        @media(max-width:600px) {
-            .app-bar { padding: 0; }
-            .bar-inner { padding: 0 8px; gap: 4px; }
-            .brand-text { display: none; }
-            .search-wrap { margin: 0 4px; }
-            .search-field { padding: 0 12px; height: 40px; }
-            .search-field input { font-size: 13px; }
-            .ist-chip { font-size: 14px; padding: 4px; }
-            .ist-chip span:first-child { font-size: 16px !important; }
-
-            .lp-head,
-            .lp-progress,
-            .cd-row,
-            .share-row,
-            .auto-bar,
-            .lp-timeline {
-                padding-left: 16px;
-                padding-right: 16px
-            }
-
-            .pos-next {
-                display: none
-            }
-
-            .meta-it {
-                padding-right: 16px
-            }
-        }
-    </style>
-    <script>
-        (function() {
-            var theme = localStorage.getItem('trackit-theme');
-            if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.setAttribute('data-theme', 'dark');
-            }
-        })();
-    </script>
+<meta charset="UTF-8">
+<title>TrackIt — Live Train Tracker</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0B57D0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141218" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="dns-prefetch" href="https://train-api-eight.vercel.app">
+<link rel="dns-prefetch" href="https://sujith.bhargavtodimela4.workers.dev">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0&display=optional" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>(function(){var t=localStorage.getItem('tt');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.setAttribute('data-theme','dark');})()</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#F8F5FF;--bg2:#F0EBFF;--bg3:#E6DEFF;
+--surface:#FFFFFF;--surface2:rgba(255,255,255,0.7);
+--border:rgba(100,80,180,0.12);--border2:rgba(100,80,180,0.2);
+--text:#1A1033;--text2:#4A3F6B;--text3:#8878AA;
+--accent:#5B3FFF;--accent2:#8B6FFF;--accent3:#C4B5FD;
+--green:#059669;--green-bg:rgba(5,150,105,0.1);
+--red:#DC2626;--red-bg:rgba(220,38,38,0.1);
+--yellow:#D97706;--yellow-bg:rgba(217,119,6,0.1);
+--glow:rgba(91,63,255,0.2);
+--font:'DM Sans',sans-serif;--display:'Space Grotesk',sans-serif;--mono:'JetBrains Mono',monospace;
+--r:6px;--r2:12px;--r3:20px;--r4:28px;
+--ease:cubic-bezier(.2,0,0,1);--spring:cubic-bezier(.16,1,.3,1);
+--shadow:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(91,63,255,.08);
+--shadow2:0 8px 32px rgba(91,63,255,.15);
+}
+[data-theme='dark']{
+--bg:#0D0B14;--bg2:#13111C;--bg3:#1C1829;
+--surface:#1A1727;--surface2:rgba(28,24,41,0.8);
+--border:rgba(139,111,255,0.12);--border2:rgba(139,111,255,0.2);
+--text:#EDE9FF;--text2:#C4B8E8;--text3:#7B6FA8;
+--accent:#8B6FFF;--accent2:#A991FF;--accent3:#6B4FFF;
+--green:#34D399;--green-bg:rgba(52,211,153,0.1);
+--red:#F87171;--red-bg:rgba(248,113,113,0.1);
+--yellow:#FCD34D;--yellow-bg:rgba(252,211,77,0.1);
+--glow:rgba(139,111,255,0.2);
+--shadow:0 1px 3px rgba(0,0,0,.3),0 4px 12px rgba(0,0,0,.2);
+--shadow2:0 8px 32px rgba(0,0,0,.4);
+}
+html{scroll-behavior:smooth;height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;transition:background .3s,color .3s}
+/* BG TEXTURE */
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(91,63,255,.08),transparent);pointer-events:none;z-index:0}
+/* APP BAR */
+.app-bar{position:sticky;top:0;z-index:200;background:var(--surface2);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid var(--border);transition:box-shadow .3s}
+.app-bar.elevated{box-shadow:0 4px 20px rgba(0,0,0,.1)}
+.bar-inner{display:flex;align-items:center;gap:8px;padding:0 20px;height:60px;max-width:1040px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:10px;cursor:pointer;padding:6px 10px 6px 2px;border-radius:var(--r2);transition:background .2s;flex-shrink:0;user-select:none;-webkit-tap-highlight-color:transparent}
+.brand:hover{background:var(--border)}
+.brand-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:10px;display:grid;place-items:center;flex-shrink:0;box-shadow:0 4px 12px var(--glow)}
+.brand-text{font-family:var(--display);font-size:19px;font-weight:700;letter-spacing:-.3px}
+.brand-text em{color:var(--accent);font-style:normal}
+.search-wrap{flex:1;max-width:420px;margin:0 10px}
+.search-field{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1.5px solid var(--border2);border-radius:var(--r4);padding:0 14px;height:42px;transition:all .3s var(--spring)}
+.search-field:focus-within{border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3px rgba(91,63,255,.12)}
+.search-field .ms{color:var(--text3);flex-shrink:0;font-size:20px}
+.search-field input{flex:1;background:none;border:none;outline:none;font-family:var(--font);font-size:14px;color:var(--text);min-width:0}
+.search-field input::placeholder{color:var(--text3)}
+.bar-right{margin-left:auto;display:flex;align-items:center;gap:4px}
+.ist-badge{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:var(--r3);background:var(--bg3);border:1px solid var(--border2);font-family:var(--mono);font-size:12px;font-weight:500;white-space:nowrap;flex-shrink:0}
+.ist-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:bl 1.4s ease-in-out infinite}
+.icon-btn{background:transparent;border:none;color:var(--text2);width:38px;height:38px;border-radius:50%;display:grid;place-items:center;cursor:pointer;transition:all .2s;flex-shrink:0;-webkit-tap-highlight-color:transparent}
+.icon-btn:hover{background:var(--bg3);color:var(--accent)}
+.refresh-btn{display:none;align-items:center;gap:6px;background:var(--accent);color:#fff;border:none;border-radius:var(--r4);padding:0 16px;height:36px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 4px 12px var(--glow);transition:all .2s;-webkit-tap-highlight-color:transparent}
+.refresh-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px var(--glow)}
+.refresh-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.refresh-btn.spinning .ms{animation:spin .8s linear infinite}
+/* MAIN */
+.main{max-width:860px;margin:0 auto;padding:24px 16px 100px;position:relative;z-index:1}
+/* LOADER */
+.loader{display:flex;align-items:center;gap:14px;padding:40px 4px;color:var(--text2);font-size:14px}
+.spinner{width:28px;height:28px;flex-shrink:0}
+.spinner svg{width:28px;height:28px;animation:rotate 2s linear infinite}
+.spinner circle{fill:none;stroke-width:3;stroke-linecap:round;stroke-dasharray:1,200;stroke-dashoffset:0;animation:gdash 1.5s ease-in-out infinite,gcol 6s ease-in-out infinite}
+/* RESULTS */
+.results-hdr{font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);padding:0 2px 12px}
+.result-card{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r3);padding:14px 16px;margin-bottom:10px;transition:all .25s var(--spring);box-shadow:var(--shadow);content-visibility:auto;contain-intrinsic-size:0 80px}
+.result-card:hover{transform:translateY(-2px);box-shadow:var(--shadow2);border-color:var(--border2)}
+.rnum-badge{width:52px;height:52px;flex-shrink:0;border-radius:var(--r2);background:linear-gradient(135deg,rgba(91,63,255,.08),rgba(139,111,255,.06));border:1px solid rgba(91,63,255,.2);display:grid;place-items:center;font-family:var(--mono);font-size:11px;font-weight:600;color:var(--accent);text-align:center;line-height:1.3}
+.rinfo{flex:1;min-width:0}
+.rname{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rroute{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text3);margin-top:2px;font-family:var(--mono)}
+.track-btn{display:flex;align-items:center;gap:6px;background:var(--accent);color:#fff;border:none;border-radius:var(--r4);padding:0 16px;height:36px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .25s var(--spring);-webkit-tap-highlight-color:transparent;box-shadow:0 4px 12px var(--glow)}
+.track-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px var(--glow)}
+.track-btn:active{transform:scale(.96)}
+/* LIVE PANEL */
+.live-panel{border-radius:var(--r3);overflow:hidden;background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow2);animation:fadeUp .3s var(--ease)}
+/* HEAD */
+.lp-head{background:linear-gradient(135deg,var(--bg2),var(--bg3));padding:20px;position:relative;overflow:hidden}
+.lp-head::after{content:'';position:absolute;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(91,63,255,.1),transparent 70%);top:-120px;right:-60px;pointer-events:none}
+.lp-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;position:relative;z-index:1}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:var(--r4);font-size:11px;font-weight:600;letter-spacing:.3px}
+.chip-num{background:rgba(91,63,255,.12);border:1px solid rgba(91,63,255,.2);color:var(--accent);font-family:var(--mono)}
+.chip-src{background:var(--surface);border:1px solid var(--border2);color:var(--text2)}
+.chip-late{background:var(--red-bg);border:1px solid rgba(220,38,38,.2);color:var(--red)}
+.chip-ok{background:var(--green-bg);border:1px solid rgba(5,150,105,.2);color:var(--green)}
+.chip-warn{background:var(--yellow-bg);border:1px solid rgba(217,119,6,.2);color:var(--yellow)}
+.blink{width:5px;height:5px;border-radius:50%;background:currentColor;animation:bl 1.4s ease-in-out infinite}
+.lp-title{font-family:var(--display);font-size:20px;font-weight:700;letter-spacing:-.3px;position:relative;z-index:1;color:var(--text)}
+.lp-route{display:flex;align-items:center;gap:6px;margin-top:4px;font-size:12px;color:var(--text2);position:relative;z-index:1;font-family:var(--mono)}
+.lp-meta-row{display:flex;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);position:relative;z-index:1;gap:4px}
+.meta-it{padding-right:20px;margin-bottom:4px}
+.mlabel{font-size:9px;color:var(--text3);letter-spacing:.8px;text-transform:uppercase}
+.mval{font-size:14px;font-weight:600;margin-top:1px;font-family:var(--mono)}
+/* PROGRESS */
+.lp-progress{padding:16px 20px;border-bottom:1px solid var(--border)}
+.prog-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.prog-endpoints{font-size:11px;font-weight:500;color:var(--text2);font-family:var(--mono)}
+.prog-pct{font-size:13px;font-weight:700;color:var(--accent);font-family:var(--mono)}
+.linear-track{height:5px;background:var(--border);border-radius:99px;overflow:hidden}
+.linear-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent3),var(--accent));transition:width 1.4s var(--ease);position:relative;overflow:hidden}
+.linear-fill::after{content:'';position:absolute;top:0;left:-100%;right:0;bottom:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);animation:shimmer 2s infinite}
+.prog-labels{display:flex;justify-content:space-between;margin-top:4px}
+.prog-lbl{font-size:10px;color:var(--text3);font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:45%}
+/* STATS */
+.stats-row{display:flex;border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch}
+.stat-it{flex:1;min-width:80px;padding:14px 10px;text-align:center;border-right:1px solid var(--border)}
+.stat-it:last-child{border-right:none}
+.sval{font-family:var(--mono);font-size:18px;font-weight:600;line-height:1}
+.sval.g{color:var(--green)}.sval.r{color:var(--red)}.sval.b{color:var(--accent)}.sval.y{color:var(--yellow)}
+.slbl{font-size:9px;color:var(--text3);margin-top:4px;letter-spacing:.4px;text-transform:uppercase}
+/* SPEED GAUGE */
+.speed-row{display:flex;align-items:center;gap:16px;padding:14px 20px;border-bottom:1px solid var(--border);background:var(--bg2)}
+.speed-gauge{position:relative;width:72px;height:36px;flex-shrink:0}
+.gauge-arc{fill:none;stroke:var(--border);stroke-width:6;stroke-linecap:round}
+.gauge-fill{fill:none;stroke:var(--accent);stroke-width:6;stroke-linecap:round;transition:stroke-dasharray 1s var(--ease);transform:rotate(180deg);transform-origin:50% 100%}
+.speed-num{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--accent);line-height:1}
+.speed-unit{font-size:10px;color:var(--text3);margin-top:1px}
+.speed-info{flex:1}
+.speed-lbl{font-size:10px;color:var(--text3);letter-spacing:.6px;text-transform:uppercase;margin-bottom:2px}
+/* POSITION */
+.lp-pos{display:flex;align-items:center;gap:14px;padding:16px 20px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.pos-icon{width:46px;height:46px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:50%;display:grid;place-items:center;flex-shrink:0;animation:pulse 2.5s ease-out infinite}
+.pos-info{flex:1;min-width:0}
+.pos-at{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:2px}
+.pos-name{font-size:17px;font-weight:700;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pos-sub{font-size:11px;color:var(--text2);margin-top:2px;font-family:var(--mono)}
+.pos-next{flex-shrink:0;text-align:right}
+.next-lbl{font-size:9px;color:var(--text3)}
+.next-name{font-size:12px;font-weight:600;margin-top:2px}
+.next-chip{display:inline-block;background:var(--accent);color:#fff;font-size:10px;font-weight:600;padding:2px 8px;border-radius:var(--r4);margin-top:4px;font-family:var(--mono)}
+/* COUNTDOWN */
+.cd-row{display:flex;align-items:center;gap:14px;padding:12px 20px;border-bottom:1px solid var(--border)}
+.cd-lbl{font-size:9px;color:var(--text3);font-weight:600;letter-spacing:.8px;text-transform:uppercase}
+.cd-val{font-family:var(--mono);font-size:28px;font-weight:700;color:var(--accent);letter-spacing:2px;line-height:1}
+.cd-stn{font-size:13px;font-weight:600}
+.cd-code{font-size:10px;color:var(--text2);font-family:var(--mono);margin-top:2px}
+.cd-right{margin-left:auto;text-align:right}
+.cd-sched-lbl{font-size:9px;color:var(--text3)}
+.cd-sched-val{font-size:14px;font-weight:600;font-family:var(--mono);margin-top:2px}
+/* MAP */
+.map-btn{width:100%;padding:11px 20px;border:none;background:var(--bg2);color:var(--accent);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);transition:background .2s;-webkit-tap-highlight-color:transparent}
+.map-btn:hover{background:var(--bg3)}
+.map-btn .chevron{margin-left:auto;transition:transform .3s;font-size:20px}
+.map-btn.open .chevron{transform:rotate(180deg)}
+.map-wrap{display:none;border-bottom:1px solid var(--border)}
+.map-wrap iframe{width:100%;height:220px;border:none;display:block}
+/* SHARE */
+.share-row{display:flex;align-items:center;gap:8px;padding:10px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.share-lbl{font-size:10px;color:var(--text3);font-weight:600;letter-spacing:.8px;text-transform:uppercase;margin-right:4px}
+.share-btn{display:flex;align-items:center;gap:5px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r4);padding:5px 12px;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;color:var(--text);transition:all .2s;-webkit-tap-highlight-color:transparent}
+.share-btn:hover{background:rgba(91,63,255,.08);border-color:rgba(91,63,255,.3);color:var(--accent)}
+.share-btn.copied{background:var(--green-bg);border-color:rgba(5,150,105,.3);color:var(--green)}
+/* AUTO-REFRESH */
+.auto-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 20px;border-bottom:1px solid var(--border);background:var(--bg2);flex-wrap:wrap}
+.auto-bar-l{display:flex;align-items:center;gap:8px}
+.live-ind{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--green);letter-spacing:.5px}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:bl 1.4s ease-in-out infinite}
+.ar-prog{flex:1;max-width:70px;height:3px;background:var(--border);border-radius:99px;overflow:hidden}
+.ar-fill{height:100%;background:var(--accent);border-radius:99px;transition:width 1s linear}
+.ar-lbl{font-size:11px;color:var(--text3);font-family:var(--mono)}
+/* TABS */
+.md3-tabs{display:flex;gap:6px;padding:14px 20px;border-bottom:1px solid var(--border);background:var(--bg2);overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab-btn{flex:1;min-width:fit-content;padding:9px 14px;border:1px solid var(--border2);background:var(--surface);border-radius:var(--r4);font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;color:var(--text2);transition:all .25s var(--spring);display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.tab-btn:hover{background:var(--bg3);color:var(--text)}
+.tab-btn.active{color:#fff;background:var(--accent);border-color:transparent;box-shadow:0 4px 12px var(--glow)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+/* TIMELINE */
+.lp-timeline{padding:20px;background:var(--surface)}
+.sec-title{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);margin-bottom:18px}
+.tl-wrap{position:relative;padding-left:32px}
+.tl-line{position:absolute;left:7px;top:10px;bottom:10px;width:2px;background:linear-gradient(to bottom,var(--accent),var(--border))}
+.stop{position:relative;padding-bottom:20px;content-visibility:auto;contain-intrinsic-size:0 66px}
+.stop:last-child{padding-bottom:0}
+.stop-dot{position:absolute;left:-25px;top:4px;width:14px;height:14px;border-radius:50%;background:var(--border);border:2px solid var(--surface);z-index:1}
+.stop.past .stop-dot{background:var(--green)}
+.stop.current .stop-dot{width:20px;height:20px;left:-28px;top:1px;background:var(--accent);border:3px solid var(--surface);animation:pulse 2.5s ease-out infinite}
+.stop.future{opacity:.4}
+.stop-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.stop-info{flex:1}
+.sname{font-size:14px;font-weight:600}
+.stop.current .sname{color:var(--accent)}
+.scode{font-size:11px;color:var(--text3);margin-top:1px;font-family:var(--mono)}
+.pf-chip{display:inline-flex;align-items:center;gap:3px;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-size:9px;font-weight:600;padding:2px 7px;border-radius:var(--r4);margin-top:4px;font-family:var(--mono)}
+.stop.current .pf-chip{background:rgba(91,63,255,.12);border-color:rgba(91,63,255,.2);color:var(--accent)}
+.stop.past .pf-chip{background:var(--green-bg);border-color:rgba(5,150,105,.2);color:var(--green)}
+.stop-times{display:flex;gap:12px;flex-shrink:0;text-align:right}
+.t-label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px}
+.t-val{font-size:12px;font-weight:600;font-family:var(--mono)}
+.t-val.g{color:var(--green)}.t-val.r{color:var(--red)}.t-val.d{color:var(--text3)}
+.d-chip{display:inline-block;background:var(--red-bg);border:1px solid rgba(220,38,38,.2);color:var(--red);font-size:9px;font-weight:700;padding:1px 4px;border-radius:99px;margin-top:2px;font-family:var(--mono)}
+.stop-div{border:none;border-top:1px solid var(--border);margin:0 0 20px}
+/* TABLE */
+.stops-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:9px 10px;font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border2);background:var(--bg2);white-space:nowrap}
+td{padding:10px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr.row-past td{color:var(--text2)}
+tr.row-cur{background:rgba(91,63,255,.05)}
+tr.row-cur td{font-weight:600}
+tr.row-fut td{opacity:.4}
+.td-name{font-weight:600}
+.td-code{font-family:var(--mono);font-size:10px;color:var(--text3)}
+.td-t{font-family:var(--mono);white-space:nowrap}
+.td-d{font-family:var(--mono);font-size:10px}
+.td-d.late{color:var(--red)}.td-d.ok{color:var(--green)}
+.td-pf{text-align:center;font-family:var(--mono)}
+.cur-arrow{color:var(--accent);font-size:10px}
+/* FAVOURITES */
+.fav-btn{background:none;border:none;cursor:pointer;color:var(--text3);display:flex;align-items:center;padding:4px;border-radius:50%;transition:all .2s;-webkit-tap-highlight-color:transparent}
+.fav-btn:hover{color:var(--yellow)}
+.fav-btn.active{color:var(--yellow)}
+/* WELCOME */
+.welcome{padding:28px 4px}
+.welcome-hero{text-align:center;padding-bottom:28px}
+.welcome-icon{width:80px;height:80px;border-radius:var(--r3);background:linear-gradient(135deg,rgba(91,63,255,.1),rgba(139,111,255,.06));border:1px solid rgba(91,63,255,.2);display:grid;place-items:center;margin:0 auto 16px}
+.welcome-title{font-family:var(--display);font-size:26px;font-weight:700;letter-spacing:-.3px;margin-bottom:8px}
+.welcome-title span{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.welcome-sub{font-size:14px;color:var(--text2);max-width:360px;margin:0 auto;line-height:1.7}
+.section-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.section-lbl{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3)}
+.clear-btn{background:none;border:none;font-size:12px;color:var(--accent);cursor:pointer;font-family:var(--font);font-weight:600;padding:4px 8px;border-radius:var(--r);transition:background .2s;-webkit-tap-highlight-color:transparent}
+.clear-btn:hover{background:rgba(91,63,255,.08)}
+.chips-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:24px}
+.r-chip{display:flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r4);padding:7px 14px;cursor:pointer;font-size:12px;font-weight:500;transition:all .2s;-webkit-tap-highlight-color:transparent}
+.r-chip:hover{border-color:rgba(91,63,255,.3);transform:translateY(-1px)}
+.r-num{font-family:var(--mono);font-size:10px;color:var(--accent);font-weight:600}
+.howto-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r3);padding:18px 20px}
+.howto-title{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:14px}
+.howto-items{display:flex;flex-direction:column;gap:12px}
+.howto-item{display:flex;align-items:flex-start;gap:12px}
+.howto-icon-bg{width:36px;height:36px;border-radius:var(--r);display:grid;place-items:center;flex-shrink:0}
+.howto-item h4{font-size:13px;font-weight:600;margin-bottom:2px}
+.howto-item p{font-size:12px;color:var(--text2);line-height:1.5}
+/* TOAST */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:10px 18px;border-radius:var(--r2);font-size:13px;font-weight:500;z-index:9999;transition:transform .25s var(--ease);pointer-events:none;white-space:nowrap;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow2)}
+#toast.show{transform:translateX(-50%) translateY(0)}
+/* NETWORK BADGE */
+.net-badge{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);padding:8px 16px;border-radius:99px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow2);transition:transform .4s var(--spring);z-index:9998;border:1px solid var(--border)}
+.net-badge.show{transform:translateX(-50%) translateY(0)}
+.net-badge.offline{background:var(--bg3);color:var(--red)}
+.net-badge.weak{background:var(--yellow-bg);color:var(--yellow)}
+.net-badge.online{background:var(--green-bg);color:var(--green)}
+/* FOOTER */
+.footer{text-align:center;padding:24px 16px;font-size:12px;color:var(--text3);line-height:2;position:relative;z-index:1}
+.footer a{color:var(--accent);text-decoration:none}
+.footer a:hover{text-decoration:underline}
+.beta{display:inline-flex;align-items:center;background:var(--yellow-bg);border:1px solid rgba(217,119,6,.2);color:var(--yellow);font-size:9px;font-weight:700;padding:1px 6px;border-radius:99px;letter-spacing:.5px;vertical-align:middle;margin-left:5px;font-family:var(--mono)}
+.last-ref{text-align:center;padding:8px 0 4px;font-size:10px;color:var(--text3);font-family:var(--mono)}
+/* MODAL */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);z-index:9999;justify-content:center;align-items:center}
+.modal-box{background:var(--surface);border:1px solid var(--border2);padding:24px 28px;max-width:580px;width:90%;border-radius:var(--r3);box-shadow:var(--shadow2);line-height:1.7;position:relative;max-height:80vh;overflow-y:auto}
+.modal-box h2{font-family:var(--display);margin-bottom:12px;font-size:20px}
+.modal-box p{font-size:13px;color:var(--text2);margin-bottom:10px}
+.modal-close{position:absolute;right:14px;top:10px;font-size:20px;cursor:pointer;color:var(--text3);width:30px;height:30px;display:grid;place-items:center;border-radius:50%;background:none;border:none;transition:all .2s}
+.modal-close:hover{background:var(--bg3);color:var(--text)}
+/* SEARCH SUGGEST */
+.suggest-list{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r2);box-shadow:var(--shadow2);overflow:hidden;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:300}
+.suggest-item{padding:10px 16px;cursor:pointer;font-size:13px;transition:background .15s;display:flex;align-items:center;gap:10px;-webkit-tap-highlight-color:transparent}
+.suggest-item:hover{background:var(--bg3)}
+.suggest-num{font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:600;flex-shrink:0}
+/* SKELETON */
+.skeleton-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r3);padding:14px 16px;margin-bottom:10px;overflow:hidden;position:relative}
+.skeleton-card::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent);animation:shimmer 1.4s infinite}
+.sk-line{height:12px;background:var(--bg3);border-radius:6px;margin-bottom:8px}
+/* FAV TOAST */
+.fav-confirm{position:fixed;top:72px;right:16px;background:var(--yellow-bg);border:1px solid rgba(217,119,6,.3);color:var(--yellow);padding:8px 14px;border-radius:var(--r2);font-size:12px;font-weight:600;z-index:9999;transform:translateY(-20px);opacity:0;transition:all .3s var(--spring);pointer-events:none}
+.fav-confirm.show{transform:none;opacity:1}
+/* PULSE FAB */
+.fab{position:fixed;bottom:24px;right:20px;width:52px;height:52px;background:var(--accent);border:none;border-radius:50%;display:none;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px var(--glow);transition:all .3s var(--spring);z-index:500;-webkit-tap-highlight-color:transparent}
+.fab:hover{transform:scale(1.08);box-shadow:0 8px 24px var(--glow)}
+.fab.show{display:flex}
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes rotate{to{transform:rotate(360deg)}}
+@keyframes gdash{0%{stroke-dasharray:1,200;stroke-dashoffset:0}50%{stroke-dasharray:89,200;stroke-dashoffset:-35px}100%{stroke-dasharray:89,200;stroke-dashoffset:-124px}}
+@keyframes gcol{0%,100%{stroke:#5B3FFF}25%{stroke:#FF3F6F}50%{stroke:#FFCB3F}75%{stroke:#3FFF8B}}
+@keyframes shimmer{to{left:200%}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.2}}
+@keyframes pulse{0%{box-shadow:0 0 0 0 var(--glow)}70%{box-shadow:0 0 0 14px rgba(91,63,255,0)}100%{box-shadow:0 0 0 0 rgba(91,63,255,0)}}
+/* RESPONSIVE */
+@media(max-width:600px){
+.bar-inner{padding:0 10px;gap:4px;height:54px}
+.brand-text{display:none}
+.search-wrap{margin:0 4px}
+.search-field{padding:0 10px;height:38px}
+.search-field input{font-size:13px}
+.ist-badge{font-size:11px;padding:4px 8px;gap:4px}
+.lp-head,.lp-progress,.cd-row,.share-row,.auto-bar,.lp-timeline,.map-btn,.md3-tabs{padding-left:14px;padding-right:14px}
+.pos-next{display:none}
+.meta-it{padding-right:12px}
+.lp-title{font-size:17px}
+.welcome-title{font-size:22px}
+.stats-row{flex-wrap:nowrap;overflow-x:auto}
+.stat-it{min-width:72px}
+.tab-btn{font-size:11px;padding:8px 10px}
+.fab{bottom:20px;right:14px;width:46px;height:46px}
+}
+@media(max-width:380px){
+.ist-badge .ist-txt{display:none}
+.refresh-btn span.txt{display:none}
+}
+</style>
 </head>
-
 <body>
-
-    <div class="app-bar" id="appBar">
-        <div class="bar-inner">
-            <div class="brand" id="brandBtn">
-                <div class="brand-icon">
-                    <span class="material-symbols-rounded" style="color:white; font-size:20px;">train</span>
-                </div>
-                <div class="brand-text">Track<em>It</em></div>
-            </div>
-            <div class="search-wrap">
-                <div class="search-field">
-                    <span class="material-symbols-rounded" style="color:var(--text3); font-size:20px;">search</span>
-                    <input id="searchInput" type="search" placeholder="Search by train number or name…"
-                        autocomplete="off">
-                </div>
-            </div>
-            <div class="bar-right">
-                <div class="ist-chip">
-                    <span class="material-symbols-rounded" style="font-size:16px;">schedule</span>
-                    <span id="istText">--:--:-- IST</span>
-                </div>
-                <button class="icon-btn" id="themeToggleBtn" aria-label="Toggle Theme">
-                    <span class="material-symbols-rounded" id="themeIcon">light_mode</span>
-                </button>
-                <button class="refresh-btn" id="refreshBtn">
-                    <span class="material-symbols-rounded" style="font-size:18px;">refresh</span>
-                    Refresh
-                </button>
-            </div>
+<div class="app-bar" id="appBar">
+  <div class="bar-inner">
+    <div class="brand" id="brandBtn">
+      <div class="brand-icon"><span class="material-symbols-rounded" style="color:#fff;font-size:20px">train</span></div>
+      <div class="brand-text">Track<em>It</em></div>
+    </div>
+    <div class="search-wrap" style="position:relative">
+      <div class="search-field">
+        <span class="material-symbols-rounded ms">search</span>
+        <input id="searchInput" type="search" placeholder="Train number or name…" autocomplete="off" inputmode="search">
+      </div>
+      <div id="suggestBox"></div>
+    </div>
+    <div class="bar-right">
+      <div class="ist-badge"><div class="dot"></div><span id="istText" class="ist-txt">--:--</span><span style="color:var(--text3);font-size:10px">IST</span></div>
+      <button class="icon-btn" id="themeToggleBtn" aria-label="Toggle theme"><span class="material-symbols-rounded" id="themeIcon">light_mode</span></button>
+      <button class="icon-btn" id="favMenuBtn" aria-label="Favourites"><span class="material-symbols-rounded">star</span></button>
+      <button class="refresh-btn" id="refreshBtn"><span class="material-symbols-rounded ms" style="font-size:18px">refresh</span><span class="txt">Refresh</span></button>
+    </div>
+  </div>
+</div>
+<div class="main">
+  <div id="searchResults"></div>
+  <div id="liveView"></div>
+</div>
+<div class="footer">
+  <div><strong>TrackIt</strong><span class="beta">BETA</span></div>
+  <div>Made with ❤️ by <strong>Bhargav Todimela</strong> · <a href="#" id="disclaimerLink">Disclaimer</a></div>
+  <div>Found a bug? <a href="https://github.com" target="_blank">Report an issue →</a></div>
+  <div style="margin-top:2px;font-size:10px;opacity:.4;font-family:var(--mono)">Auto-refreshes every 45s · Data: Indian Railways</div>
+</div>
+<div id="disclaimerModal" class="modal">
+  <div class="modal-box">
+    <button class="modal-close" id="modalCloseBtn">×</button>
+    <h2>Disclaimer</h2>
+    <p>Train information is provided for informational purposes only. Data may not always reflect exact real-time status due to delays in data updates or network issues.</p>
+    <p>Verify the latest status through official railway sources before planning your journey. Platform numbers are based on historical patterns and may differ from actual assignments.</p>
+    <p>This platform shall not be held responsible for any inconvenience resulting from its use.</p>
+  </div>
+</div>
+<div id="favModal" class="modal">
+  <div class="modal-box">
+    <button class="modal-close" id="favModalClose">×</button>
+    <h2>⭐ Favourites</h2>
+    <div id="favModalContent"></div>
+  </div>
+</div>
+<div id="toast"></div>
+<div id="netBadge" class="net-badge"></div>
+<div class="fav-confirm" id="favConfirm"></div>
+<button class="fab" id="scrollTopFab" aria-label="Scroll to top"><span class="material-symbols-rounded" style="color:#fff;font-size:22px">keyboard_arrow_up</span></button>
+<script>
+(function(){'use strict';
+/* STATE */
+let searchTimer=null,countdownInterval=null,arTick=null,arSecs=45,curNum=null,curName=null,lastRefTs=null,searchRes=[];
+const BASES=["https://train-api-eight.vercel.app/api","https://sujith.bhargavtodimela4.workers.dev"];
+/* FETCH */
+async function fetchData(path){
+  const first=BASES[Math.random()<.5?0:1],second=BASES.find(b=>b!==first);
+  try{const r=await fetch(first+path,{signal:AbortSignal.timeout?AbortSignal.timeout(8000):undefined});if(!r.ok)throw 0;return parseResp(r);}
+  catch{const r=await fetch(second+path);if(!r.ok)throw new Error('Both endpoints failed');return parseResp(r);}
+}
+async function parseResp(r){
+  const buf=await r.arrayBuffer();const u8=new Uint8Array(buf);
+  let s;
+  if(u8.length>5&&u8[0]===0xdb){const l=(u8[1]*16777216)+(u8[2]<<16)+(u8[3]<<8)+u8[4];s=new TextDecoder().decode(u8.slice(5,5+l));}
+  else s=new TextDecoder().decode(u8);
+  return JSON.parse(s);
+}
+/* UTILS */
+const pad=n=>String(n).padStart(2,'0');
+const fmt=ts=>ts?new Date(ts*1000).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true}):'—';
+const he=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+const loader=msg=>`<div class="loader"><div class="spinner"><svg viewBox="22 22 44 44"><circle cx="44" cy="44" r="20.2"/></svg></div>${he(msg)}</div>`;
+function toast(msg,type){
+  const c={done:'var(--green)',error:'var(--red)',info:'var(--accent)'};
+  const el=document.getElementById('toast');
+  el.innerHTML=`<span style="color:${c[type]||c.done}">●</span> ${he(msg)}`;
+  el.classList.add('show');clearTimeout(toast._t);
+  toast._t=setTimeout(()=>el.classList.remove('show'),2600);
+}
+/* CLOCK */
+function tickClock(){
+  const el=document.getElementById('istText');if(!el)return;
+  try{const d=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Kolkata'}));
+  el.textContent=pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());}catch(e){}
+}
+tickClock();setInterval(tickClock,1000);
+/* SCROLL */
+let scrollTop=document.getElementById('scrollTopFab');
+window.addEventListener('scroll',()=>{
+  document.getElementById('appBar').classList.toggle('elevated',scrollY>4);
+  scrollTop.classList.toggle('show',scrollY>400);
+},{passive:true});
+scrollTop.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+/* AUTO-REFRESH */
+function startAR(){stopAR();arSecs=45;updateAR();arTick=setInterval(()=>{arSecs--;updateAR();if(arSecs<=0){arSecs=45;doRefresh(true);}},1000);}
+function stopAR(){if(arTick){clearInterval(arTick);arTick=null;}}
+function updateAR(){
+  const f=document.getElementById('arFill'),l=document.getElementById('arCd');
+  if(f)f.style.width=((45-arSecs)/45*100)+'%';
+  if(l)l.textContent='Next in '+arSecs+'s';
+}
+async function doRefresh(silent){
+  if(!curNum)return;
+  if(!silent){const b=document.getElementById('refreshBtn');if(b){b.classList.add('spinning');b.disabled=true;}arSecs=45;updateAR();}
+  try{
+    const d=await fetchData('/live-status?trainNo='+encodeURIComponent(curNum));
+    lastRefTs=new Date();renderLive(d.data,curNum,curName);updateLastRef();
+    if(!silent)toast('Refreshed!','done');else toast('Auto-refreshed','info');
+  }catch(err){toast('Refresh failed: '+err.message,'error');}
+  finally{if(!silent){const b=document.getElementById('refreshBtn');if(b){b.classList.remove('spinning');b.disabled=false;}}}
+}
+function updateLastRef(){
+  const el=document.getElementById('lastRefTime');
+  if(el&&lastRefTs){try{const d=new Date(lastRefTs.toLocaleString('en-US',{timeZone:'Asia/Kolkata'}));el.textContent=pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds())+' IST';}catch(e){}}
+}
+/* SEARCH */
+const si=document.getElementById('searchInput');
+si.addEventListener('input',function(){
+  const q=this.value.trim();clearTimeout(searchTimer);
+  if(!q){showWelcome();clearSuggest();return;}
+  if(q.length<2)return;
+  searchTimer=setTimeout(()=>doSearch(q),350);
+});
+si.addEventListener('keydown',e=>{if(e.key==='Escape'){si.value='';clearSuggest();showWelcome();}});
+function clearSuggest(){document.getElementById('suggestBox').innerHTML='';}
+async function doSearch(q){
+  const sr=document.getElementById('searchResults'),lv=document.getElementById('liveView');
+  sr.innerHTML=renderSkeleton(3);lv.innerHTML='';
+  clearInterval(countdownInterval);stopAR();curNum=null;curName=null;
+  document.getElementById('refreshBtn').style.display='none';
+  try{
+    const d=await fetchData('/search?q='+encodeURIComponent(q));
+    const trains=(d&&d.data)?d.data:[];
+    searchRes=trains;renderSearch(trains);
+  }catch(err){
+    sr.innerHTML=`<div class="loader" style="flex-direction:column;align-items:flex-start;gap:6px"><div>Search failed: ${he(err.message)}</div><div style="font-size:11px;opacity:.5">Check your connection</div></div>`;
+  }
+}
+function renderSkeleton(n){
+  let h='';
+  for(let i=0;i<n;i++)h+=`<div class="skeleton-card"><div class="sk-line" style="width:40%;margin-bottom:10px"></div><div class="sk-line" style="width:65%"></div><div class="sk-line" style="width:30%;margin-top:6px"></div></div>`;
+  return h;
+}
+function renderSearch(trains){
+  const sr=document.getElementById('searchResults');
+  if(!trains||!trains.length){sr.innerHTML='<div class="loader">No trains found.</div>';return;}
+  let h=`<div class="results-hdr">${trains.length} result${trains.length>1?'s':''} found</div>`;
+  const favs=getFavs();
+  for(let i=0;i<trains.length;i++){
+    const t=trains[i];const isFav=favs.some(f=>f.num===String(t.number));
+    h+=`<div class="result-card">
+      <div class="rnum-badge">${he(t.number)}</div>
+      <div class="rinfo">
+        <div class="rname">${he(t.name)}</div>
+        <div class="rroute"><span class="material-symbols-rounded" style="font-size:13px">location_on</span>${he(t.fromStnCode)} → ${he(t.toStnCode)}</div>
+      </div>
+      <button class="fav-btn${isFav?' active':''}" data-fav-idx="${i}" title="${isFav?'Remove from favourites':'Add to favourites'}"><span class="material-symbols-rounded" style="font-size:20px">star</span></button>
+      <button class="track-btn" data-idx="${i}"><span class="material-symbols-rounded" style="font-size:17px">my_location</span> Track</button>
+    </div>`;
+  }
+  sr.innerHTML=h;
+  sr.querySelectorAll('[data-idx]').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();const t=searchRes[+btn.dataset.idx];
+      if(t){doLive(String(t.number),t.name);saveRecent(String(t.number),t.name);}
+    });
+  });
+  sr.querySelectorAll('[data-fav-idx]').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();const t=searchRes[+btn.dataset.favIdx];
+      if(!t)return;const num=String(t.number);
+      if(isFav(num)){removeFav(num);btn.classList.remove('active');showFavConfirm('Removed from favourites');}
+      else{saveFav(num,t.name);btn.classList.add('active');showFavConfirm('★ Added to favourites');}
+    });
+  });
+}
+/* LIVE */
+async function doLive(num,name){
+  const sr=document.getElementById('searchResults'),lv=document.getElementById('liveView');
+  sr.innerHTML='';lv.innerHTML=loader('Fetching live status for '+num+'…');
+  clearInterval(countdownInterval);stopAR();
+  curNum=num;curName=name||num;
+  document.getElementById('refreshBtn').style.display='flex';
+  clearSuggest();si.value=name||num;
+  try{
+    const d=await fetchData('/live-status?trainNo='+encodeURIComponent(num));
+    lastRefTs=new Date();renderLive(d.data,num,name||num);updateLastRef();startAR();
+  }catch(err){
+    lv.innerHTML=`<div class="loader" style="flex-direction:column;align-items:flex-start;gap:6px"><div>Failed to load: ${he(err.message)}</div><div style="font-size:11px;opacity:.5">Train may not be running today</div></div>`;
+  }
+}
+/* RENDER LIVE */
+function renderLive(data,trainNo,trainName){
+  const lv=document.getElementById('liveView');
+  if(!data||!data.route||!data.route.length){lv.innerHTML='<div class="loader">No route data available for this train today.</div>';return;}
+  const route=data.route;
+  const curCode=data.currentPosition&&data.currentPosition.stationCode;
+  let curIdx=-1;for(let i=0;i<route.length;i++){if(route[i].stationCode===curCode){curIdx=i;break;}}
+  const delayMins=Math.round((data.delayInSecs||0)/60);
+  const isLate=delayMins>1;const isVeryLate=delayMins>30;
+  const progress=curIdx>=0?Math.round(curIdx/Math.max(route.length-1,1)*100):0;
+  const distOrig=data.currentPosition&&data.currentPosition.distanceFromOriginKm!=null?Number(data.currentPosition.distanceFromOriginKm).toFixed(1):'—';
+  const distLast=data.currentPosition&&data.currentPosition.distanceFromLastStationKm!=null?Number(data.currentPosition.distanceFromLastStationKm).toFixed(1):'—';
+  const origin=route[0],dest=route[route.length-1];
+  const curStn=curIdx>=0?route[curIdx]:null;
+  const nextStop=curIdx>=0&&curIdx<route.length-1?route[curIdx+1]:null;
+  const lat=data.currentPosition&&data.currentPosition.latLng&&data.currentPosition.latLng.latitude;
+  const lng=data.currentPosition&&data.currentPosition.latLng&&data.currentPosition.latLng.longitude;
+  const mapUrl=lat&&lng?'https://maps.google.com/maps?q='+lat+','+lng+'&z=13&output=embed':null;
+  const remaining=route.length-1-curIdx;
+  let etaStr='—';let etaTs=0;
+  if(nextStop&&nextStop.scheduledArrivalTime){
+    etaTs=(nextStop.scheduledArrivalTime+(data.delayInSecs||0))*1000;
+    etaStr=new Date(etaTs).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});
+  }
+  /* Estimated speed: if we have distLast and last updated time */
+  const speedKmh=data.currentPosition&&data.currentPosition.speedKmph!=null?Math.round(data.currentPosition.speedKmph):null;
+  const favFlag=isFav(trainNo);
+  let h=`<div class="live-panel">`;
+  /* HEAD */
+  const delayChipCls=isVeryLate?'chip-late':'chip-warn';
+  h+=`<div class="lp-head">
+    <div class="lp-chips">
+      <span class="chip chip-num">${he(trainNo)}</span>
+      <span class="chip chip-src">${he(data.dataSource||'LIVE')}</span>
+      <span class="chip ${isLate?(isVeryLate?'chip-late':'chip-warn'):'chip-ok'}"><span class="blink"></span>${isLate?'+'+delayMins+' min late':'On Time'}</span>
+    </div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+      <div>
+        <div class="lp-title">${he(trainName)}</div>
+        <div class="lp-route"><span class="material-symbols-rounded" style="font-size:14px">train</span>${he(origin&&origin.station_name||'—')} → ${he(dest&&dest.station_name||'—')}</div>
+      </div>
+      <button class="fav-btn${favFlag?' active':''}" id="lpFavBtn" title="Favourite" style="margin-top:4px"><span class="material-symbols-rounded" style="font-size:22px">star</span></button>
+    </div>
+    <div class="lp-meta-row">
+      <div class="meta-it"><div class="mlabel">Updated</div><div class="mval">${fmt(data.lastUpdatedTimestamp)}</div></div>
+      <div class="meta-it"><div class="mlabel">Covered</div><div class="mval">${distOrig} km</div></div>
+      <div class="meta-it"><div class="mlabel">Stops left</div><div class="mval">${remaining}</div></div>
+      <div class="meta-it"><div class="mlabel">Total stops</div><div class="mval">${route.length}</div></div>
+    </div>
+  </div>`;
+  /* PROGRESS */
+  h+=`<div class="lp-progress">
+    <div class="prog-head"><span class="prog-endpoints">${he(origin&&origin.stationCode||'')} → ${he(dest&&dest.stationCode||'')}</span><span class="prog-pct">${progress}%</span></div>
+    <div class="linear-track"><div class="linear-fill" id="progFill" style="width:0%"></div></div>
+    <div class="prog-labels"><span class="prog-lbl">${he(origin&&origin.station_name||'')}</span><span class="prog-lbl" style="text-align:right">${he(dest&&dest.station_name||'')}</span></div>
+  </div>`;
+  /* STATS */
+  h+=`<div class="stats-row">
+    <div class="stat-it"><span class="material-symbols-rounded" style="font-size:18px;color:${isLate?'var(--red)':'var(--green)'};display:block;margin-bottom:4px">schedule</span><div class="sval ${isLate?'r':'g'}">${isLate?'+'+delayMins:'0'}</div><div class="slbl">Min Delay</div></div>
+    <div class="stat-it"><span class="material-symbols-rounded" style="font-size:18px;color:var(--accent);display:block;margin-bottom:4px">route</span><div class="sval b">${distOrig}</div><div class="slbl">KM Done</div></div>
+    <div class="stat-it"><span class="material-symbols-rounded" style="font-size:18px;color:var(--text3);display:block;margin-bottom:4px">location_on</span><div class="sval">${distLast}</div><div class="slbl">KM Last Stn</div></div>
+    <div class="stat-it"><span class="material-symbols-rounded" style="font-size:18px;color:var(--accent);display:block;margin-bottom:4px">timer</span><div class="sval b" style="font-size:13px">${etaStr}</div><div class="slbl">ETA Next</div></div>
+    ${speedKmh!==null?`<div class="stat-it"><span class="material-symbols-rounded" style="font-size:18px;color:var(--yellow);display:block;margin-bottom:4px">speed</span><div class="sval y">${speedKmh}</div><div class="slbl">km/h Speed</div></div>`:''}
+  </div>`;
+  /* POSITION */
+  if(curStn){
+    h+=`<div class="lp-pos">
+      <div class="pos-icon"><span class="material-symbols-rounded" style="font-size:22px;color:#fff">my_location</span></div>
+      <div class="pos-info">
+        <div class="pos-at">Currently At</div>
+        <div class="pos-name">${he(curStn.station_name)}</div>
+        <div class="pos-sub">${he(curStn.stationCode)} · Platform ${he(curStn.platformNumber||'—')}</div>
+      </div>
+      <div class="pos-next">${nextStop?`<div class="next-lbl">NEXT STOP</div><div class="next-name">${he(nextStop.station_name)}</div><div class="next-chip">ETA ${etaStr}</div>`:`<div class="next-chip">🏁 Final Destination</div>`}</div>
+    </div>`;
+  }
+  /* COUNTDOWN */
+  if(etaTs>0){
+    h+=`<div class="cd-row">
+      <div><div class="cd-lbl">ARRIVES IN</div><div class="cd-val" id="cdVal">--:--</div></div>
+      <div style="flex:1"><div class="cd-stn">${he(nextStop&&nextStop.station_name||'')}</div><div class="cd-code">${he(nextStop&&nextStop.stationCode||'')} · PF ${he(nextStop&&nextStop.platformNumber||'—')}</div></div>
+      <div class="cd-right"><div class="cd-sched-lbl">SCHEDULED</div><div class="cd-sched-val">${fmt(nextStop&&nextStop.scheduledArrivalTime)}</div></div>
+    </div>`;
+  }
+  /* MAP */
+  if(mapUrl){
+    h+=`<button class="map-btn" id="mapToggleBtn"><span class="material-symbols-rounded" style="font-size:17px">map</span> Show on map<span class="material-symbols-rounded chevron">keyboard_arrow_down</span></button>
+    <div class="map-wrap" id="mapWrap"></div>`;
+  }
+  /* SHARE */
+  h+=`<div class="share-row">
+    <span class="share-lbl">Share</span>
+    <button class="share-btn" id="copyShareBtn"><span class="material-symbols-rounded" style="font-size:15px">content_copy</span> Copy</button>
+    <button class="share-btn" id="waShareBtn"><span class="material-symbols-rounded" style="font-size:15px">chat</span> WhatsApp</button>
+    <button class="share-btn" id="dlShareBtn"><span class="material-symbols-rounded" style="font-size:15px">download</span> Save</button>
+  </div>`;
+  /* AUTO-REFRESH BAR */
+  h+=`<div class="auto-bar">
+    <div class="auto-bar-l"><div class="live-ind"><div class="live-dot"></div>LIVE</div>
+    <div class="ar-prog"><div class="ar-fill" id="arFill" style="width:0%"></div></div></div>
+    <span class="ar-lbl" id="arCd">Next in 45s</span>
+  </div>`;
+  /* TABS */
+  h+=`<div class="md3-tabs">
+    <button class="tab-btn active" data-tab="tab-tl"><span class="material-symbols-rounded" style="font-size:16px">format_list_bulleted</span> Timeline</button>
+    <button class="tab-btn" data-tab="tab-table"><span class="material-symbols-rounded" style="font-size:16px">table_rows</span> All Stops</button>
+    <button class="tab-btn" data-tab="tab-info"><span class="material-symbols-rounded" style="font-size:16px">info</span> Info</button>
+  </div>`;
+  /* TIMELINE */
+  h+=`<div id="tab-tl" class="tab-content active"><div class="lp-timeline"><div class="sec-title">Journey Timeline</div><div class="tl-wrap"><div class="tl-line"></div>`;
+  for(let i=0;i<route.length;i++){
+    const s=route[i],isCur=i===curIdx,isPast=i<curIdx;
+    const cls=isCur?'current':isPast?'past':'future';
+    const aD=s.scheduledArrivalDelaySecs||0,dD=s.scheduledDepartureDelaySecs||0;
+    const aCls=s.actualArrivalTime?(aD>120?'r':'g'):'d',dCls=s.actualDepartureTime?(dD>120?'r':'g'):'d';
+    h+=`<div class="stop ${cls}"><div class="stop-dot"></div>
+      <div class="stop-row">
+        <div class="stop-info">
+          <div class="sname">${he(s.station_name)}</div>
+          <div class="scode">${he(s.stationCode)} · #${s.stopIndex||(i+1)}</div>
+          ${s.platformNumber?`<div class="pf-chip">PF ${he(s.platformNumber)}</div>`:''}
         </div>
-    </div>
-
-    <div class="main">
-        <div id="searchResults"></div>
-        <div id="liveView"></div>
-    </div>
-
-    <div class="footer">
-        <div><strong>TrackIt</strong><span class="beta">BETA</span></div>
-        <div>Made with ❤️ by <strong>Bhargav Todimela</strong> · <a href="#" id="disclaimerLink">Disclaimer</a></div>
-        <div>Found a bug? <a href="https://github.com" target="_blank">Report an issue →</a></div>
-        <div style="margin-top:4px;font-size:10px;opacity:.5;font-family:var(--mono)">Auto-refreshes every 45s · Data:
-            Indian Railways</div>
-    </div>
-
-    <div id="disclaimerModal" class="modal">
-        <div class="modal-box">
-            <button class="modal-close" id="modalCloseBtn">×</button>
-            <h2>Disclaimer</h2>
-            <p>The train information displayed on this platform is provided strictly for informational purposes only.
-                While efforts are made to keep the data accurate and up to date, the information may not always reflect
-                the exact real-time status of trains due to possible delays in data updates, network issues, or
-                restrictions from upstream data sources.</p>
-            <p>Users are advised not to rely solely on this information for travel decisions and should verify the
-                latest train status through official railway sources before planning their journey.</p>
-            <p>Platform numbers displayed are based on historical patterns and may not represent the actual platform
-                assigned at a station.</p>
-            <p>This platform does not guarantee the accuracy, completeness, or timeliness of the information provided
-                and shall not be held responsible for any inconvenience or loss resulting from its use.</p>
+        <div class="stop-times">
+          <div class="t-grp"><div class="t-label">Arr</div><div class="t-val ${aCls}">${fmt(s.actualArrivalTime||s.scheduledArrivalTime)}</div>${aD>60?`<div class="d-chip">+${Math.round(aD/60)}m</div>`:''}</div>
+          <div class="t-grp"><div class="t-label">Dep</div><div class="t-val ${dCls}">${fmt(s.actualDepartureTime||s.scheduledDepartureTime)}</div>${dD>60?`<div class="d-chip">+${Math.round(dD/60)}m</div>`:''}</div>
         </div>
+      </div>
+    </div>${i<route.length-1?'<hr class="stop-div">':''}`;
+  }
+  h+=`</div></div></div></div>`;
+  /* TABLE */
+  h+=`<div id="tab-table" class="tab-content"><div style="padding:16px 20px;background:var(--surface)"><div class="sec-title">All Stops</div>
+    <div class="stops-wrap"><table>
+      <thead><tr><th>#</th><th>Station</th><th>Code</th><th>PF</th><th>Sch Arr</th><th>Act Arr</th><th>Sch Dep</th><th>Act Dep</th><th>Delay</th></tr></thead>
+      <tbody>`;
+  for(let i=0;i<route.length;i++){
+    const s=route[i],isCur=i===curIdx,isPast=i<curIdx;
+    const rc=isCur?'row-cur':isPast?'row-past':'row-fut';
+    const md=Math.max(s.scheduledArrivalDelaySecs||0,s.scheduledDepartureDelaySecs||0);
+    h+=`<tr class="${rc}"><td>${i+1}${isCur?'<span class="cur-arrow"> ◀</span>':''}</td>
+      <td class="td-name">${he(s.station_name)}</td><td class="td-code">${he(s.stationCode)}</td>
+      <td class="td-pf">${he(s.platformNumber||'—')}</td>
+      <td class="td-t">${fmt(s.scheduledArrivalTime)}</td><td class="td-t">${fmt(s.actualArrivalTime)}</td>
+      <td class="td-t">${fmt(s.scheduledDepartureTime)}</td><td class="td-t">${fmt(s.actualDepartureTime)}</td>
+      <td class="td-d ${md>120?'late':'ok'}">${md>60?'+'+Math.round(md/60)+'m':'—'}</td>
+    </tr>`;
+  }
+  h+=`</tbody></table></div></div></div>`;
+  /* INFO TAB */
+  const dayOfJourney=data.dayOfJourney||'—';
+  h+=`<div id="tab-info" class="tab-content"><div style="padding:16px 20px;background:var(--surface)">
+    <div class="sec-title">Train Details</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="meta-it" style="padding-right:0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:12px"><div class="mlabel">Train Number</div><div class="mval">${he(trainNo)}</div></div>
+      <div class="meta-it" style="padding-right:0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:12px"><div class="mlabel">Data Source</div><div class="mval" style="font-size:12px">${he(data.dataSource||'—')}</div></div>
+      <div class="meta-it" style="padding-right:0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:12px"><div class="mlabel">Stops</div><div class="mval">${route.length}</div></div>
+      <div class="meta-it" style="padding-right:0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:12px"><div class="mlabel">Progress</div><div class="mval">${progress}%</div></div>
+      <div class="meta-it" style="padding-right:0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:12px"><div class="mlabel">Origin</div><div class="mval" style="font-size:12px">${he(origin&&origin.station_name||'—')}</div></div>
+      <div class="meta-it" style="padding-right:0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:12px"><div class="mlabel">Destination</div><div class="mval" style="font-size:12px">${he(dest&&dest.station_name||'—')}</div></div>
     </div>
-
-    <div id="toast"></div>
-    <div id="networkBadge" class="network-badge"></div>
-
-    <script>
-        (function () {
-            'use strict';
-
-            /* ══ STATE ══ */
-            let searchTimer = null;
-            let countdownInterval = null;
-            let autoRefreshTick = null;
-            let autoRefreshSecsLeft = 45;
-            let currentTrainNo = null;
-            let currentTrainName = null;
-            let lastRefreshedTs = null;
-            let searchResults = []; // store last search results for track button lookup
-
-            /* ══ MSGPACK DECODER ══
-               Worker returns str32: byte 0xdb, 4-byte big-endian length, then UTF-8 JSON */
-            const BASES = [
-                "https://train-api-eight.vercel.app/api",
-                "https://sujith.bhargavtodimela4.workers.dev"
-            ];
-
-            async function fetchData(path) {
-                // 🎲 pick random backend
-                const first = BASES[Math.floor(Math.random() * BASES.length)];
-                const second = BASES.find(b => b !== first);
-
-                try {
-                    const resp = await fetch(first + path);
-                    if (!resp.ok) throw new Error();
-                    return await parseResponse(resp);
-                } catch {
-                    // fallback to other backend
-                    const resp = await fetch(second + path);
-                    if (!resp.ok) throw new Error('Both endpoints failed');
-                    return await parseResponse(resp);
-                }
-            }
-
-            /* handles BOTH json + msgpack */
-            async function parseResponse(resp) {
-                const buf = await resp.arrayBuffer();
-                const u8 = new Uint8Array(buf);
-
-                let jsonStr;
-
-                if (u8.length > 5 && u8[0] === 0xdb) {
-                    const len = (u8[1] * 16777216) + (u8[2] << 16) + (u8[3] << 8) + u8[4];
-                    jsonStr = new TextDecoder().decode(u8.slice(5, 5 + len));
-                } else {
-                    jsonStr = new TextDecoder().decode(u8);
-                }
-
-                return JSON.parse(jsonStr);
-            }
-
-            /* ══ HELPERS ══ */
-            function pad(n) { return String(n).padStart(2, '0'); }
-
-            function fmt(ts) {
-                if (!ts) return '—';
-                return new Date(ts * 1000).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-            }
-
-            function he(s) { // html escape
-                return String(s == null ? '' : s)
-                    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-                    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-            }
-
-            function loader(msg) {
-                return '<div class="md-loader"><div class="md-spinner"><svg viewBox="22 22 44 44"><circle cx="44" cy="44" r="20.2"/></svg></div>' + he(msg) + '</div>';
-            }
-
-            function toast(msg, type) {
-                const colors = { done: 'var(--green)', error: 'var(--red)', info: 'var(--accent)' };
-                const el = document.getElementById('toast');
-                el.innerHTML = '<span style="color:' + (colors[type] || colors.done) + '">●</span> ' + he(msg);
-                el.classList.add('show');
-                clearTimeout(toast._t);
-                toast._t = setTimeout(() => el.classList.remove('show'), 2800);
-            }
-
-            /* ══ CLOCK ══ */
-            function tickClock() {
-                const el = document.getElementById('istText');
-                if (!el) return;
-                try {
-                    const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-                    el.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) + ' IST';
-                } catch (e) { }
-            }
-            tickClock();
-            setInterval(tickClock, 1000);
-
-            /* ══ SCROLL ══ */
-            window.addEventListener('scroll', function () {
-                document.getElementById('appBar').classList.toggle('elevated', window.scrollY > 4);
-            }, { passive: true });
-
-            /* ══ AUTO-REFRESH ══ */
-            function startAutoRefresh() {
-                stopAutoRefresh();
-                autoRefreshSecsLeft = 45;
-                updateARBar();
-                autoRefreshTick = setInterval(function () {
-                    autoRefreshSecsLeft--;
-                    updateARBar();
-                    if (autoRefreshSecsLeft <= 0) {
-                        autoRefreshSecsLeft = 45;
-                        doRefresh(true);
-                    }
-                }, 1000);
-            }
-
-            function stopAutoRefresh() {
-                if (autoRefreshTick) { clearInterval(autoRefreshTick); autoRefreshTick = null; }
-            }
-
-            function updateARBar() {
-                var f = document.getElementById('arFill');
-                var l = document.getElementById('arCountdown');
-                if (f) f.style.width = ((45 - autoRefreshSecsLeft) / 45 * 100) + '%';
-                if (l) l.textContent = 'Next in ' + autoRefreshSecsLeft + 's';
-            }
-
-            async function doRefresh(silent) {
-                if (!currentTrainNo) return;
-                if (!silent) {
-                    var btn = document.getElementById('refreshBtn');
-                    if (btn) { btn.classList.add('spinning'); btn.disabled = true; }
-                    autoRefreshSecsLeft = 45;
-                    updateARBar();
-                }
-                try {
-                    var d = await fetchData('/live-status?trainNo=' + encodeURIComponent(currentTrainNo));
-                    lastRefreshedTs = new Date();
-                    renderLive(d.data, currentTrainNo, currentTrainName);
-                    updateLastRef();
-                    if (!silent) toast('Refreshed!', 'done');
-                    else toast('Auto-refreshed', 'info');
-                } catch (err) {
-                    toast('Refresh failed: ' + err.message, 'error');
-                } finally {
-                    if (!silent) {
-                        var btn2 = document.getElementById('refreshBtn');
-                        if (btn2) { btn2.classList.remove('spinning'); btn2.disabled = false; }
-                    }
-                }
-            }
-
-            function updateLastRef() {
-                var el = document.getElementById('lastRefTime');
-                if (el && lastRefreshedTs) {
-                    try {
-                        var d = new Date(lastRefreshedTs.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-                        el.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) + ' IST';
-                    } catch (e) { }
-                }
-            }
-
-            /* ══ SEARCH ══ */
-            document.getElementById('searchInput').addEventListener('input', function () {
-                var q = this.value.trim();
-                clearTimeout(searchTimer);
-                if (!q) { showWelcome(); return; }
-                if (q.length < 2) return;
-                searchTimer = setTimeout(function () { doSearch(q); }, 400);
-            });
-
-            async function doSearch(q) {
-                var sr = document.getElementById('searchResults');
-                var lv = document.getElementById('liveView');
-                sr.innerHTML = loader('Searching trains…');
-                lv.innerHTML = '';
-                clearInterval(countdownInterval);
-                stopAutoRefresh();
-                currentTrainNo = null;
-                currentTrainName = null;
-                document.getElementById('refreshBtn').style.display = 'none';
-
-                try {
-                    var d = await fetchData('/search?q=' + encodeURIComponent(q));
-                    var trains = (d && d.data) ? d.data : [];
-                    searchResults = trains; // save for button handlers
-                    renderSearch(trains);
-                } catch (err) {
-                    sr.innerHTML = '<div class="md-loader" style="flex-direction:column;align-items:flex-start;gap:6px"><div>Search failed: ' + he(err.message) + '</div><div style="font-size:11px;opacity:.6">Check your connection</div></div>';
-                }
-            }
-
-            function renderSearch(trains) {
-                var sr = document.getElementById('searchResults');
-                if (!trains || !trains.length) {
-                    sr.innerHTML = '<div class="md-loader">No trains found.</div>';
-                    return;
-                }
-
-                var html = '<div class="results-header">' + trains.length + ' result' + (trains.length > 1 ? 's' : '') + ' found</div>';
-
-                for (var i = 0; i < trains.length; i++) {
-                    var t = trains[i];
-                    html += '<div class="result-card">'
-                        + '<div class="rnum-badge">' + he(t.number) + '</div>'
-                        + '<div class="rinfo">'
-                        + '<div class="rname">' + he(t.name) + '</div>'
-                        + '<div class="rroute">'
-                        + '<span class="material-symbols-rounded" style="font-size:14px;vertical-align:-2px">location_on</span>'
-                        + he(t.fromStnCode) + ' → ' + he(t.toStnCode)
-                        + '</div>'
-                        + '</div>'
-                        + '<button class="track-btn" data-train-idx="' + i + '">'
-                        + '<span class="material-symbols-rounded" style="font-size:18px">my_location</span>'
-                        + ' Track'
-                        + '</button>'
-                        + '</div>';
-                }
-
-                sr.innerHTML = html;
-
-                // Attach click listeners immediately after setting innerHTML
-                var btns = sr.querySelectorAll('[data-train-idx]');
-                btns.forEach(function (btn) {
-                    btn.addEventListener('click', function (e) {
-                        e.stopPropagation();
-                        var idx = parseInt(this.getAttribute('data-train-idx'));
-                        var train = searchResults[idx];
-                        if (train) {
-                            doLive(String(train.number), train.name);
-                            saveRecent(String(train.number), train.name);
-                        }
-                    });
-                });
-            }
-
-            /* ══ LIVE STATUS ══ */
-            async function doLive(num, name) {
-                var sr = document.getElementById('searchResults');
-                var lv = document.getElementById('liveView');
-                sr.innerHTML = '';
-                lv.innerHTML = loader('Fetching live status for ' + num + '…');
-                if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
-                stopAutoRefresh();
-                currentTrainNo = num;
-                currentTrainName = name || num;
-                document.getElementById('refreshBtn').style.display = 'flex';
-
-                try {
-                    var d = await fetchData('/live-status?trainNo=' + encodeURIComponent(num));
-                    lastRefreshedTs = new Date();
-                    renderLive(d.data, num, name || num);
-                    updateLastRef();
-                    startAutoRefresh();
-                } catch (err) {
-                    lv.innerHTML = '<div class="md-loader" style="flex-direction:column;align-items:flex-start;gap:6px">'
-                        + '<div>Failed to load: ' + he(err.message) + '</div>'
-                        + '<div style="font-size:11px;opacity:.6">The train may not be running today</div>'
-                        + '</div>';
-                }
-            }
-
-            /* ══ RENDER LIVE PANEL ══ */
-            function renderLive(data, trainNo, trainName) {
-                var lv = document.getElementById('liveView');
-                if (!data || !data.route || !data.route.length) {
-                    lv.innerHTML = '<div class="md-loader">No route data available for this train today.</div>';
-                    return;
-                }
-
-                var route = data.route;
-                var curCode = data.currentPosition && data.currentPosition.stationCode;
-                var curIdx = -1;
-                for (var i = 0; i < route.length; i++) {
-                    if (route[i].stationCode === curCode) { curIdx = i; break; }
-                }
-
-                var delayMins = Math.round((data.delayInSecs || 0) / 60);
-                var isLate = delayMins > 1;
-                var progress = curIdx >= 0 ? Math.round(curIdx / Math.max(route.length - 1, 1) * 100) : 0;
-                var distOrig = (data.currentPosition && data.currentPosition.distanceFromOriginKm != null)
-                    ? Number(data.currentPosition.distanceFromOriginKm).toFixed(1) : '—';
-                var distLast = (data.currentPosition && data.currentPosition.distanceFromLastStationKm != null)
-                    ? Number(data.currentPosition.distanceFromLastStationKm).toFixed(1) : '—';
-                var origin = route[0];
-                var dest = route[route.length - 1];
-                var curStn = curIdx >= 0 ? route[curIdx] : null;
-                var nextStop = (curIdx >= 0 && curIdx < route.length - 1) ? route[curIdx + 1] : null;
-                var lat = data.currentPosition && data.currentPosition.latLng && data.currentPosition.latLng.latitude;
-                var lng = data.currentPosition && data.currentPosition.latLng && data.currentPosition.latLng.longitude;
-                var mapUrl = (lat && lng) ? 'https://maps.google.com/maps?q=' + lat + ',' + lng + '&z=13&output=embed' : null;
-                var remaining = route.length - 1 - curIdx;
-
-                var etaStr = '—';
-                var etaTs = 0;
-                if (nextStop && nextStop.scheduledArrivalTime) {
-                    etaTs = (nextStop.scheduledArrivalTime + (data.delayInSecs || 0)) * 1000;
-                    etaStr = new Date(etaTs).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-                }
-
-                var h = '<div class="live-panel">';
-
-                // HEAD
-                h += '<div class="lp-head">'
-                    + '<div class="lp-head-glow"></div>'
-                    + '<div class="lp-chips">'
-                    + '<span class="chip chip-num">' + he(trainNo) + '</span>'
-                    + '<span class="chip chip-src">' + he(data.dataSource || 'LIVE') + '</span>'
-                    + '<span class="chip ' + (isLate ? 'chip-late' : 'chip-ok') + '">'
-                    + '<span class="blink"></span>' + (isLate ? '+' + delayMins + ' min late' : 'On Time')
-                    + '</span>'
-                    + '</div>'
-                    + '<div class="lp-title">' + he(trainName) + '</div>'
-                    + '<div class="lp-route">'
-                    + '<span class="material-symbols-rounded" style="font-size:16px;vertical-align:bottom;margin-right:4px">train</span>'
-                    + he(origin && origin.station_name || '—') + ' → ' + he(dest && dest.station_name || '—')
-                    + '</div>'
-                    + '<div class="lp-meta-row">'
-                    + '<div class="meta-it"><div class="mlabel">Updated</div><div class="mval">' + fmt(data.lastUpdatedTimestamp) + '</div></div>'
-                    + '<div class="meta-it"><div class="mlabel">Covered</div><div class="mval">' + distOrig + ' km</div></div>'
-                    + '<div class="meta-it"><div class="mlabel">Stops left</div><div class="mval">' + remaining + '</div></div>'
-                    + '<div class="meta-it"><div class="mlabel">Total stops</div><div class="mval">' + route.length + '</div></div>'
-                    + '</div>'
-                    + '</div>';
-
-                // PROGRESS
-                h += '<div class="lp-progress">'
-                    + '<div class="prog-head">'
-                    + '<span class="prog-endpoints">' + he(origin && origin.stationCode || '') + ' → ' + he(dest && dest.stationCode || '') + '</span>'
-                    + '<span class="prog-pct">' + progress + '%</span>'
-                    + '</div>'
-                    + '<div class="linear-track"><div class="linear-fill" id="progFill" style="width:0%"></div></div>'
-                    + '<div class="prog-labels">'
-                    + '<span class="prog-lbl">' + he(origin && origin.station_name || '') + '</span>'
-                    + '<span class="prog-lbl">' + he(dest && dest.station_name || '') + '</span>'
-                    + '</div>'
-                    + '</div>';
-
-                // STATS
-                h += '<div class="stats-row">'
-                    + '<div class="stat-it"><div class="stat-icon"><span class="material-symbols-rounded" style="font-size:20px;color:' + (isLate ? 'var(--red)' : 'var(--green)') + '">schedule</span></div><div class="sval ' + (isLate ? 'r' : 'g') + '">' + (isLate ? '+' + delayMins : '0') + '</div><div class="slbl">MIN DELAY</div></div>'
-                    + '<div class="stat-it"><div class="stat-icon"><span class="material-symbols-rounded" style="font-size:20px;color:var(--accent)">directions_run</span></div><div class="sval b">' + distOrig + '</div><div class="slbl">KM COVERED</div></div>'
-                    + '<div class="stat-it"><div class="stat-icon"><span class="material-symbols-rounded" style="font-size:20px;color:var(--text3)">location_on</span></div><div class="sval">' + distLast + '</div><div class="slbl">KM FROM LAST</div></div>'
-                    + '<div class="stat-it"><div class="stat-icon"><span class="material-symbols-rounded" style="font-size:20px;color:var(--accent)">train</span></div><div class="sval b" style="font-size:14px">' + etaStr + '</div><div class="slbl">ETA NEXT STOP</div></div>'
-                    + '</div>';
-
-                // POSITION
-                if (curStn) {
-                    h += '<div class="lp-pos">'
-                        + '<div class="pos-icon"><span class="material-symbols-rounded" style="font-size:24px;color:var(--bg)">my_location</span></div>'
-                        + '<div class="pos-info">'
-                        + '<div class="pos-at">Currently At</div>'
-                        + '<div class="pos-name">' + he(curStn.station_name) + '</div>'
-                        + '<div class="pos-sub">' + he(curStn.stationCode) + ' · Platform ' + he(curStn.platformNumber || '—') + '</div>'
-                        + '</div>'
-                        + '<div class="pos-next">'
-                        + (nextStop
-                            ? '<div class="next-lbl">NEXT STOP</div><div class="next-name">' + he(nextStop.station_name) + '</div><div class="next-chip">ETA ' + etaStr + '</div>'
-                            : '<div class="next-chip">🏁 Final Destination</div>')
-                        + '</div>'
-                        + '</div>';
-                }
-
-                // COUNTDOWN
-                if (etaTs > 0) {
-                    h += '<div class="cd-row">'
-                        + '<div><div class="cd-lbl">NEXT STOP IN</div><div class="cd-val" id="cdVal">--:--</div></div>'
-                        + '<div style="flex:1"><div class="cd-stn">' + he(nextStop && nextStop.station_name || '') + '</div>'
-                        + '<div class="cd-code">' + he(nextStop && nextStop.stationCode || '') + ' · PF ' + he(nextStop && nextStop.platformNumber || '—') + '</div></div>'
-                        + '<div class="cd-right"><div class="cd-sched-lbl">SCHEDULED</div><div class="cd-sched-val">' + fmt(nextStop && nextStop.scheduledArrivalTime) + '</div></div>'
-                        + '</div>';
-                }
-
-                // MAP
-                if (mapUrl) {
-                    h += '<button class="map-btn" id="mapToggleBtn">'
-                        + '<span class="material-symbols-rounded" style="font-size:18px;margin-right:8px">map</span>'
-                        + 'Show current location on map'
-                        + '<span class="material-symbols-rounded chevron" style="font-size:20px; margin-left:auto;">keyboard_arrow_down</span>'
-                        + '</button>'
-                        + '<div class="map-wrap" id="mapWrap"></div>';
-                }
-
-                // SHARE
-                h += '<div class="share-row">'
-                    + '<span class="share-lbl">Share</span>'
-                    + '<button class="share-btn" id="copyShareBtn"><span class="material-symbols-rounded" style="font-size:16px">content_copy</span> Copy</button>'
-                    + '<button class="share-btn" id="waShareBtn"><span class="material-symbols-rounded" style="font-size:16px">chat</span> WhatsApp</button>'
-                    + '<button class="share-btn" id="dlShareBtn"><span class="material-symbols-rounded" style="font-size:16px">download</span> Download</button>'
-                    + '</div>';
-
-                // AUTO-REFRESH BAR
-                h += '<div class="auto-bar">'
-                    + '<div class="auto-bar-l"><div class="live-ind"><div class="live-dot"></div>LIVE</div>'
-                    + '<div class="ar-prog"><div class="ar-fill" id="arFill" style="width:0%"></div></div></div>'
-                    + '<span class="ar-lbl" id="arCountdown">Next in 45s</span>'
-                    + '</div>';
-
-                // TABS
-                h += '<div class="md3-tabs">'
-                    + '<button class="tab-btn active" data-tab="tab-tl"><span class="material-symbols-rounded" style="font-size:18px">format_list_bulleted</span> Timeline</button>'
-                    + '<button class="tab-btn" data-tab="tab-table"><span class="material-symbols-rounded" style="font-size:18px">table_rows</span> All Stops</button>'
-                    + '</div>';
-
-                // TIMELINE
-                h += '<div id="tab-tl" class="tab-content active"><div class="lp-timeline">'
-                    + '<div class="sec-title">Journey Timeline</div>'
-                    + '<div class="tl-wrap"><div class="tl-line"></div>';
-
-                for (var i = 0; i < route.length; i++) {
-                    var s = route[i];
-                    var isCur = i === curIdx, isPast = i < curIdx;
-                    var cls = isCur ? 'current' : isPast ? 'past' : 'future';
-                    var aD = s.scheduledArrivalDelaySecs || 0;
-                    var dD = s.scheduledDepartureDelaySecs || 0;
-                    var aCls = s.actualArrivalTime ? (aD > 120 ? 'r' : 'g') : 'd';
-                    var dCls = s.actualDepartureTime ? (dD > 120 ? 'r' : 'g') : 'd';
-                    h += '<div class="stop ' + cls + '"><div class="stop-dot"></div>'
-                        + '<div class="stop-row">'
-                        + '<div class="stop-info">'
-                        + '<div class="sname">' + he(s.station_name) + '</div>'
-                        + '<div class="scode">' + he(s.stationCode) + ' · #' + (s.stopIndex || (i + 1)) + '</div>'
-                        + (s.platformNumber ? '<div class="pf-chip">PF ' + he(s.platformNumber) + '</div>' : '')
-                        + '</div>'
-                        + '<div class="stop-times">'
-                        + '<div class="t-grp"><div class="t-label">Arr</div><div class="t-val ' + aCls + '">' + fmt(s.actualArrivalTime || s.scheduledArrivalTime) + '</div>' + (aD > 60 ? '<div class="d-chip">+' + Math.round(aD / 60) + 'm</div>' : '') + '</div>'
-                        + '<div class="t-grp"><div class="t-label">Dep</div><div class="t-val ' + dCls + '">' + fmt(s.actualDepartureTime || s.scheduledDepartureTime) + '</div>' + (dD > 60 ? '<div class="d-chip">+' + Math.round(dD / 60) + 'm</div>' : '') + '</div>'
-                        + '</div>'
-                        + '</div>'
-                        + '</div>'
-                        + (i < route.length - 1 ? '<hr class="stop-div">' : '');
-                }
-                h += '</div></div></div>';
-
-                // TABLE
-                h += '<div id="tab-table" class="tab-content"><div style="padding:20px 24px;background:var(--bg2)">'
-                    + '<div class="sec-title">All Stops</div>'
-                    + '<div class="stops-wrap"><table>'
-                    + '<thead><tr><th>#</th><th>Station</th><th>Code</th><th>PF</th><th>Sch Arr</th><th>Act Arr</th><th>Sch Dep</th><th>Act Dep</th><th>Delay</th></tr></thead>'
-                    + '<tbody>';
-                for (var i = 0; i < route.length; i++) {
-                    var s = route[i];
-                    var isCur = i === curIdx, isPast = i < curIdx;
-                    var rc = isCur ? 'row-cur' : isPast ? 'row-past' : 'row-fut';
-                    var md = Math.max(s.scheduledArrivalDelaySecs || 0, s.scheduledDepartureDelaySecs || 0);
-                    h += '<tr class="' + rc + '"><td>' + (i + 1) + (isCur ? ' <span class="cur-arrow">◀</span>' : '') + '</td>'
-                        + '<td class="td-name">' + he(s.station_name) + '</td>'
-                        + '<td class="td-code">' + he(s.stationCode) + '</td>'
-                        + '<td class="td-pf">' + he(s.platformNumber || '—') + '</td>'
-                        + '<td class="td-t">' + fmt(s.scheduledArrivalTime) + '</td>'
-                        + '<td class="td-t">' + fmt(s.actualArrivalTime) + '</td>'
-                        + '<td class="td-t">' + fmt(s.scheduledDepartureTime) + '</td>'
-                        + '<td class="td-t">' + fmt(s.actualDepartureTime) + '</td>'
-                        + '<td class="td-d ' + (md > 120 ? 'late' : 'ok') + '">' + (md > 60 ? '+' + Math.round(md / 60) + 'm' : '—') + '</td>'
-                        + '</tr>';
-                }
-                h += '</tbody></table></div></div></div>';
-                h += '</div>';
-                h += '<div class="last-ref">Last refreshed: <span id="lastRefTime">—</span></div>';
-
-                lv.innerHTML = h;
-
-                // Animate progress bar
-                requestAnimationFrame(function () {
-                    setTimeout(function () {
-                        var pf = document.getElementById('progFill');
-                        if (pf) pf.style.width = progress + '%';
-                    }, 100);
-                });
-
-                // Countdown timer
-                if (etaTs > 0) {
-                    if (countdownInterval) clearInterval(countdownInterval);
-                    countdownInterval = setInterval(function () {
-                        var el = document.getElementById('cdVal');
-                        if (!el) { clearInterval(countdownInterval); return; }
-                        var diff = etaTs - Date.now();
-                        if (diff <= 0) { el.textContent = 'Arriving'; el.style.color = 'var(--green)'; clearInterval(countdownInterval); return; }
-                        var m = Math.floor(diff / 60000), sc = Math.floor((diff % 60000) / 1000);
-                        el.textContent = pad(m) + ':' + pad(sc);
-                        el.style.color = m < 5 ? 'var(--red)' : '';
-                    }, 1000);
-                }
-
-                // Wire up all rendered buttons
-                var mapBtn = document.getElementById('mapToggleBtn');
-                if (mapBtn) {
-                    mapBtn.addEventListener('click', function () {
-                        var w = document.getElementById('mapWrap');
-                        this.classList.toggle('open');
-                        if (!this.classList.contains('open')) { w.style.display = 'none'; return; }
-                        w.style.display = 'block';
-                        if (!w.querySelector('iframe')) w.innerHTML = '<iframe src="' + he(mapUrl) + '" loading="lazy" allowfullscreen></iframe>';
-                    });
-                }
-
-                var shareText = '🚆 ' + trainNo + ' — ' + trainName
-                    + '\n📍 At: ' + (curStn ? curStn.station_name : curCode || '—')
-                    + '\n⏱ Delay: ' + (isLate ? '+' + delayMins + ' min' : 'On time')
-                    + '\n🏁 Destination: ' + (dest ? dest.station_name : '—')
-                    + '\n📊 Progress: ' + progress + '%';
-
-                var copyBtn = document.getElementById('copyShareBtn');
-                if (copyBtn) {
-                    copyBtn.addEventListener('click', function () {
-                        var btn = this;
-                        navigator.clipboard.writeText(shareText).then(function () {
-                            toast('Copied!', 'done');
-                            btn.classList.add('copied');
-                            setTimeout(function () { btn.classList.remove('copied'); }, 2000);
-                        }).catch(function () { toast('Copy failed', 'error'); });
-                    });
-                }
-
-                var waBtn = document.getElementById('waShareBtn');
-                if (waBtn) {
-                    waBtn.addEventListener('click', function () {
-                        window.open('https://wa.me/?text=' + encodeURIComponent(shareText), '_blank');
-                    });
-                }
-
-                var dlBtn = document.getElementById('dlShareBtn');
-                if (dlBtn) {
-                    dlBtn.addEventListener('click', function () {
-                        var a = document.createElement('a');
-                        a.href = URL.createObjectURL(new Blob([shareText], { type: 'text/plain' }));
-                        a.download = 'train-' + trainNo + '-status.txt';
-                        a.click();
-                        toast('Downloaded!', 'done');
-                    });
-                }
-
-                lv.querySelectorAll('.tab-btn[data-tab]').forEach(function (btn) {
-                    btn.addEventListener('click', function () {
-                        lv.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
-                        lv.querySelectorAll('.tab-content').forEach(function (c) { c.classList.remove('active'); });
-                        this.classList.add('active');
-                        var t = document.getElementById(this.getAttribute('data-tab'));
-                        if (t) t.classList.add('active');
-                    });
-                });
-            }
-
-            /* ══ RECENT ══ */
-            function getRecent() {
-                try { return JSON.parse(localStorage.getItem('recentTrains') || '[]'); } catch (e) { return []; }
-            }
-            function saveRecent(num, name) {
-                var r = getRecent().filter(function (x) { return x.num !== num; });
-                r.unshift({ num: num, name: name });
-                if (r.length > 6) r = r.slice(0, 6);
-                try { localStorage.setItem('recentTrains', JSON.stringify(r)); } catch (e) { }
-            }
-            function clearRecent() {
-                try { localStorage.removeItem('recentTrains'); } catch (e) { }
-                showWelcome();
-                toast('Recent cleared', 'done');
-            }
-
-            /* ══ WELCOME ══ */
-            function showWelcome() {
-                var recent = getRecent();
-                var h = '<div class="welcome"><div class="welcome-hero">'
-                    + '<div class="welcome-icon"><span class="material-symbols-rounded" style="font-size:42px;color:var(--accent)">train</span></div>'
-                    + '<div class="welcome-title">Track any Indian train, <span>live.</span></div>'
-                    + '<div class="welcome-sub">Type a train number or name in the search bar above to get started.</div>'
-                    + '</div>';
-
-                if (recent.length) {
-                    h += '<div class="recent-head">'
-                        + '<div class="recent-title-lbl">Recent Searches</div>'
-                        + '<button class="clear-btn" id="clearRecentBtn">Clear all</button>'
-                        + '</div><div class="recent-chips" id="recentChipsWrap">';
-                    for (var i = 0; i < recent.length; i++) {
-                        h += '<div class="r-chip" data-recent-idx="' + i + '"><span class="r-num">' + he(recent[i].num) + '</span><span>' + he(recent[i].name) + '</span></div>';
-                    }
-                    h += '</div>';
-                }
-
-                h += '<div class="howto-card"><div class="howto-title">How to use TrackIt</div>'
-                    + '<div class="howto-items">'
-                    + '<div class="howto-item"><div class="howto-icon-bg" style="background:rgba(168,199,250,.08)"><span class="material-symbols-rounded" style="color:var(--accent);font-size:20px">search</span></div><div><h4>Search</h4><p>Type a train number (e.g. 12728) or name in the search bar</p></div></div>'
-                    + '<div class="howto-item"><div class="howto-icon-bg" style="background:rgba(242,139,130,.08)"><span class="material-symbols-rounded" style="color:var(--red);font-size:20px">my_location</span></div><div><h4>Track</h4><p>Click Track to see real-time position, platform & delay info</p></div></div>'
-                    + '<div class="howto-item"><div class="howto-icon-bg" style="background:rgba(129,201,149,.08)"><span class="material-symbols-rounded" style="color:var(--green);font-size:20px">refresh</span></div><div><h4>Auto-refresh</h4><p>Live data updates every 45 seconds automatically</p></div></div>'
-                    + '</div></div></div>';
-
-                var sr = document.getElementById('searchResults');
-                var lv = document.getElementById('liveView');
-                sr.innerHTML = h;
-                lv.innerHTML = '';
-
-                var clearBtn = document.getElementById('clearRecentBtn');
-                if (clearBtn) clearBtn.addEventListener('click', clearRecent);
-
-                var chips = document.querySelectorAll('[data-recent-idx]');
-                chips.forEach(function (chip) {
-                    var r = recent[parseInt(chip.getAttribute('data-recent-idx'))];
-                    if (r) chip.addEventListener('click', function () { doLive(r.num, r.name); });
-                });
-            }
-
-            function goHome() {
-                stopAutoRefresh();
-                if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
-                currentTrainNo = null;
-                currentTrainName = null;
-                document.getElementById('refreshBtn').style.display = 'none';
-                document.getElementById('searchInput').value = '';
-                showWelcome();
-            }
-
-            /* ══ STATIC BUTTON WIRING ══ */
-            document.getElementById('brandBtn').addEventListener('click', goHome);
-            document.getElementById('refreshBtn').addEventListener('click', function () { doRefresh(false); });
-
-            document.getElementById('disclaimerLink').addEventListener('click', function (e) {
-                e.preventDefault();
-                document.getElementById('disclaimerModal').style.display = 'flex';
-            });
-            document.getElementById('modalCloseBtn').addEventListener('click', function () {
-                document.getElementById('disclaimerModal').style.display = 'none';
-            });
-            document.getElementById('disclaimerModal').addEventListener('click', function (e) {
-                if (e.target === this) this.style.display = 'none';
-            });
-
-            /* ══ THEME ══ */
-            var themeToggleBtn = document.getElementById('themeToggleBtn');
-            var themeIcon = document.getElementById('themeIcon');
-            if (themeToggleBtn && themeIcon) {
-                var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-                themeIcon.textContent = isDark ? 'light_mode' : 'dark_mode';
-
-                themeToggleBtn.addEventListener('click', function() {
-                    isDark = !isDark;
-                    if (isDark) {
-                        document.documentElement.setAttribute('data-theme', 'dark');
-                    } else {
-                        document.documentElement.removeAttribute('data-theme');
-                    }
-                    try { localStorage.setItem('trackit-theme', isDark ? 'dark' : 'light'); } catch(e){}
-                    themeIcon.textContent = isDark ? 'light_mode' : 'dark_mode';
-                });
-            }
-
-            /* ══ NETWORK STATUS ══ */
-            function updateNetworkStatus(e) {
-                var nb = document.getElementById('networkBadge');
-                if (!nb) return;
-                var isOnline = navigator.onLine;
-                var ef = navigator.connection ? navigator.connection.effectiveType : null;
-                
-                if (!isOnline) {
-                    nb.className = 'network-badge show offline';
-                    nb.innerHTML = '<span class="material-symbols-rounded icon" style="font-size:20px">cloud_off</span> You are offline';
-                    return;
-                }
-                
-                if (ef === 'slow-2g' || ef === '2g') {
-                    nb.className = 'network-badge show weak';
-                    nb.innerHTML = '<span class="material-symbols-rounded icon" style="font-size:20px">signal_cellular_connected_no_internet_4_bar</span> Weak connection';
-                    return;
-                }
-                
-                if (e && e.type === 'online') {
-                    nb.className = 'network-badge show online';
-                    nb.innerHTML = '<span class="material-symbols-rounded icon" style="font-size:20px">cloud_done</span> Connected to server';
-                    setTimeout(function() { nb.classList.remove('show'); }, 3000);
-                } else {
-                    nb.classList.remove('show');
-                }
-            }
-            window.addEventListener('online', updateNetworkStatus);
-            window.addEventListener('offline', updateNetworkStatus);
-            updateNetworkStatus();
-
-            /* ══ INIT ══ */
-            showWelcome();
-
-        })(); // end IIFE
-    </script>
+  </div></div>`;
+  h+=`</div><div class="last-ref">Last refreshed: <span id="lastRefTime">—</span></div>`;
+  lv.innerHTML=h;
+  /* PROGRESS ANIMATION */
+  requestAnimationFrame(()=>setTimeout(()=>{const pf=document.getElementById('progFill');if(pf)pf.style.width=progress+'%';},80));
+  /* COUNTDOWN */
+  if(etaTs>0){
+    if(countdownInterval)clearInterval(countdownInterval);
+    countdownInterval=setInterval(()=>{
+      const el=document.getElementById('cdVal');if(!el){clearInterval(countdownInterval);return;}
+      const diff=etaTs-Date.now();
+      if(diff<=0){el.textContent='Arriving';el.style.color='var(--green)';clearInterval(countdownInterval);return;}
+      const m=Math.floor(diff/60000),sc=Math.floor((diff%60000)/1000);
+      el.textContent=pad(m)+':'+pad(sc);el.style.color=m<5?'var(--red)':'';
+    },1000);
+  }
+  /* FAV BUTTON IN LIVE PANEL */
+  const lpFav=document.getElementById('lpFavBtn');
+  if(lpFav)lpFav.addEventListener('click',()=>{
+    if(isFav(trainNo)){removeFav(trainNo);lpFav.classList.remove('active');showFavConfirm('Removed from favourites');}
+    else{saveFav(trainNo,trainName);lpFav.classList.add('active');showFavConfirm('★ Added to favourites');}
+  });
+  /* MAP */
+  const mapBtn=document.getElementById('mapToggleBtn');
+  if(mapBtn)mapBtn.addEventListener('click',function(){
+    const w=document.getElementById('mapWrap');this.classList.toggle('open');
+    if(!this.classList.contains('open')){w.style.display='none';return;}
+    w.style.display='block';
+    if(!w.querySelector('iframe'))w.innerHTML=`<iframe src="${he(mapUrl)}" loading="lazy" allowfullscreen></iframe>`;
+  });
+  /* SHARE TEXT */
+  const shareText=`🚆 ${trainNo} — ${trainName}\n📍 At: ${curStn?curStn.station_name:curCode||'—'}\n⏱ Delay: ${isLate?'+'+delayMins+' min':'On time'}\n🏁 Destination: ${dest?dest.station_name:'—'}\n📊 Progress: ${progress}%\n\nTracked via TrackIt`;
+  const cpBtn=document.getElementById('copyShareBtn');
+  if(cpBtn)cpBtn.addEventListener('click',function(){
+    navigator.clipboard.writeText(shareText).then(()=>{toast('Copied!','done');this.classList.add('copied');setTimeout(()=>this.classList.remove('copied'),2000);}).catch(()=>toast('Copy failed','error'));
+  });
+  const waBtn=document.getElementById('waShareBtn');
+  if(waBtn)waBtn.addEventListener('click',()=>window.open('https://wa.me/?text='+encodeURIComponent(shareText),'_blank'));
+  const dlBtn=document.getElementById('dlShareBtn');
+  if(dlBtn)dlBtn.addEventListener('click',()=>{
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([shareText],{type:'text/plain'}));
+    a.download='train-'+trainNo+'-status.txt';a.click();toast('Saved!','done');
+  });
+  /* TABS */
+  lv.querySelectorAll('.tab-btn[data-tab]').forEach(btn=>{
+    btn.addEventListener('click',function(){
+      lv.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      lv.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+      this.classList.add('active');const t=document.getElementById(this.dataset.tab);if(t)t.classList.add('active');
+    });
+  });
+}
+/* RECENT */
+function getRecent(){try{return JSON.parse(localStorage.getItem('tt-recent')||'[]');}catch{return[];}}
+function saveRecent(num,name){let r=getRecent().filter(x=>x.num!==num);r.unshift({num,name});if(r.length>6)r=r.slice(0,6);try{localStorage.setItem('tt-recent',JSON.stringify(r));}catch(e){}}
+function clearRecent(){try{localStorage.removeItem('tt-recent');}catch(e){}showWelcome();toast('Cleared','done');}
+/* FAVOURITES */
+function getFavs(){try{return JSON.parse(localStorage.getItem('tt-favs')||'[]');}catch{return[];}}
+function isFav(num){return getFavs().some(f=>f.num===String(num));}
+function saveFav(num,name){let f=getFavs().filter(x=>x.num!==String(num));f.unshift({num:String(num),name});try{localStorage.setItem('tt-favs',JSON.stringify(f));}catch(e){}}
+function removeFav(num){let f=getFavs().filter(x=>x.num!==String(num));try{localStorage.setItem('tt-favs',JSON.stringify(f));}catch(e){}}
+function showFavConfirm(msg){
+  const el=document.getElementById('favConfirm');el.textContent=msg;el.classList.add('show');
+  clearTimeout(showFavConfirm._t);showFavConfirm._t=setTimeout(()=>el.classList.remove('show'),2200);
+}
+/* WELCOME */
+function showWelcome(){
+  const recent=getRecent(),favs=getFavs();
+  let h=`<div class="welcome"><div class="welcome-hero">
+    <div class="welcome-icon"><span class="material-symbols-rounded" style="font-size:40px;color:var(--accent)">train</span></div>
+    <div class="welcome-title">Track any Indian train, <span>live.</span></div>
+    <div class="welcome-sub">Type a train number or name in the search bar above to get started.</div>
+  </div>`;
+  if(favs.length){
+    h+=`<div class="section-row"><div class="section-lbl">⭐ Favourites</div><button class="clear-btn" id="manageFavsBtn">Manage</button></div><div class="chips-row">`;
+    for(let i=0;i<favs.length;i++)h+=`<div class="r-chip" data-fav-i="${i}"><span class="r-num">${he(favs[i].num)}</span><span>${he(favs[i].name)}</span></div>`;
+    h+=`</div>`;
+  }
+  if(recent.length){
+    h+=`<div class="section-row"><div class="section-lbl">Recent Searches</div><button class="clear-btn" id="clearRecentBtn">Clear</button></div><div class="chips-row">`;
+    for(let i=0;i<recent.length;i++)h+=`<div class="r-chip" data-recent-i="${i}"><span class="r-num">${he(recent[i].num)}</span><span>${he(recent[i].name)}</span></div>`;
+    h+=`</div>`;
+  }
+  h+=`<div class="howto-card"><div class="howto-title">How to use TrackIt</div><div class="howto-items">
+    <div class="howto-item"><div class="howto-icon-bg" style="background:rgba(91,63,255,.08)"><span class="material-symbols-rounded" style="color:var(--accent);font-size:18px">search</span></div><div><h4>Search</h4><p>Type a train number (e.g. 12728) or name in the search bar</p></div></div>
+    <div class="howto-item"><div class="howto-icon-bg" style="background:rgba(220,38,38,.08)"><span class="material-symbols-rounded" style="color:var(--red);font-size:18px">my_location</span></div><div><h4>Track</h4><p>Click Track to see real-time position, platform & delay info</p></div></div>
+    <div class="howto-item"><div class="howto-icon-bg" style="background:rgba(5,150,105,.08)"><span class="material-symbols-rounded" style="color:var(--green);font-size:18px">star</span></div><div><h4>Favourites</h4><p>Star trains to save them for quick access</p></div></div>
+    <div class="howto-item"><div class="howto-icon-bg" style="background:rgba(5,150,105,.08)"><span class="material-symbols-rounded" style="color:var(--green);font-size:18px">refresh</span></div><div><h4>Auto-refresh</h4><p>Live data updates every 45 seconds automatically</p></div></div>
+  </div></div></div>`;
+  const sr=document.getElementById('searchResults'),lv=document.getElementById('liveView');
+  sr.innerHTML=h;lv.innerHTML='';
+  const crb=document.getElementById('clearRecentBtn');if(crb)crb.addEventListener('click',clearRecent);
+  const mfb=document.getElementById('manageFavsBtn');if(mfb)mfb.addEventListener('click',openFavModal);
+  document.querySelectorAll('[data-recent-i]').forEach(c=>{
+    const r=recent[+c.dataset.recentI];if(r)c.addEventListener('click',()=>doLive(r.num,r.name));
+  });
+  document.querySelectorAll('[data-fav-i]').forEach(c=>{
+    const f=favs[+c.dataset.favI];if(f)c.addEventListener('click',()=>{doLive(f.num,f.name);saveRecent(f.num,f.name);});
+  });
+}
+/* FAV MODAL */
+function openFavModal(){
+  const favs=getFavs();
+  let h='';
+  if(!favs.length){h='<p style="color:var(--text2)">No favourites yet. Star trains to add them here.</p>';}
+  else{
+    h='<div class="chips-row" style="margin-bottom:0">';
+    for(let i=0;i<favs.length;i++){
+      h+=`<div style="display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r4);padding:8px 14px;cursor:pointer;font-size:13px">
+        <span class="r-num">${he(favs[i].num)}</span><span>${he(favs[i].name)}</span>
+        <button onclick="removeFav('${he(favs[i].num)}');openFavModal();showFavConfirm('Removed');" style="background:none;border:none;cursor:pointer;color:var(--red);margin-left:4px;font-size:16px;line-height:1;padding:2px" title="Remove">×</button>
+      </div>`;
+    }
+    h+='</div>';
+  }
+  document.getElementById('favModalContent').innerHTML=h;
+  document.getElementById('favModal').style.display='flex';
+}
+document.getElementById('favMenuBtn').addEventListener('click',openFavModal);
+document.getElementById('favModalClose').addEventListener('click',()=>document.getElementById('favModal').style.display='none');
+document.getElementById('favModal').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.style.display='none';});
+/* HOME */
+function goHome(){
+  stopAR();if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}
+  curNum=null;curName=null;document.getElementById('refreshBtn').style.display='none';
+  si.value='';clearSuggest();showWelcome();window.scrollTo({top:0,behavior:'smooth'});
+}
+document.getElementById('brandBtn').addEventListener('click',goHome);
+document.getElementById('refreshBtn').addEventListener('click',()=>doRefresh(false));
+/* DISCLAIMER */
+document.getElementById('disclaimerLink').addEventListener('click',e=>{e.preventDefault();document.getElementById('disclaimerModal').style.display='flex';});
+document.getElementById('modalCloseBtn').addEventListener('click',()=>document.getElementById('disclaimerModal').style.display='none');
+document.getElementById('disclaimerModal').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.style.display='none';});
+/* THEME */
+const themeBtn=document.getElementById('themeToggleBtn'),themeIcon=document.getElementById('themeIcon');
+let isDark=document.documentElement.getAttribute('data-theme')==='dark';
+themeIcon.textContent=isDark?'light_mode':'dark_mode';
+themeBtn.addEventListener('click',()=>{
+  isDark=!isDark;
+  isDark?document.documentElement.setAttribute('data-theme','dark'):document.documentElement.removeAttribute('data-theme');
+  try{localStorage.setItem('tt',isDark?'dark':'light');}catch(e){}
+  themeIcon.textContent=isDark?'light_mode':'dark_mode';
+});
+/* NETWORK */
+function updateNet(e){
+  const nb=document.getElementById('netBadge');if(!nb)return;
+  const online=navigator.onLine;
+  const ef=navigator.connection?navigator.connection.effectiveType:null;
+  if(!online){nb.className='net-badge show offline';nb.innerHTML='<span class="material-symbols-rounded" style="font-size:18px">cloud_off</span> Offline';return;}
+  if(ef==='slow-2g'||ef==='2g'){nb.className='net-badge show weak';nb.innerHTML='<span class="material-symbols-rounded" style="font-size:18px">signal_wifi_bad</span> Weak connection';return;}
+  if(e&&e.type==='online'){nb.className='net-badge show online';nb.innerHTML='<span class="material-symbols-rounded" style="font-size:18px">cloud_done</span> Back online';setTimeout(()=>nb.classList.remove('show'),3000);}
+  else nb.classList.remove('show');
+}
+window.addEventListener('online',updateNet);window.addEventListener('offline',updateNet);updateNet();
+/* INIT */
+showWelcome();
+})();
+</script>
 </body>
-
-</ht
+</html>
