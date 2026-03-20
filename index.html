@@ -10,11 +10,14 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://unpkg.com">
 <link rel="dns-prefetch" href="https://train-api-eight.vercel.app">
 <link rel="dns-prefetch" href="https://sujith.bhargavtodimela4.workers.dev">
 <link rel="preload" href="https://fonts.gstatic.com/s/materialsymbolsrounded/v233/sIJfXS_BGv5RLkMiMJIBfOH97-BfohMFMLoGIj5lBpWLQUwZGGJxkJkQAUIv.woff2" as="font" type="font/woff2" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0&display=block" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin defer></script>
 <script>(function(){var t=localStorage.getItem('tt');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.setAttribute('data-theme','dark');})()</script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -371,6 +374,39 @@ tr.row-fut td{opacity:.4}
 .refresh-btn span.txt{display:none}
 #netLabel{display:none}
 }
+/* ══ LEAFLET TRAIN MAP ══ */
+.train-map-section{border-bottom:1px solid var(--border)}
+.train-map-toggle{width:100%;padding:11px 20px;border:none;background:var(--bg2);color:var(--accent);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .2s;-webkit-tap-highlight-color:transparent}
+.train-map-toggle:hover{background:var(--bg3)}
+.train-map-toggle .chev{margin-left:auto;transition:transform .3s}
+.train-map-toggle.open .chev{transform:rotate(180deg)}
+.train-map-box{display:none;height:300px;position:relative}
+.train-map-box.open{display:block}
+#trainLeafletMap{width:100%;height:100%;z-index:1}
+/* Custom train marker */
+.train-marker-wrap{position:relative;width:40px;height:40px}
+.train-marker-pulse{position:absolute;inset:-8px;border-radius:50%;background:rgba(91,63,255,.25);animation:markerPulse 2s ease-out infinite}
+.train-marker-pulse2{position:absolute;inset:-16px;border-radius:50%;background:rgba(91,63,255,.1);animation:markerPulse 2s ease-out infinite .4s}
+.train-marker-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:50%;border:3px solid white;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(91,63,255,.5);position:relative;z-index:2}
+@keyframes markerPulse{0%{transform:scale(1);opacity:.8}100%{transform:scale(2.2);opacity:0}}
+.leaflet-popup-content-wrapper{background:var(--surface)!important;border:1px solid var(--border2)!important;border-radius:var(--r2)!important;box-shadow:var(--shadow2)!important;color:var(--text)!important;font-family:var(--font)!important;padding:0!important}
+.leaflet-popup-content{margin:12px 14px!important;font-size:12px!important;line-height:1.6!important;min-width:160px}
+.leaflet-popup-tip-container{display:none}
+.leaflet-popup-close-button{color:var(--text3)!important;font-size:18px!important;top:6px!important;right:8px!important}
+.map-popup-title{font-family:var(--display);font-size:14px;font-weight:700;color:var(--accent);margin-bottom:4px}
+.map-popup-row{display:flex;justify-content:space-between;gap:12px;padding:2px 0}
+.map-popup-lbl{color:var(--text3);font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+.map-popup-val{font-family:var(--mono);font-size:11px;font-weight:600}
+/* Accuracy circle */
+.leaflet-accuracy-circle{fill:rgba(91,63,255,.08);stroke:rgba(91,63,255,.3);stroke-width:1}
+/* ══ PREFETCH INDICATOR ══ */
+.pfetch-dot{position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:var(--green);opacity:0;transition:opacity .3s;pointer-events:none}
+.pfetch-dot.ready{opacity:1;animation:pfReady .4s var(--spring)}
+@keyframes pfReady{0%{transform:scale(0)}60%{transform:scale(1.4)}100%{transform:scale(1)}}
+[data-prefetch]{position:relative}
+/* Prefetch loading spinner on track buttons */
+.track-btn.prefetching::after{content:'';position:absolute;right:10px;top:50%;transform:translateY(-50%);width:8px;height:8px;border:1.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+.track-btn.prefetched::before{content:'';position:absolute;right:10px;top:50%;transform:translateY(-50%);width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.8)}
 </style>
 </head>
 <body>
@@ -587,10 +623,14 @@ function renderSearch(trains){
   }
   sr.innerHTML=h;
   sr.querySelectorAll('[data-idx]').forEach(btn=>{
-    btn.addEventListener('click',e=>{
-      e.stopPropagation();const t=searchRes[+btn.dataset.idx];
-      if(t){doLive(String(t.number),t.name);saveRecent(String(t.number),t.name);}
-    });
+    const t=searchRes[+btn.dataset.idx];
+    if(t){
+      attachPrefetch(btn,String(t.number),t.name);
+      btn.addEventListener('click',e=>{
+        e.stopPropagation();
+        doLive(String(t.number),t.name);saveRecent(String(t.number),t.name);
+      });
+    }
   });
   sr.querySelectorAll('[data-fav-idx]').forEach(btn=>{
     btn.addEventListener('click',e=>{
@@ -600,21 +640,6 @@ function renderSearch(trains){
       else{saveFav(num,t.name);btn.classList.add('active');showFavConfirm('★ Added to favourites');}
     });
   });
-}
-/* LIVE */
-async function doLive(num,name){
-  const sr=document.getElementById('searchResults'),lv=document.getElementById('liveView');
-  sr.innerHTML='';lv.innerHTML=loader('Fetching live status for '+num+'…');
-  clearInterval(countdownInterval);stopAR();
-  curNum=num;curName=name||num;
-  document.getElementById('refreshBtn').style.display='flex';
-  clearSuggest();si.value=name||num;
-  try{
-    const d=await fetchData('/live-status?trainNo='+encodeURIComponent(num));
-    lastRefTs=new Date();renderLive(d.data,num,name||num);updateLastRef();startAR();
-  }catch(err){
-    lv.innerHTML=`<div class="loader" style="flex-direction:column;align-items:flex-start;gap:6px"><div>Failed to load: ${he(err.message)}</div><div style="font-size:11px;opacity:.5">Train may not be running today</div></div>`;
-  }
 }
 /* RENDER LIVE */
 function renderLive(data,trainNo,trainName){
@@ -700,10 +725,19 @@ function renderLive(data,trainNo,trainName){
       <div class="cd-right"><div class="cd-sched-lbl">SCHEDULED</div><div class="cd-sched-val">${fmt(nextStop&&nextStop.scheduledArrivalTime)}</div></div>
     </div>`;
   }
-  /* MAP */
-  if(mapUrl){
-    h+=`<button class="map-btn" id="mapToggleBtn"><span class="material-symbols-rounded" style="font-size:17px">map</span> Show on map<span class="material-symbols-rounded chevron">keyboard_arrow_down</span></button>
-    <div class="map-wrap" id="mapWrap"></div>`;
+  /* MAP — Leaflet with floating train icon */
+  if(lat&&lng){
+    h+=`<div class="train-map-section">
+      <button class="train-map-toggle" id="trainMapToggle">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 20l-5.447-2.724A1 1 0 0 1 3 16.382V5.618a1 1 0 0 1 1.447-.894L9 7m0 13V7m0 13 6 1m-6-14 6-2m0 15 5.447-2.724A1 1 0 0 0 21 16.382V5.618a1 1 0 0 0-1.447-.894L15 7m0 13V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Live Train Location
+        <span style="margin-left:6px;font-size:10px;opacity:.6;font-family:var(--mono)">${Number(lat).toFixed(4)}°, ${Number(lng).toFixed(4)}°</span>
+        <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="train-map-box" id="trainMapBox">
+        <div id="trainLeafletMap"></div>
+      </div>
+    </div>`;
   }
   /* SHARE */
   h+=`<div class="share-row">
@@ -797,14 +831,93 @@ function renderLive(data,trainNo,trainName){
     if(isFav(trainNo)){removeFav(trainNo);lpFav.classList.remove('active');showFavConfirm('Removed from favourites');}
     else{saveFav(trainNo,trainName);lpFav.classList.add('active');showFavConfirm('★ Added to favourites');}
   });
-  /* MAP */
-  const mapBtn=document.getElementById('mapToggleBtn');
-  if(mapBtn)mapBtn.addEventListener('click',function(){
-    const w=document.getElementById('mapWrap');this.classList.toggle('open');
-    if(!this.classList.contains('open')){w.style.display='none';return;}
-    w.style.display='block';
-    if(!w.querySelector('iframe'))w.innerHTML=`<iframe src="${he(mapUrl)}" loading="lazy" allowfullscreen></iframe>`;
-  });
+  /* LEAFLET MAP — floating train marker */
+  const trainMapToggle=document.getElementById('trainMapToggle');
+  let leafletMap=null,trainMarker=null,accuracyCircle=null;
+  function initLeafletMap(){
+    if(leafletMap)return; // already inited
+    if(typeof L==='undefined'){
+      // Leaflet script not yet loaded (deferred) — wait for it
+      const waitL=setInterval(()=>{if(typeof L!=='undefined'){clearInterval(waitL);buildMap();}},100);
+      return;
+    }
+    buildMap();
+  }
+  function buildMap(){
+    const container=document.getElementById('trainLeafletMap');
+    if(!container||leafletMap)return;
+    // Fix Leaflet default icon path broken by bundlers
+    delete L.Icon.Default.prototype._getIconUrl;
+    L.Icon.Default.mergeOptions({
+      iconUrl:'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+      iconRetinaUrl:'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+      shadowUrl:'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+    });
+    leafletMap=L.map(container,{zoomControl:true,attributionControl:false,scrollWheelZoom:true});
+    // Tile layer — OpenStreetMap (no API key)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      maxZoom:18,attribution:'© OpenStreetMap'
+    }).addTo(leafletMap);
+    // Attribution small
+    L.control.attribution({position:'bottomright',prefix:false}).addTo(leafletMap);
+    leafletMap.setView([lat,lng],14);
+    // Accuracy circle (approx ±300m for train GPS)
+    accuracyCircle=L.circle([lat,lng],{radius:300,className:'leaflet-accuracy-circle'}).addTo(leafletMap);
+    // Custom train icon using DivIcon
+    const trainIconHtml=`<div class="train-marker-wrap">
+      <div class="train-marker-pulse2"></div>
+      <div class="train-marker-pulse"></div>
+      <div class="train-marker-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <rect x="4" y="3" width="16" height="12" rx="3" fill="white" opacity=".3"/>
+          <rect x="4" y="3" width="16" height="12" rx="3" stroke="white" stroke-width="1.8"/>
+          <circle cx="8.5" cy="18.5" r="1.8" fill="white"/>
+          <circle cx="15.5" cy="18.5" r="1.8" fill="white"/>
+          <line x1="4" y1="9" x2="20" y2="9" stroke="white" stroke-width="1.8"/>
+          <line x1="12" y1="3" x2="12" y2="9" stroke="white" stroke-width="1.8"/>
+          <line x1="8" y1="16.5" x2="16" y2="16.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>`;
+    const trainIcon=L.divIcon({html:trainIconHtml,className:'',iconSize:[40,40],iconAnchor:[20,20],popupAnchor:[0,-24]});
+    // Popup content
+    const delayTxt=isLate?('+'+delayMins+' min late'):'On Time';
+    const spdTxt=speedKmh!=null?speedKmh+' km/h':'—';
+    const popupHtml=`<div>
+      <div class="map-popup-title">🚆 ${he(trainName)}</div>
+      <div class="map-popup-row"><span class="map-popup-lbl">Station</span><span class="map-popup-val">${he(curStn?curStn.station_name:trainNo)}</span></div>
+      <div class="map-popup-row"><span class="map-popup-lbl">Delay</span><span class="map-popup-val" style="color:${isLate?'var(--red)':'var(--green)'}">${delayTxt}</span></div>
+      <div class="map-popup-row"><span class="map-popup-lbl">Speed</span><span class="map-popup-val">${spdTxt}</span></div>
+      <div class="map-popup-row"><span class="map-popup-lbl">Progress</span><span class="map-popup-val">${progress}%</span></div>
+    </div>`;
+    trainMarker=L.marker([lat,lng],{icon:trainIcon,zIndexOffset:1000})
+      .addTo(leafletMap)
+      .bindPopup(popupHtml,{closeOnClick:false,autoClose:false,className:'train-popup'})
+      .openPopup();
+    // Smoothly pan map after slight delay for better UX
+    setTimeout(()=>{if(leafletMap)leafletMap.invalidateSize();},350);
+  }
+  if(trainMapToggle){
+    trainMapToggle.addEventListener('click',function(){
+      const box=document.getElementById('trainMapBox');
+      if(!box)return;
+      const isOpen=box.classList.contains('open');
+      box.classList.toggle('open',!isOpen);
+      this.classList.toggle('open',!isOpen);
+      if(!isOpen)initLeafletMap();
+    });
+    // Auto-open if train has coords (first time only)
+    if(lat&&lng&&!leafletMap){
+      setTimeout(()=>{
+        const box=document.getElementById('trainMapBox');
+        if(box&&!box.classList.contains('open')){
+          box.classList.add('open');
+          trainMapToggle.classList.add('open');
+          initLeafletMap();
+        }
+      },600);
+    }
+  }
   /* SHARE TEXT */
   const shareText=`🚆 ${trainNo} — ${trainName}\n📍 At: ${curStn?curStn.station_name:curCode||'—'}\n⏱ Delay: ${isLate?'+'+delayMins+' min':'On time'}\n🏁 Destination: ${dest?dest.station_name:'—'}\n📊 Progress: ${progress}%\n\nTracked via TrackIt`;
   const cpBtn=document.getElementById('copyShareBtn');
@@ -826,6 +939,84 @@ function renderLive(data,trainNo,trainName){
       this.classList.add('active');const t=document.getElementById(this.dataset.tab);if(t)t.classList.add('active');
     });
   });
+}
+/* ══ PREFETCH ENGINE ══
+   On mouseenter/touchstart over any Track button or recent/fav chip,
+   silently fetch live status into a Map cache. If user clicks within
+   the cache TTL (30s), renderLive fires instantly from cache.        */
+const prefetchCache=new Map(); // key=trainNo, value={data,ts}
+const PREFETCH_TTL=30000; // 30 seconds
+const prefetchInFlight=new Set();
+async function prefetchTrain(num,name){
+  if(!num)return;
+  const now=Date.now();
+  const cached=prefetchCache.get(num);
+  if(cached&&(now-cached.ts)<PREFETCH_TTL)return; // still fresh
+  if(prefetchInFlight.has(num))return; // already fetching
+  prefetchInFlight.add(num);
+  try{
+    const d=await fetchData('/live-status?trainNo='+encodeURIComponent(num));
+    prefetchCache.set(num,{data:d,ts:Date.now(),name:name||num});
+    // Mark any visible track buttons for this train as prefetched
+    document.querySelectorAll(`[data-prefetch-num="${CSS.escape(num)}"]`).forEach(el=>{
+      el.classList.remove('prefetching');el.classList.add('prefetched');
+    });
+  }catch(e){/* silent — prefetch failure is non-critical */}
+  finally{prefetchInFlight.delete(num);}
+}
+// Get from cache if available and fresh, else return null
+function getCachedLive(num){
+  const c=prefetchCache.get(num);
+  if(c&&(Date.now()-c.ts)<PREFETCH_TTL)return c;
+  return null;
+}
+// Attach prefetch listeners to an element
+function attachPrefetch(el,num,name){
+  if(!el||!num||el._pfAttached)return;
+  el._pfAttached=true;
+  el.setAttribute('data-prefetch-num',num);
+  const trigger=()=>{
+    el.classList.add('prefetching');
+    prefetchTrain(num,name);
+  };
+  el.addEventListener('mouseenter',trigger,{passive:true});
+  el.addEventListener('touchstart',trigger,{passive:true,once:true});
+  el.addEventListener('focus',trigger,{passive:true});
+}
+// Override doLive to use cache when available
+const _doLiveOrig=doLive;
+async function doLive(num,name){
+  const cached=getCachedLive(num);
+  if(cached&&cached.data&&cached.data.data){
+    // Instant render from cache
+    const sr=document.getElementById('searchResults'),lv=document.getElementById('liveView');
+    sr.innerHTML='';lv.innerHTML='';
+    clearInterval(countdownInterval);stopAR();
+    curNum=num;curName=name||num;
+    document.getElementById('refreshBtn').style.display='flex';
+    clearSuggest();si.value=name||num;
+    lastRefTs=new Date(cached.ts);
+    renderLive(cached.data.data,num,name||num);
+    updateLastRef();startAR();
+    toast('Loaded instantly ⚡','done');
+    // Refresh cache in background
+    prefetchCache.delete(num);
+    prefetchTrain(num,name);
+    return;
+  }
+  // Fall through to normal load
+  const sr=document.getElementById('searchResults'),lv=document.getElementById('liveView');
+  sr.innerHTML='';lv.innerHTML=loader('Fetching live status for '+num+'…');
+  clearInterval(countdownInterval);stopAR();
+  curNum=num;curName=name||num;
+  document.getElementById('refreshBtn').style.display='flex';
+  clearSuggest();si.value=name||num;
+  try{
+    const d=await fetchData('/live-status?trainNo='+encodeURIComponent(num));
+    lastRefTs=new Date();renderLive(d.data,num,name||num);updateLastRef();startAR();
+  }catch(err){
+    lv.innerHTML=`<div class="loader" style="flex-direction:column;align-items:flex-start;gap:6px"><div>Failed to load: ${he(err.message)}</div><div style="font-size:11px;opacity:.5">Train may not be running today</div></div>`;
+  }
 }
 /* RECENT */
 function getRecent(){try{return JSON.parse(localStorage.getItem('tt-recent')||'[]');}catch{return[];}}
@@ -879,10 +1070,12 @@ function showWelcome(){
   const crb=document.getElementById('clearRecentBtn');if(crb)crb.addEventListener('click',clearRecent);
   const mfb=document.getElementById('manageFavsBtn');if(mfb)mfb.addEventListener('click',openFavModal);
   document.querySelectorAll('[data-recent-i]').forEach(c=>{
-    const r=recent[+c.dataset.recentI];if(r)c.addEventListener('click',()=>doLive(r.num,r.name));
+    const r=recent[+c.dataset.recentI];
+    if(r){attachPrefetch(c,r.num,r.name);c.addEventListener('click',()=>doLive(r.num,r.name));}
   });
   document.querySelectorAll('[data-fav-i]').forEach(c=>{
-    const f=favs[+c.dataset.favI];if(f)c.addEventListener('click',()=>{doLive(f.num,f.name);saveRecent(f.num,f.name);});
+    const f=favs[+c.dataset.favI];
+    if(f){attachPrefetch(c,f.num,f.name);c.addEventListener('click',()=>{doLive(f.num,f.name);saveRecent(f.num,f.name);});}
   });
 }
 /* FAV MODAL */
@@ -911,6 +1104,7 @@ function openFavModal(){
   });
   // wire track clicks
   box.querySelectorAll('[data-fav-track]').forEach(el=>{
+    attachPrefetch(el,el.dataset.favTrack,el.dataset.favName);
     el.addEventListener('click',()=>{
       document.getElementById('favModal').style.display='none';
       doLive(el.dataset.favTrack,el.dataset.favName);saveRecent(el.dataset.favTrack,el.dataset.favName);
@@ -1080,6 +1274,17 @@ if(document.fonts&&document.fonts.ready){
 })();
 /* INIT */
 showWelcome();
+// Prefetch recent + favourite trains silently on load (after 2s to not compete with critical resources)
+setTimeout(()=>{
+  const all=[...getRecent(),...getFavs()];
+  const seen=new Set();
+  all.forEach((t,i)=>{
+    if(!t||!t.num||seen.has(t.num))return;
+    seen.add(t.num);
+    // stagger each request by 800ms to avoid hammering the API
+    setTimeout(()=>prefetchTrain(t.num,t.name),i*800);
+  });
+},2000);
 })();
 </script>
 </body>
