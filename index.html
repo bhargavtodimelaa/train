@@ -75,11 +75,12 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .refresh-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
 .refresh-btn.spinning .ms{animation:spin .8s linear infinite}
 /* NETWORK HEALTH PILL */
-.net-pill{display:flex;align-items:center;gap:0;border-radius:var(--r4);overflow:hidden;border:1px solid var(--border2);flex-shrink:0;cursor:pointer;transition:box-shadow .2s;position:relative;-webkit-tap-highlight-color:transparent}
+.net-pill{display:flex;align-items:center;gap:0;border-radius:var(--r4);overflow:visible;border:1px solid var(--border2);flex-shrink:0;cursor:pointer;transition:box-shadow .2s;position:relative;-webkit-tap-highlight-color:transparent}
 .net-pill:hover{box-shadow:var(--shadow2)}
-.net-pill-sig{display:flex;align-items:center;gap:5px;padding:5px 10px;font-family:var(--mono);font-size:11px;font-weight:700;transition:background .3s,color .3s;white-space:nowrap}
-.net-pill-loc{display:flex;align-items:center;gap:4px;padding:5px 10px;font-family:var(--mono);font-size:11px;font-weight:500;border-left:1px solid var(--border2);background:var(--bg2);color:var(--text2);white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis;transition:background .3s}
+.net-pill-sig{display:flex;align-items:center;gap:5px;padding:5px 10px;font-family:var(--mono);font-size:11px;font-weight:700;transition:background .3s,color .3s;white-space:nowrap;border-radius:var(--r4) 0 0 var(--r4)}
+.net-pill-loc{display:flex;align-items:center;gap:4px;padding:5px 10px;font-family:var(--mono);font-size:11px;font-weight:500;border-left:1px solid var(--border2);border-radius:0 var(--r4) var(--r4) 0;background:var(--bg2);color:var(--text2);white-space:nowrap;max-width:130px;overflow:hidden;transition:background .3s}
 .net-pill:hover .net-pill-loc{background:var(--bg3)}
+#netLocTxt{overflow:hidden;text-overflow:ellipsis;max-width:90px;display:inline-block;vertical-align:middle}
 .net-pill-sig.s5{background:rgba(5,150,105,.15);color:#059669}
 .net-pill-sig.s4{background:rgba(5,150,105,.1);color:#10b981}
 .net-pill-sig.s3{background:rgba(217,119,6,.12);color:#d97706}
@@ -87,10 +88,15 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .net-pill-sig.s1{background:rgba(220,38,38,.15);color:#b91c1c}
 .net-pill-sig.s0{background:rgba(100,100,100,.15);color:var(--text3)}
 .sig-bars{display:flex;align-items:flex-end;gap:1.5px;height:13px}
-.sig-bars span{width:3px;border-radius:1px;background:currentColor;opacity:.25;transition:opacity .3s}
+.sig-bars span{width:3px;border-radius:1px;background:currentColor;opacity:.22;transition:opacity .3s}
+.sig-bars span:nth-child(1){height:4px}
+.sig-bars span:nth-child(2){height:6px}
+.sig-bars span:nth-child(3){height:8px}
+.sig-bars span:nth-child(4){height:10px}
+.sig-bars span:nth-child(5){height:13px}
 .sig-bars span.lit{opacity:1}
 /* NET POPOVER */
-.net-popover{position:absolute;top:calc(100% + 8px);right:0;width:260px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r2);box-shadow:var(--shadow2);z-index:999;padding:14px;display:none;animation:fadeUp .2s var(--ease)}
+.net-popover{position:fixed;top:68px;right:16px;width:260px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r2);box-shadow:var(--shadow2);z-index:9990;padding:14px;display:none;animation:fadeUp .2s var(--ease)}
 .net-popover.open{display:block}
 .net-pop-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);gap:8px}
 .net-pop-row:last-child{border-bottom:none;padding-bottom:0}
@@ -140,7 +146,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .prog-pct{font-size:13px;font-weight:700;color:var(--accent);font-family:var(--mono)}
 .linear-track{height:5px;background:var(--border);border-radius:99px;overflow:hidden}
 .linear-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent3),var(--accent));transition:width 1.4s var(--ease);position:relative;overflow:hidden}
-.linear-fill::after{content:'';position:absolute;top:0;left:-100%;right:0;bottom:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);animation:shimmer 2s infinite}
+.linear-fill::after{content:'';position:absolute;top:0;left:0;width:60%;bottom:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);animation:fillShimmer 2s infinite;will-change:transform}
 .prog-labels{display:flex;justify-content:space-between;margin-top:4px}
 .prog-lbl{font-size:10px;color:var(--text3);font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:45%}
 /* STATS */
@@ -304,7 +310,7 @@ tr.row-fut td{opacity:.4}
 .suggest-num{font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:600;flex-shrink:0}
 /* SKELETON */
 .skeleton-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r3);padding:14px 16px;margin-bottom:10px;overflow:hidden;position:relative}
-.skeleton-card::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent);animation:shimmer 1.4s infinite}
+.skeleton-card::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent);animation:skelShimmer 1.4s infinite}
 .sk-line{height:12px;background:var(--bg3);border-radius:6px;margin-bottom:8px}
 /* FAV TOAST */
 .fav-confirm{position:fixed;top:72px;right:16px;background:var(--yellow-bg);border:1px solid rgba(217,119,6,.3);color:var(--yellow);padding:8px 14px;border-radius:var(--r2);font-size:12px;font-weight:600;z-index:9999;transform:translateY(-20px);opacity:0;transition:all .3s var(--spring);pointer-events:none}
@@ -318,7 +324,8 @@ tr.row-fut td{opacity:.4}
 @keyframes rotate{to{transform:rotate(360deg)}}
 @keyframes gdash{0%{stroke-dasharray:1,200;stroke-dashoffset:0}50%{stroke-dasharray:89,200;stroke-dashoffset:-35px}100%{stroke-dasharray:89,200;stroke-dashoffset:-124px}}
 @keyframes gcol{0%,100%{stroke:#5B3FFF}25%{stroke:#FF3F6F}50%{stroke:#FFCB3F}75%{stroke:#3FFF8B}}
-@keyframes shimmer{to{left:200%}}
+@keyframes fillShimmer{0%{transform:translateX(-200%)}100%{transform:translateX(350%)}}
+@keyframes skelShimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes bl{0%,100%{opacity:1}50%{opacity:.2}}
 @keyframes pulse{0%{box-shadow:0 0 0 0 var(--glow)}70%{box-shadow:0 0 0 14px rgba(91,63,255,0)}100%{box-shadow:0 0 0 0 rgba(91,63,255,0)}}
@@ -346,7 +353,7 @@ tr.row-fut td{opacity:.4}
 @media(max-width:380px){
 .ist-badge .ist-txt{display:none}
 .refresh-btn span.txt{display:none}
-.net-pill-sig #netLabel{display:none}
+#netLabel{display:none}
 }
 </style>
 </head>
@@ -426,9 +433,22 @@ let searchTimer=null,countdownInterval=null,arTick=null,arSecs=45,curNum=null,cu
 const BASES=["https://train-api-eight.vercel.app/api","https://sujith.bhargavtodimela4.workers.dev"];
 /* FETCH */
 async function fetchData(path){
+  const hasTimeout=typeof AbortSignal.timeout==='function';
+  const mkSig=()=>hasTimeout?AbortSignal.timeout(8000):undefined;
   const first=BASES[Math.random()<.5?0:1],second=BASES.find(b=>b!==first);
-  try{const r=await fetch(first+path,{signal:AbortSignal.timeout?AbortSignal.timeout(8000):undefined});if(!r.ok)throw 0;return parseResp(r);}
-  catch{const r=await fetch(second+path);if(!r.ok)throw new Error('Both endpoints failed');return parseResp(r);}
+  let lastErr;
+  for(const base of[first,second]){
+    try{
+      const r=await fetch(base+path,{signal:mkSig()});
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      return await parseResp(r);
+    }catch(e){
+      // only retry network/timeout errors, not JSON parse errors
+      if(e instanceof SyntaxError)throw e;
+      lastErr=e;
+    }
+  }
+  throw new Error('Both endpoints failed: '+lastErr.message);
 }
 async function parseResp(r){
   const buf=await r.arrayBuffer();const u8=new Uint8Array(buf);
@@ -493,7 +513,14 @@ si.addEventListener('input',function(){
   if(q.length<2)return;
   searchTimer=setTimeout(()=>doSearch(q),350);
 });
-si.addEventListener('keydown',e=>{if(e.key==='Escape'){si.value='';clearSuggest();showWelcome();}});
+si.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    clearSuggest();
+    // only navigate home if we're in search state, not while viewing a live train
+    if(!curNum){si.value='';showWelcome();}
+    else si.blur();
+  }
+});
 function clearSuggest(){document.getElementById('suggestBox').innerHTML='';}
 async function doSearch(q){
   const sr=document.getElementById('searchResults'),lv=document.getElementById('liveView');
@@ -517,16 +544,16 @@ function renderSearch(trains){
   const sr=document.getElementById('searchResults');
   if(!trains||!trains.length){sr.innerHTML='<div class="loader">No trains found.</div>';return;}
   let h=`<div class="results-hdr">${trains.length} result${trains.length>1?'s':''} found</div>`;
-  const favs=getFavs();
+  const savedFavs=getFavs();
   for(let i=0;i<trains.length;i++){
-    const t=trains[i];const isFav=favs.some(f=>f.num===String(t.number));
+    const t=trains[i];const trainIsFav=savedFavs.some(f=>f.num===String(t.number));
     h+=`<div class="result-card">
       <div class="rnum-badge">${he(t.number)}</div>
       <div class="rinfo">
         <div class="rname">${he(t.name)}</div>
         <div class="rroute"><span class="material-symbols-rounded" style="font-size:13px">location_on</span>${he(t.fromStnCode)} → ${he(t.toStnCode)}</div>
       </div>
-      <button class="fav-btn${isFav?' active':''}" data-fav-idx="${i}" title="${isFav?'Remove from favourites':'Add to favourites'}"><span class="material-symbols-rounded" style="font-size:20px">star</span></button>
+      <button class="fav-btn${trainIsFav?' active':''}" data-fav-idx="${i}" title="${trainIsFav?'Remove from favourites':'Add to favourites'}"><span class="material-symbols-rounded" style="font-size:20px">star</span></button>
       <button class="track-btn" data-idx="${i}"><span class="material-symbols-rounded" style="font-size:17px">my_location</span> Track</button>
     </div>`;
   }
@@ -565,6 +592,8 @@ async function doLive(num,name){
 function renderLive(data,trainNo,trainName){
   const lv=document.getElementById('liveView');
   if(!data||!data.route||!data.route.length){lv.innerHTML='<div class="loader">No route data available for this train today.</div>';return;}
+  // clear any running countdown from previous render
+  if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}
   const route=data.route;
   const curCode=data.currentPosition&&data.currentPosition.stationCode;
   let curIdx=-1;for(let i=0;i<route.length;i++){if(route[i].stationCode===curCode){curIdx=i;break;}}
@@ -579,18 +608,16 @@ function renderLive(data,trainNo,trainName){
   const lat=data.currentPosition&&data.currentPosition.latLng&&data.currentPosition.latLng.latitude;
   const lng=data.currentPosition&&data.currentPosition.latLng&&data.currentPosition.latLng.longitude;
   const mapUrl=lat&&lng?'https://maps.google.com/maps?q='+lat+','+lng+'&z=13&output=embed':null;
-  const remaining=route.length-1-curIdx;
+  // fix: remaining is 0 when curIdx=-1 (unknown position), not negative
+  const remaining=curIdx>=0?route.length-1-curIdx:route.length;
   let etaStr='—';let etaTs=0;
   if(nextStop&&nextStop.scheduledArrivalTime){
     etaTs=(nextStop.scheduledArrivalTime+(data.delayInSecs||0))*1000;
     etaStr=new Date(etaTs).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});
   }
-  /* Estimated speed: if we have distLast and last updated time */
   const speedKmh=data.currentPosition&&data.currentPosition.speedKmph!=null?Math.round(data.currentPosition.speedKmph):null;
   const favFlag=isFav(trainNo);
   let h=`<div class="live-panel">`;
-  /* HEAD */
-  const delayChipCls=isVeryLate?'chip-late':'chip-warn';
   h+=`<div class="lp-head">
     <div class="lp-chips">
       <span class="chip chip-num">${he(trainNo)}</span>
@@ -710,7 +737,6 @@ function renderLive(data,trainNo,trainName){
   }
   h+=`</tbody></table></div></div></div>`;
   /* INFO TAB */
-  const dayOfJourney=data.dayOfJourney||'—';
   h+=`<div id="tab-info" class="tab-content"><div style="padding:16px 20px;background:var(--surface)">
     <div class="sec-title">Train Details</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
@@ -829,14 +855,29 @@ function openFavModal(){
   else{
     h='<div class="chips-row" style="margin-bottom:0">';
     for(let i=0;i<favs.length;i++){
-      h+=`<div style="display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r4);padding:8px 14px;cursor:pointer;font-size:13px">
-        <span class="r-num">${he(favs[i].num)}</span><span>${he(favs[i].name)}</span>
-        <button onclick="removeFav('${he(favs[i].num)}');openFavModal();showFavConfirm('Removed');" style="background:none;border:none;cursor:pointer;color:var(--red);margin-left:4px;font-size:16px;line-height:1;padding:2px" title="Remove">×</button>
+      h+=`<div style="display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r4);padding:8px 14px;font-size:13px">
+        <span class="r-num" style="cursor:pointer" data-fav-track="${he(favs[i].num)}" data-fav-name="${he(favs[i].name)}">${he(favs[i].num)}</span>
+        <span style="cursor:pointer;flex:1" data-fav-track="${he(favs[i].num)}" data-fav-name="${he(favs[i].name)}">${he(favs[i].name)}</span>
+        <button data-fav-remove="${he(favs[i].num)}" style="background:none;border:none;cursor:pointer;color:var(--red);margin-left:4px;font-size:18px;line-height:1;padding:2px 4px;border-radius:4px" title="Remove">×</button>
       </div>`;
     }
     h+='</div>';
   }
-  document.getElementById('favModalContent').innerHTML=h;
+  const box=document.getElementById('favModalContent');
+  box.innerHTML=h;
+  // wire remove buttons via event delegation (inside IIFE scope)
+  box.querySelectorAll('[data-fav-remove]').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();removeFav(btn.dataset.favRemove);showFavConfirm('Removed');openFavModal();
+    });
+  });
+  // wire track clicks
+  box.querySelectorAll('[data-fav-track]').forEach(el=>{
+    el.addEventListener('click',()=>{
+      document.getElementById('favModal').style.display='none';
+      doLive(el.dataset.favTrack,el.dataset.favName);saveRecent(el.dataset.favTrack,el.dataset.favName);
+    });
+  });
   document.getElementById('favModal').style.display='flex';
 }
 document.getElementById('favMenuBtn').addEventListener('click',openFavModal);
