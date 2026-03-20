@@ -12,7 +12,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://train-api-eight.vercel.app">
 <link rel="dns-prefetch" href="https://sujith.bhargavtodimela4.workers.dev">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0&display=optional" rel="stylesheet">
+<link rel="preload" href="https://fonts.gstatic.com/s/materialsymbolsrounded/v233/sIJfXS_BGv5RLkMiMJIBfOH97-BfohMFMLoGIj5lBpWLQUwZGGJxkJkQAUIv.woff2" as="font" type="font/woff2" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0&display=block" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script>(function(){var t=localStorage.getItem('tt');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.setAttribute('data-theme','dark');})()</script>
 <style>
@@ -47,6 +48,21 @@
 --shadow2:0 8px 32px rgba(0,0,0,.4);
 }
 html{scroll-behavior:smooth;height:100%}
+/* Prevent Material Symbols ligature text from flashing before font loads.
+   We use visibility on a wrapper so layout space is reserved but text is hidden. */
+.ms-icon{display:inline-flex;align-items:center;justify-content:center;
+  overflow:hidden;vertical-align:middle}
+.ms-icon .material-symbols-rounded{
+  font-family:'Material Symbols Rounded';
+  visibility:hidden;transition:visibility 0s .05s;
+}
+body.fonts-loaded .ms-icon .material-symbols-rounded{visibility:visible;transition:none}
+/* App-bar icons always visible (small size, layout impact minimal) */
+.icon-btn .material-symbols-rounded,
+.refresh-btn .material-symbols-rounded,
+.brand-icon .material-symbols-rounded,
+.net-pill .material-symbols-rounded,
+.ist-badge .material-symbols-rounded{visibility:visible!important}
 body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;transition:background .3s,color .3s}
 /* BG TEXTURE */
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(91,63,255,.08),transparent);pointer-events:none;z-index:0}
@@ -361,7 +377,17 @@ tr.row-fut td{opacity:.4}
 <div class="app-bar" id="appBar">
   <div class="bar-inner">
     <div class="brand" id="brandBtn">
-      <div class="brand-icon"><span class="material-symbols-rounded" style="color:#fff;font-size:20px">train</span></div>
+      <div class="brand-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="4" y="3" width="16" height="12" rx="3" fill="white" opacity=".25"/>
+          <rect x="4" y="3" width="16" height="12" rx="3" stroke="white" stroke-width="1.8"/>
+          <circle cx="8.5" cy="18.5" r="1.8" fill="white"/>
+          <circle cx="15.5" cy="18.5" r="1.8" fill="white"/>
+          <line x1="4" y1="9" x2="20" y2="9" stroke="white" stroke-width="1.8"/>
+          <line x1="12" y1="3" x2="12" y2="9" stroke="white" stroke-width="1.8"/>
+          <line x1="8" y1="16.5" x2="16" y2="16.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
       <div class="brand-text">Track<em>It</em></div>
     </div>
     <div class="search-wrap" style="position:relative">
@@ -378,7 +404,7 @@ tr.row-fut td{opacity:.4}
           <div class="sig-bars" id="sigBars"><span></span><span></span><span></span><span></span><span></span></div>
           <span id="netLabel">—</span>
         </div>
-        <div class="net-pill-loc" id="netLoc"><span class="material-symbols-rounded" style="font-size:13px;flex-shrink:0">location_on</span><span id="netLocTxt">…</span></div>
+        <div class="net-pill-loc" id="netLoc"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;opacity:.6"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/></svg><span id="netLocTxt">…</span></div>
         <div class="net-popover" id="netPopover">
           <div class="net-pop-row"><span class="net-pop-lbl">Signal</span><span class="net-pop-val" id="popSignal">—</span></div>
           <div class="net-pop-row"><span class="net-pop-lbl">Type</span><span class="net-pop-val" id="popType">—</span></div>
@@ -425,7 +451,9 @@ tr.row-fut td{opacity:.4}
 <div id="toast"></div>
 <div id="netBadge" class="net-badge"></div>
 <div class="fav-confirm" id="favConfirm"></div>
-<button class="fab" id="scrollTopFab" aria-label="Scroll to top"><span class="material-symbols-rounded" style="color:#fff;font-size:22px">keyboard_arrow_up</span></button>
+<button class="fab" id="scrollTopFab" aria-label="Scroll to top">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M7 14l5-5 5 5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</button>
 <script>
 (function(){'use strict';
 /* STATE */
@@ -816,7 +844,17 @@ function showFavConfirm(msg){
 function showWelcome(){
   const recent=getRecent(),favs=getFavs();
   let h=`<div class="welcome"><div class="welcome-hero">
-    <div class="welcome-icon"><span class="material-symbols-rounded" style="font-size:40px;color:var(--accent)">train</span></div>
+    <div class="welcome-icon">
+      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="4" y="3" width="16" height="13" rx="3" fill="var(--accent)" opacity=".15"/>
+        <rect x="4" y="3" width="16" height="13" rx="3" stroke="var(--accent)" stroke-width="1.5"/>
+        <circle cx="8" cy="19" r="2" fill="var(--accent)"/>
+        <circle cx="16" cy="19" r="2" fill="var(--accent)"/>
+        <line x1="4" y1="9" x2="20" y2="9" stroke="var(--accent)" stroke-width="1.5"/>
+        <line x1="12" y1="3" x2="12" y2="9" stroke="var(--accent)" stroke-width="1.5"/>
+        <line x1="8" y1="17" x2="16" y2="17" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </div>
     <div class="welcome-title">Track any Indian train, <span>live.</span></div>
     <div class="welcome-sub">Type a train number or name in the search bar above to get started.</div>
   </div>`;
@@ -831,10 +869,10 @@ function showWelcome(){
     h+=`</div>`;
   }
   h+=`<div class="howto-card"><div class="howto-title">How to use TrackIt</div><div class="howto-items">
-    <div class="howto-item"><div class="howto-icon-bg" style="background:rgba(91,63,255,.08)"><span class="material-symbols-rounded" style="color:var(--accent);font-size:18px">search</span></div><div><h4>Search</h4><p>Type a train number (e.g. 12728) or name in the search bar</p></div></div>
-    <div class="howto-item"><div class="howto-icon-bg" style="background:rgba(220,38,38,.08)"><span class="material-symbols-rounded" style="color:var(--red);font-size:18px">my_location</span></div><div><h4>Track</h4><p>Click Track to see real-time position, platform & delay info</p></div></div>
-    <div class="howto-item"><div class="howto-icon-bg" style="background:rgba(5,150,105,.08)"><span class="material-symbols-rounded" style="color:var(--green);font-size:18px">star</span></div><div><h4>Favourites</h4><p>Star trains to save them for quick access</p></div></div>
-    <div class="howto-item"><div class="howto-icon-bg" style="background:rgba(5,150,105,.08)"><span class="material-symbols-rounded" style="color:var(--green);font-size:18px">refresh</span></div><div><h4>Auto-refresh</h4><p>Live data updates every 45 seconds automatically</p></div></div>
+    <div class="howto-item"><div class="howto-icon-bg" style="background:rgba(91,63,255,.08);font-size:18px;color:var(--accent)">🔍</div><div><h4>Search</h4><p>Type a train number (e.g. 12728) or name in the search bar</p></div></div>
+    <div class="howto-item"><div class="howto-icon-bg" style="background:rgba(220,38,38,.08);font-size:18px">📍</div><div><h4>Track</h4><p>Click Track to see real-time position, platform &amp; delay info</p></div></div>
+    <div class="howto-item"><div class="howto-icon-bg" style="background:rgba(217,119,6,.08);font-size:18px">⭐</div><div><h4>Favourites</h4><p>Star trains to save them for quick access</p></div></div>
+    <div class="howto-item"><div class="howto-icon-bg" style="background:rgba(5,150,105,.08);font-size:18px">🔄</div><div><h4>Auto-refresh</h4><p>Live data updates every 45 seconds automatically</p></div></div>
   </div></div></div>`;
   const sr=document.getElementById('searchResults'),lv=document.getElementById('liveView');
   sr.innerHTML=h;lv.innerHTML='';
@@ -997,8 +1035,10 @@ async function fetchIpInfo(){
 // update net pill on old netBadge events too (keep backward compat)
 function updateNet(e){
   const nb=document.getElementById('netBadge');if(!nb)return;
-  if(!navigator.onLine){nb.className='net-badge show offline';nb.innerHTML='<span class="material-symbols-rounded" style="font-size:18px">cloud_off</span> Offline';}
-  else if(e&&e.type==='online'){nb.className='net-badge show online';nb.innerHTML='<span class="material-symbols-rounded" style="font-size:18px">cloud_done</span> Back online';setTimeout(()=>nb.classList.remove('show'),3000);}
+  const offSvg=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM19 18H6c-2.21 0-4-1.79-4-4s1.79-4 4-4h.71A5.506 5.506 0 0 1 12 6c2.76 0 5.08 1.95 5.42 4.5l.29 2H19c1.65 0 3 1.35 3 3s-1.35 3-3 3z" fill="currentColor"/><line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+  const onSvg=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" fill="currentColor"/></svg>`;
+  if(!navigator.onLine){nb.className='net-badge show offline';nb.innerHTML=offSvg+' Offline';}
+  else if(e&&e.type==='online'){nb.className='net-badge show online';nb.innerHTML=onSvg+' Back online';setTimeout(()=>nb.classList.remove('show'),3000);}
   else nb.classList.remove('show');
   assessSignal();
 }
@@ -1009,6 +1049,35 @@ if(navigator.connection)navigator.connection.addEventListener('change',assessSig
 assessSignal();fetchIpInfo();
 // re-assess every 30s
 setInterval(()=>{assessSignal();},30000);
+/* ══ FONT LOAD GUARD ══
+   Adds body.fonts-loaded once Material Symbols is ready.
+   Until then, .ms-icon spans stay visibility:hidden (no FOUT flash).
+   Also fires immediately if fonts are already cached. */
+if(document.fonts&&document.fonts.ready){
+  document.fonts.ready.then(()=>{document.body.classList.add('fonts-loaded');});
+}else{
+  // Fallback: add class after 1.5s max wait
+  setTimeout(()=>{document.body.classList.add('fonts-loaded');},1500);
+}
+// Also try FontFaceObserver-style check for Material Symbols specifically
+(function checkIconFont(){
+  const probe=document.createElement('span');
+  probe.className='material-symbols-rounded';
+  probe.style.cssText='position:absolute;visibility:hidden;font-size:100px;top:-999px;left:-999px';
+  probe.textContent='train';
+  document.body.appendChild(probe);
+  const checkWidth=probe.offsetWidth;
+  // When font loads, the ligature glyph width will be different from fallback
+  let attempts=0;
+  const poll=setInterval(()=>{
+    attempts++;
+    if(probe.offsetWidth!==checkWidth||attempts>40){
+      document.body.classList.add('fonts-loaded');
+      clearInterval(poll);
+      document.body.removeChild(probe);
+    }
+  },50);
+})();
 /* INIT */
 showWelcome();
 })();
