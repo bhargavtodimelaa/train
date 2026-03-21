@@ -204,13 +204,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .cd-right{margin-left:auto;text-align:right}
 .cd-sched-lbl{font-size:9px;color:var(--text3)}
 .cd-sched-val{font-size:14px;font-weight:600;font-family:var(--mono);margin-top:2px}
-/* MAP */
-.map-btn{width:100%;padding:11px 20px;border:none;background:var(--bg2);color:var(--accent);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);transition:background .2s;-webkit-tap-highlight-color:transparent}
-.map-btn:hover{background:var(--bg3)}
-.map-btn .chevron{margin-left:auto;transition:transform .3s;font-size:20px}
-.map-btn.open .chevron{transform:rotate(180deg)}
-.map-wrap{display:none;border-bottom:1px solid var(--border)}
-.map-wrap iframe{width:100%;height:220px;border:none;display:block}
+/* MAP — handled by .train-map-section */
 /* SHARE */
 .share-row{display:flex;align-items:center;gap:8px;padding:10px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap}
 .share-lbl{font-size:10px;color:var(--text3);font-weight:600;letter-spacing:.8px;text-transform:uppercase;margin-right:4px}
@@ -239,21 +233,35 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .tl-line{position:absolute;left:7px;top:10px;bottom:10px;width:2px;background:linear-gradient(to bottom,var(--accent),var(--border))}
 .stop{position:relative;padding-bottom:20px;content-visibility:auto;contain-intrinsic-size:0 66px}
 .stop:last-child{padding-bottom:0}
-.stop-dot{position:absolute;left:-25px;top:4px;width:14px;height:14px;border-radius:50%;background:var(--border);border:2px solid var(--surface);z-index:1}
+.stop-dot{position:absolute;left:-25px;top:4px;width:14px;height:14px;border-radius:50%;background:var(--border2);border:2px solid var(--surface);z-index:1;transition:background .2s}
 .stop.past .stop-dot{background:var(--green)}
 .stop.current .stop-dot{width:20px;height:20px;left:-28px;top:1px;background:var(--accent);border:3px solid var(--surface);animation:pulse 2.5s ease-out infinite}
-.stop.future{opacity:.4}
+/* past: slightly muted but readable */
+.stop.past{opacity:.75}
+.stop.past .sname{color:var(--text2)}
+/* current: full brightness, accent color */
+.stop.current{opacity:1}
+.stop.current .sname{color:var(--accent);font-weight:700}
+/* future: clearly dimmed */
+.stop.future{opacity:.35}
+.stop.future .sname{color:var(--text3)}
+/* status badge on each stop */
+.stop-status{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:1px 6px;border-radius:99px;margin-top:4px;letter-spacing:.3px;font-family:var(--mono)}
+.stop-status.s-done{background:var(--green-bg);color:var(--green);border:1px solid rgba(5,150,105,.2)}
+.stop-status.s-here{background:rgba(91,63,255,.12);color:var(--accent);border:1px solid rgba(91,63,255,.25)}
+.stop-status.s-next{background:var(--yellow-bg);color:var(--yellow);border:1px solid rgba(217,119,6,.2)}
+.stop-status.s-upcoming{background:var(--bg3);color:var(--text3);border:1px solid var(--border2)}
 .stop-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .stop-info{flex:1}
-.sname{font-size:14px;font-weight:600}
-.stop.current .sname{color:var(--accent)}
+.sname{font-size:14px;font-weight:600;transition:color .2s}
 .scode{font-size:11px;color:var(--text3);margin-top:1px;font-family:var(--mono)}
 .pf-chip{display:inline-flex;align-items:center;gap:3px;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-size:9px;font-weight:600;padding:2px 7px;border-radius:var(--r4);margin-top:4px;font-family:var(--mono)}
 .stop.current .pf-chip{background:rgba(91,63,255,.12);border-color:rgba(91,63,255,.2);color:var(--accent)}
 .stop.past .pf-chip{background:var(--green-bg);border-color:rgba(5,150,105,.2);color:var(--green)}
 .stop-times{display:flex;gap:12px;flex-shrink:0;text-align:right}
-.t-label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px}
-.t-val{font-size:12px;font-weight:600;font-family:var(--mono)}
+.t-grp{min-width:52px}
+.t-label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;font-weight:600}
+.t-val{font-size:12px;font-weight:600;font-family:var(--mono);margin-top:1px}
 .t-val.g{color:var(--green)}.t-val.r{color:var(--red)}.t-val.d{color:var(--text3)}
 .d-chip{display:inline-block;background:var(--red-bg);border:1px solid rgba(220,38,38,.2);color:var(--red);font-size:9px;font-weight:700;padding:1px 4px;border-radius:99px;margin-top:2px;font-family:var(--mono)}
 .stop-div{border:none;border-top:1px solid var(--border);margin:0 0 20px}
@@ -359,7 +367,9 @@ tr.row-fut td{opacity:.4}
 .net-pill-loc{display:none}
 .net-pill-sig{padding:5px 8px;font-size:10px}
 .net-popover{right:-10px;width:230px}
-.lp-head,.lp-progress,.cd-row,.share-row,.auto-bar,.lp-timeline,.map-btn,.md3-tabs{padding-left:14px;padding-right:14px}
+.lp-head,.lp-progress,.cd-row,.share-row,.auto-bar,.lp-timeline,.train-map-toggle,.map-tab-bar,.md3-tabs{padding-left:14px;padding-right:14px}
+.stop-times{gap:8px}
+.t-grp{min-width:44px}
 .pos-next{display:none}
 .meta-it{padding-right:12px}
 .lp-title{font-size:17px}
@@ -374,15 +384,23 @@ tr.row-fut td{opacity:.4}
 .refresh-btn span.txt{display:none}
 #netLabel{display:none}
 }
-/* ══ LEAFLET TRAIN MAP ══ */
+/* ══ DUAL MAP SECTION ══ */
 .train-map-section{border-bottom:1px solid var(--border)}
 .train-map-toggle{width:100%;padding:11px 20px;border:none;background:var(--bg2);color:var(--accent);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .2s;-webkit-tap-highlight-color:transparent}
 .train-map-toggle:hover{background:var(--bg3)}
 .train-map-toggle .chev{margin-left:auto;transition:transform .3s}
 .train-map-toggle.open .chev{transform:rotate(180deg)}
-.train-map-box{display:none;height:300px;position:relative}
-.train-map-box.open{display:block}
+.train-map-outer{display:none;flex-direction:column}
+.train-map-outer.open{display:flex}
+/* Map tab switcher */
+.map-tab-bar{display:flex;gap:6px;padding:10px 16px;background:var(--bg3);border-bottom:1px solid var(--border)}
+.map-tab{flex:1;padding:7px 12px;border:1px solid var(--border2);border-radius:var(--r4);background:var(--surface);font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;color:var(--text2);transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px;-webkit-tap-highlight-color:transparent}
+.map-tab:hover{background:var(--bg2);color:var(--text)}
+.map-tab.active{background:var(--accent);color:#fff;border-color:transparent}
+.map-pane{display:none;height:300px;position:relative}
+.map-pane.active{display:block}
 #trainLeafletMap{width:100%;height:100%;z-index:1}
+.gmap-frame{width:100%;height:100%;border:none;display:block}
 /* Custom train marker */
 .train-marker-wrap{position:relative;width:40px;height:40px}
 .train-marker-pulse{position:absolute;inset:-8px;border-radius:50%;background:rgba(91,63,255,.25);animation:markerPulse 2s ease-out infinite}
@@ -397,7 +415,6 @@ tr.row-fut td{opacity:.4}
 .map-popup-row{display:flex;justify-content:space-between;gap:12px;padding:2px 0}
 .map-popup-lbl{color:var(--text3);font-size:10px;text-transform:uppercase;letter-spacing:.5px}
 .map-popup-val{font-family:var(--mono);font-size:11px;font-weight:600}
-/* Accuracy circle */
 .leaflet-accuracy-circle{fill:rgba(91,63,255,.08);stroke:rgba(91,63,255,.3);stroke-width:1}
 /* ══ PREFETCH INDICATOR ══ */
 .pfetch-dot{position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:var(--green);opacity:0;transition:opacity .3s;pointer-events:none}
@@ -557,13 +574,23 @@ function updateAR(){
 }
 async function doRefresh(silent){
   if(!curNum)return;
-  if(!silent){const b=document.getElementById('refreshBtn');if(b){b.classList.add('spinning');b.disabled=true;}arSecs=45;updateAR();}
+  const b=document.getElementById('refreshBtn');
+  if(!silent){if(b){b.classList.add('spinning');b.disabled=true;}arSecs=45;updateAR();}
   try{
-    const d=await fetchData('/live-status?trainNo='+encodeURIComponent(curNum));
+    // Use prefetch cache if fresh (hover prefetch made it instant)
+    const cached=getCachedLive(curNum);
+    let d;
+    if(cached&&cached.data){
+      d=cached.data;prefetchCache.delete(curNum);
+      // immediately background-refresh again
+      setTimeout(()=>prefetchTrain(curNum,curName),100);
+    } else {
+      d=await fetchData('/live-status?trainNo='+encodeURIComponent(curNum));
+    }
     lastRefTs=new Date();renderLive(d.data,curNum,curName);updateLastRef();
     if(!silent)toast('Refreshed!','done');else toast('Auto-refreshed','info');
   }catch(err){toast('Refresh failed: '+err.message,'error');}
-  finally{if(!silent){const b=document.getElementById('refreshBtn');if(b){b.classList.remove('spinning');b.disabled=false;}}}
+  finally{if(!silent){if(b){b.classList.remove('spinning');b.disabled=false;}}}
 }
 function updateLastRef(){
   const el=document.getElementById('lastRefTime');
@@ -698,17 +725,24 @@ function renderLive(data,trainNo,trainName){
     <div class="prog-labels"><span class="prog-lbl">${he(origin&&origin.station_name||'')}</span><span class="prog-lbl" style="text-align:right">${he(dest&&dest.station_name||'')}</span></div>
   </div>`;
   /* STATS */
+  const delaySvg=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><polyline points="12 7 12 12 15 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+  const routeSvg=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="6" cy="19" r="2" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="5" r="2" stroke="currentColor" stroke-width="1.8"/><path d="M6 17v-4a6 6 0 0 1 6-6h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+  const locSvg=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/></svg>`;
+  const timerSvg=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/></svg>`;
+  const speedSvg=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 12L8.5 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><path d="M3 12a9 9 0 1 1 18 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M5.6 16.8L8 14.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M18.4 16.8L16 14.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`;
   h+=`<div class="stats-row">
-    <div class="stat-it"><span class="material-symbols-rounded" style="font-size:18px;color:${isLate?'var(--red)':'var(--green)'};display:block;margin-bottom:4px">schedule</span><div class="sval ${isLate?'r':'g'}">${isLate?'+'+delayMins:'0'}</div><div class="slbl">Min Delay</div></div>
-    <div class="stat-it"><span class="material-symbols-rounded" style="font-size:18px;color:var(--accent);display:block;margin-bottom:4px">route</span><div class="sval b">${distOrig}</div><div class="slbl">KM Done</div></div>
-    <div class="stat-it"><span class="material-symbols-rounded" style="font-size:18px;color:var(--text3);display:block;margin-bottom:4px">location_on</span><div class="sval">${distLast}</div><div class="slbl">KM Last Stn</div></div>
-    <div class="stat-it"><span class="material-symbols-rounded" style="font-size:18px;color:var(--accent);display:block;margin-bottom:4px">timer</span><div class="sval b" style="font-size:13px">${etaStr}</div><div class="slbl">ETA Next</div></div>
-    ${speedKmh!==null?`<div class="stat-it"><span class="material-symbols-rounded" style="font-size:18px;color:var(--yellow);display:block;margin-bottom:4px">speed</span><div class="sval y">${speedKmh}</div><div class="slbl">km/h Speed</div></div>`:''}
+    <div class="stat-it"><div style="color:${isLate?'var(--red)':'var(--green)'};display:flex;justify-content:center;margin-bottom:4px">${delaySvg}</div><div class="sval ${isLate?'r':'g'}">${isLate?'+'+delayMins:'0'}</div><div class="slbl">Min Delay</div></div>
+    <div class="stat-it"><div style="color:var(--accent);display:flex;justify-content:center;margin-bottom:4px">${routeSvg}</div><div class="sval b">${distOrig}</div><div class="slbl">KM Done</div></div>
+    <div class="stat-it"><div style="color:var(--text3);display:flex;justify-content:center;margin-bottom:4px">${locSvg}</div><div class="sval">${distLast}</div><div class="slbl">KM Last Stn</div></div>
+    <div class="stat-it"><div style="color:var(--accent);display:flex;justify-content:center;margin-bottom:4px">${timerSvg}</div><div class="sval b" style="font-size:13px">${etaStr}</div><div class="slbl">ETA Next</div></div>
+    ${speedKmh!==null?`<div class="stat-it"><div style="color:var(--yellow);display:flex;justify-content:center;margin-bottom:4px">${speedSvg}</div><div class="sval y">${speedKmh}</div><div class="slbl">km/h</div></div>`:''}
   </div>`;
+  /* POSITION */
+  const posTrainSvg=`<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="4" y="3" width="16" height="12" rx="3" fill="white" opacity=".3"/><rect x="4" y="3" width="16" height="12" rx="3" stroke="white" stroke-width="1.8"/><circle cx="8.5" cy="18.5" r="1.8" fill="white"/><circle cx="15.5" cy="18.5" r="1.8" fill="white"/><line x1="4" y1="9" x2="20" y2="9" stroke="white" stroke-width="1.8"/><line x1="12" y1="3" x2="12" y2="9" stroke="white" stroke-width="1.8"/></svg>`;
   /* POSITION */
   if(curStn){
     h+=`<div class="lp-pos">
-      <div class="pos-icon"><span class="material-symbols-rounded" style="font-size:22px;color:#fff">my_location</span></div>
+      <div class="pos-icon">${posTrainSvg}</div>
       <div class="pos-info">
         <div class="pos-at">Currently At</div>
         <div class="pos-name">${he(curStn.station_name)}</div>
@@ -725,8 +759,9 @@ function renderLive(data,trainNo,trainName){
       <div class="cd-right"><div class="cd-sched-lbl">SCHEDULED</div><div class="cd-sched-val">${fmt(nextStop&&nextStop.scheduledArrivalTime)}</div></div>
     </div>`;
   }
-  /* MAP — Leaflet with floating train icon */
+  /* MAP — Dual: Leaflet OSM + Google Maps */
   if(lat&&lng){
+    const gmapUrl=`https://maps.google.com/maps?q=${lat},${lng}&z=14&output=embed`;
     h+=`<div class="train-map-section">
       <button class="train-map-toggle" id="trainMapToggle">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 20l-5.447-2.724A1 1 0 0 1 3 16.382V5.618a1 1 0 0 1 1.447-.894L9 7m0 13V7m0 13 6 1m-6-14 6-2m0 15 5.447-2.724A1 1 0 0 0 21 16.382V5.618a1 1 0 0 0-1.447-.894L15 7m0 13V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -734,8 +769,19 @@ function renderLive(data,trainNo,trainName){
         <span style="margin-left:6px;font-size:10px;opacity:.6;font-family:var(--mono)">${Number(lat).toFixed(4)}°, ${Number(lng).toFixed(4)}°</span>
         <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
-      <div class="train-map-box" id="trainMapBox">
-        <div id="trainLeafletMap"></div>
+      <div class="train-map-outer" id="trainMapOuter">
+        <div class="map-tab-bar">
+          <button class="map-tab active" data-map="leaflet">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10A15.3 15.3 0 0 1 8 12a15.3 15.3 0 0 1 4-10z" stroke="currentColor" stroke-width="1.8"/></svg>
+            OpenStreetMap
+          </button>
+          <button class="map-tab" data-map="google">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/></svg>
+            Google Maps
+          </button>
+        </div>
+        <div class="map-pane active" id="mapPaneLeaflet"><div id="trainLeafletMap"></div></div>
+        <div class="map-pane" id="mapPaneGoogle" data-src="${he(gmapUrl)}"></div>
       </div>
     </div>`;
   }
@@ -754,9 +800,18 @@ function renderLive(data,trainNo,trainName){
   </div>`;
   /* TABS */
   h+=`<div class="md3-tabs">
-    <button class="tab-btn active" data-tab="tab-tl"><span class="material-symbols-rounded" style="font-size:16px">format_list_bulleted</span> Timeline</button>
-    <button class="tab-btn" data-tab="tab-table"><span class="material-symbols-rounded" style="font-size:16px">table_rows</span> All Stops</button>
-    <button class="tab-btn" data-tab="tab-info"><span class="material-symbols-rounded" style="font-size:16px">info</span> Info</button>
+    <button class="tab-btn active" data-tab="tab-tl">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><line x1="8" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="8" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="8" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="6" x2="3.01" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="12" x2="3.01" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="18" x2="3.01" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      Timeline
+    </button>
+    <button class="tab-btn" data-tab="tab-table">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.8"/><line x1="3" y1="9" x2="21" y2="9" stroke="currentColor" stroke-width="1.8"/><line x1="3" y1="15" x2="21" y2="15" stroke="currentColor" stroke-width="1.8"/><line x1="9" y1="9" x2="9" y2="21" stroke="currentColor" stroke-width="1.8"/></svg>
+      All Stops
+    </button>
+    <button class="tab-btn" data-tab="tab-info">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><line x1="12" y1="8" x2="12" y2="8.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="12" x2="12" y2="16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      Details
+    </button>
   </div>`;
   /* TIMELINE */
   h+=`<div id="tab-tl" class="tab-content active"><div class="lp-timeline"><div class="sec-title">Journey Timeline</div><div class="tl-wrap"><div class="tl-line"></div>`;
@@ -765,16 +820,25 @@ function renderLive(data,trainNo,trainName){
     const cls=isCur?'current':isPast?'past':'future';
     const aD=s.scheduledArrivalDelaySecs||0,dD=s.scheduledDepartureDelaySecs||0;
     const aCls=s.actualArrivalTime?(aD>120?'r':'g'):'d',dCls=s.actualDepartureTime?(dD>120?'r':'g'):'d';
+    // status badge
+    let statusBadge='';
+    if(isCur)statusBadge=`<span class="stop-status s-here">● Here</span>`;
+    else if(isPast)statusBadge=`<span class="stop-status s-done">✓ Done</span>`;
+    else if(i===curIdx+1)statusBadge=`<span class="stop-status s-next">→ Next</span>`;
+    else statusBadge=`<span class="stop-status s-upcoming">Upcoming</span>`;
     h+=`<div class="stop ${cls}"><div class="stop-dot"></div>
       <div class="stop-row">
         <div class="stop-info">
           <div class="sname">${he(s.station_name)}</div>
           <div class="scode">${he(s.stationCode)} · #${s.stopIndex||(i+1)}</div>
-          ${s.platformNumber?`<div class="pf-chip">PF ${he(s.platformNumber)}</div>`:''}
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:3px">
+            ${statusBadge}
+            ${s.platformNumber?`<div class="pf-chip">PF ${he(s.platformNumber)}</div>`:''}
+          </div>
         </div>
         <div class="stop-times">
-          <div class="t-grp"><div class="t-label">Arr</div><div class="t-val ${aCls}">${fmt(s.actualArrivalTime||s.scheduledArrivalTime)}</div>${aD>60?`<div class="d-chip">+${Math.round(aD/60)}m</div>`:''}</div>
-          <div class="t-grp"><div class="t-label">Dep</div><div class="t-val ${dCls}">${fmt(s.actualDepartureTime||s.scheduledDepartureTime)}</div>${dD>60?`<div class="d-chip">+${Math.round(dD/60)}m</div>`:''}</div>
+          <div class="t-grp"><div class="t-label">Arrival</div><div class="t-val ${aCls}">${fmt(s.actualArrivalTime||s.scheduledArrivalTime)}</div>${aD>60?`<div class="d-chip">+${Math.round(aD/60)}m late</div>`:''}</div>
+          <div class="t-grp"><div class="t-label">Depart</div><div class="t-val ${dCls}">${fmt(s.actualDepartureTime||s.scheduledDepartureTime)}</div>${dD>60?`<div class="d-chip">+${Math.round(dD/60)}m late</div>`:''}</div>
         </div>
       </div>
     </div>${i<route.length-1?'<hr class="stop-div">':''}`;
@@ -831,91 +895,75 @@ function renderLive(data,trainNo,trainName){
     if(isFav(trainNo)){removeFav(trainNo);lpFav.classList.remove('active');showFavConfirm('Removed from favourites');}
     else{saveFav(trainNo,trainName);lpFav.classList.add('active');showFavConfirm('★ Added to favourites');}
   });
-  /* LEAFLET MAP — floating train marker */
+  /* DUAL MAP — Leaflet + Google Maps */
   const trainMapToggle=document.getElementById('trainMapToggle');
-  let leafletMap=null,trainMarker=null,accuracyCircle=null;
-  function initLeafletMap(){
-    if(leafletMap)return; // already inited
-    if(typeof L==='undefined'){
-      // Leaflet script not yet loaded (deferred) — wait for it
-      const waitL=setInterval(()=>{if(typeof L!=='undefined'){clearInterval(waitL);buildMap();}},100);
-      return;
-    }
-    buildMap();
-  }
-  function buildMap(){
+  const trainMapOuter=document.getElementById('trainMapOuter');
+  let leafletMap=null;
+  function buildLeafletMap(){
     const container=document.getElementById('trainLeafletMap');
     if(!container||leafletMap)return;
-    // Fix Leaflet default icon path broken by bundlers
+    if(typeof L==='undefined'){
+      const waitL=setInterval(()=>{if(typeof L!=='undefined'){clearInterval(waitL);buildLeafletMap();}},100);
+      return;
+    }
     delete L.Icon.Default.prototype._getIconUrl;
     L.Icon.Default.mergeOptions({
       iconUrl:'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
       iconRetinaUrl:'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
       shadowUrl:'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
     });
-    leafletMap=L.map(container,{zoomControl:true,attributionControl:false,scrollWheelZoom:true});
-    // Tile layer — OpenStreetMap (no API key)
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-      maxZoom:18,attribution:'© OpenStreetMap'
-    }).addTo(leafletMap);
-    // Attribution small
-    L.control.attribution({position:'bottomright',prefix:false}).addTo(leafletMap);
+    leafletMap=L.map(container,{zoomControl:true,attributionControl:true,scrollWheelZoom:true});
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(leafletMap);
     leafletMap.setView([lat,lng],14);
-    // Accuracy circle (approx ±300m for train GPS)
-    accuracyCircle=L.circle([lat,lng],{radius:300,className:'leaflet-accuracy-circle'}).addTo(leafletMap);
-    // Custom train icon using DivIcon
-    const trainIconHtml=`<div class="train-marker-wrap">
-      <div class="train-marker-pulse2"></div>
-      <div class="train-marker-pulse"></div>
-      <div class="train-marker-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <rect x="4" y="3" width="16" height="12" rx="3" fill="white" opacity=".3"/>
-          <rect x="4" y="3" width="16" height="12" rx="3" stroke="white" stroke-width="1.8"/>
-          <circle cx="8.5" cy="18.5" r="1.8" fill="white"/>
-          <circle cx="15.5" cy="18.5" r="1.8" fill="white"/>
-          <line x1="4" y1="9" x2="20" y2="9" stroke="white" stroke-width="1.8"/>
-          <line x1="12" y1="3" x2="12" y2="9" stroke="white" stroke-width="1.8"/>
-          <line x1="8" y1="16.5" x2="16" y2="16.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-      </div>
-    </div>`;
+    L.circle([lat,lng],{radius:300,className:'leaflet-accuracy-circle'}).addTo(leafletMap);
+    const trainIconHtml=`<div class="train-marker-wrap"><div class="train-marker-pulse2"></div><div class="train-marker-pulse"></div><div class="train-marker-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="4" y="3" width="16" height="12" rx="3" fill="white" opacity=".3"/><rect x="4" y="3" width="16" height="12" rx="3" stroke="white" stroke-width="1.8"/><circle cx="8.5" cy="18.5" r="1.8" fill="white"/><circle cx="15.5" cy="18.5" r="1.8" fill="white"/><line x1="4" y1="9" x2="20" y2="9" stroke="white" stroke-width="1.8"/><line x1="12" y1="3" x2="12" y2="9" stroke="white" stroke-width="1.8"/></svg></div></div>`;
     const trainIcon=L.divIcon({html:trainIconHtml,className:'',iconSize:[40,40],iconAnchor:[20,20],popupAnchor:[0,-24]});
-    // Popup content
     const delayTxt=isLate?('+'+delayMins+' min late'):'On Time';
-    const spdTxt=speedKmh!=null?speedKmh+' km/h':'—';
-    const popupHtml=`<div>
-      <div class="map-popup-title">🚆 ${he(trainName)}</div>
-      <div class="map-popup-row"><span class="map-popup-lbl">Station</span><span class="map-popup-val">${he(curStn?curStn.station_name:trainNo)}</span></div>
-      <div class="map-popup-row"><span class="map-popup-lbl">Delay</span><span class="map-popup-val" style="color:${isLate?'var(--red)':'var(--green)'}">${delayTxt}</span></div>
-      <div class="map-popup-row"><span class="map-popup-lbl">Speed</span><span class="map-popup-val">${spdTxt}</span></div>
-      <div class="map-popup-row"><span class="map-popup-lbl">Progress</span><span class="map-popup-val">${progress}%</span></div>
-    </div>`;
-    trainMarker=L.marker([lat,lng],{icon:trainIcon,zIndexOffset:1000})
-      .addTo(leafletMap)
-      .bindPopup(popupHtml,{closeOnClick:false,autoClose:false,className:'train-popup'})
-      .openPopup();
-    // Smoothly pan map after slight delay for better UX
+    const popupHtml=`<div><div class="map-popup-title">🚆 ${he(trainName)}</div><div class="map-popup-row"><span class="map-popup-lbl">Station</span><span class="map-popup-val">${he(curStn?curStn.station_name:trainNo)}</span></div><div class="map-popup-row"><span class="map-popup-lbl">Delay</span><span class="map-popup-val" style="color:${isLate?'var(--red)':'var(--green)'}">${delayTxt}</span></div><div class="map-popup-row"><span class="map-popup-lbl">Speed</span><span class="map-popup-val">${speedKmh!=null?speedKmh+' km/h':'—'}</span></div><div class="map-popup-row"><span class="map-popup-lbl">Progress</span><span class="map-popup-val">${progress}%</span></div></div>`;
+    L.marker([lat,lng],{icon:trainIcon,zIndexOffset:1000}).addTo(leafletMap).bindPopup(popupHtml,{closeOnClick:false,autoClose:false}).openPopup();
     setTimeout(()=>{if(leafletMap)leafletMap.invalidateSize();},350);
+  }
+  // Map tab switching
+  if(trainMapOuter){
+    trainMapOuter.querySelectorAll('.map-tab').forEach(tab=>{
+      tab.addEventListener('click',function(){
+        trainMapOuter.querySelectorAll('.map-tab').forEach(t=>t.classList.remove('active'));
+        trainMapOuter.querySelectorAll('.map-pane').forEach(p=>p.classList.remove('active'));
+        this.classList.add('active');
+        const paneId='mapPane'+this.dataset.map.charAt(0).toUpperCase()+this.dataset.map.slice(1);
+        const pane=document.getElementById(paneId);
+        if(pane){
+          pane.classList.add('active');
+          if(this.dataset.map==='leaflet'){
+            buildLeafletMap();
+            if(leafletMap)setTimeout(()=>leafletMap.invalidateSize(),100);
+          } else if(this.dataset.map==='google'){
+            // lazy-load Google Maps iframe only when tab selected
+            if(!pane.querySelector('iframe')){
+              const src=pane.dataset.src;
+              pane.innerHTML=`<iframe class="gmap-frame" src="${src}" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>`;
+            }
+          }
+        }
+      });
+    });
   }
   if(trainMapToggle){
     trainMapToggle.addEventListener('click',function(){
-      const box=document.getElementById('trainMapBox');
-      if(!box)return;
-      const isOpen=box.classList.contains('open');
-      box.classList.toggle('open',!isOpen);
+      const isOpen=trainMapOuter&&trainMapOuter.classList.contains('open');
+      if(trainMapOuter)trainMapOuter.classList.toggle('open',!isOpen);
       this.classList.toggle('open',!isOpen);
-      if(!isOpen)initLeafletMap();
+      if(!isOpen)buildLeafletMap();
     });
-    // Auto-open if train has coords (first time only)
-    if(lat&&lng&&!leafletMap){
+    // Auto-open when coords available
+    if(lat&&lng){
       setTimeout(()=>{
-        const box=document.getElementById('trainMapBox');
-        if(box&&!box.classList.contains('open')){
-          box.classList.add('open');
+        if(trainMapOuter&&!trainMapOuter.classList.contains('open')){
+          trainMapOuter.classList.add('open');
           trainMapToggle.classList.add('open');
-          initLeafletMap();
+          buildLeafletMap();
         }
-      },600);
+      },700);
     }
   }
   /* SHARE TEXT */
@@ -984,7 +1032,6 @@ function attachPrefetch(el,num,name){
   el.addEventListener('focus',trigger,{passive:true});
 }
 // Override doLive to use cache when available
-const _doLiveOrig=doLive;
 async function doLive(num,name){
   const cached=getCachedLive(num);
   if(cached&&cached.data&&cached.data.data){
@@ -1123,6 +1170,10 @@ function goHome(){
 }
 document.getElementById('brandBtn').addEventListener('click',goHome);
 document.getElementById('refreshBtn').addEventListener('click',()=>doRefresh(false));
+// Prefetch on Refresh button hover — so data is fresh before user clicks
+document.getElementById('refreshBtn').addEventListener('mouseenter',()=>{
+  if(curNum)prefetchTrain(curNum,curName);
+},{passive:true});
 /* DISCLAIMER */
 document.getElementById('disclaimerLink').addEventListener('click',e=>{e.preventDefault();document.getElementById('disclaimerModal').style.display='flex';});
 document.getElementById('modalCloseBtn').addEventListener('click',()=>document.getElementById('disclaimerModal').style.display='none');
