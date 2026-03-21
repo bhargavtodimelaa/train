@@ -9,6 +9,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<meta http-equiv="Content-Security-Policy"
+content="default-src 'self';
+img-src * data:;
+script-src 'self' https://unpkg.com;
+style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://unpkg.com">
 <link rel="dns-prefetch" href="https://train-api-eight.vercel.app">
@@ -613,17 +618,36 @@ si.addEventListener('keydown',e=>{
   }
 });
 function clearSuggest(){document.getElementById('suggestBox').innerHTML='';}
+let searchAbort = null;
+const searchCache = new Map();
+
 async function doSearch(q){
-  const sr=document.getElementById('searchResults'),lv=document.getElementById('liveView');
-  sr.innerHTML=renderSkeleton(3);lv.innerHTML='';
-  clearInterval(countdownInterval);stopAR();curNum=null;curName=null;
-  document.getElementById('refreshBtn').style.display='none';
+  const sr=document.getElementById('searchResults');
+  const lv=document.getElementById('liveView');
+
+  if(searchAbort) searchAbort.abort();
+  searchAbort = new AbortController();
+
+  if(searchCache.has(q)){
+    renderSearch(searchCache.get(q));
+    return;
+  }
+
+  sr.innerHTML = renderSkeleton(3);
+  lv.innerHTML = '';
+
   try{
-    const d=await fetchData('/search?q='+encodeURIComponent(q));
-    const trains=(d&&d.data)?d.data:[];
-    searchRes=trains;renderSearch(trains);
+    const d = await fetchData('/search?q='+encodeURIComponent(q));
+    const trains = (d && d.data) ? d.data : [];
+
+    searchCache.set(q, trains);
+    searchRes = trains;
+    renderSearch(trains);
+
   }catch(err){
-    sr.innerHTML=`<div class="loader" style="flex-direction:column;align-items:flex-start;gap:6px"><div>Search failed: ${he(err.message)}</div><div style="font-size:11px;opacity:.5">Check your connection</div></div>`;
+    if(err.name !== "AbortError"){
+      sr.innerHTML=`<div class="loader">Search failed</div>`;
+    }
   }
 }
 function renderSkeleton(n){
