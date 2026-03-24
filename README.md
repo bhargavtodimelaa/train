@@ -35,16 +35,6 @@
 ---
 
 ## 🚀 Getting Started
-
-### Clone the Repository
-
-```bash
-git clone https://github.com/your-username/trackit.git
-cd trackit
-Run Locally
-
-Open index.html in your browser.
-
 🧠 How It Works
 
 User Input → API Fetch → Process Data → UI Render → Map Update → Auto Refresh
