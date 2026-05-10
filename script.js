@@ -76,6 +76,12 @@
     const base = path.replace(/\/[^/]*$/, '/');
     return base.endsWith('/') ? base : base + '/';
   })();
+  const scheduleIdle = callback => {
+    if (typeof window.requestIdleCallback === 'function') {
+      return window.requestIdleCallback(callback, { timeout: 2_000 });
+    }
+    return window.setTimeout(callback, 300);
+  };
 
   /* ══════════════════════════════════════════════
      DOM REFS  (single source of truth)
@@ -1280,8 +1286,11 @@
   window.addEventListener('online',  updateNet);
   window.addEventListener('offline', () => { setSignalLevel(0, 'Offline', 's0'); if (DOM.netLocTxt) DOM.netLocTxt.textContent = '—'; updateNet(); });
   if (navigator.connection) navigator.connection.addEventListener('change', assessSignal);
-  assessSignal(); fetchIpInfo();
-  setInterval(assessSignal, CFG.NET_REFRESH_MS);
+  scheduleIdle(() => {
+    assessSignal();
+    fetchIpInfo();
+    setInterval(assessSignal, CFG.NET_REFRESH_MS);
+  });
 
   /* ══════════════════════════════════════════════
      FONT LOAD GUARD
@@ -1293,6 +1302,10 @@
   }
 
   (function checkIconFont() {
+    if (document.fonts?.check?.('16px "Material Symbols Rounded"')) {
+      document.body.classList.add('fonts-loaded');
+      return;
+    }
     const probe = document.createElement('span');
     probe.className = 'material-symbols-rounded';
     probe.style.cssText = 'position:absolute;visibility:hidden;font-size:100px;top:-999px;left:-999px';
@@ -1317,14 +1330,16 @@
   if (initialTrainNo) doLive(initialTrainNo, initialTrainNo, 'replace');
   else showWelcome();
 
-  setTimeout(() => {
-    const all  = [...getRecent(), ...getFavs()];
-    const seen = new Set();
-    all.forEach((t, i) => {
-      if (!t?.num || seen.has(t.num)) return;
-      seen.add(t.num);
-      setTimeout(() => prefetchTrain(t.num, t.name), i * CFG.PREFETCH_STAGGER_MS);
-    });
-  }, CFG.PREFETCH_INIT_DELAY);
+  scheduleIdle(() => {
+    setTimeout(() => {
+      const all  = [...getRecent(), ...getFavs()];
+      const seen = new Set();
+      all.forEach((t, i) => {
+        if (!t?.num || seen.has(t.num)) return;
+        seen.add(t.num);
+        setTimeout(() => prefetchTrain(t.num, t.name), i * CFG.PREFETCH_STAGGER_MS);
+      });
+    }, CFG.PREFETCH_INIT_DELAY);
+  });
 
 })();
