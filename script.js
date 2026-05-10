@@ -168,6 +168,13 @@
     }
   }
 
+  function animateCountdownTick(el) {
+    if (!el) return;
+    el.classList.remove('tick-down');
+    void el.offsetWidth;
+    el.classList.add('tick-down');
+  }
+
   /* ══════════════════════════════════════════════
      UTILS
   ══════════════════════════════════════════════ */
@@ -777,12 +784,7 @@
       if (diff <= 0) {
         el.textContent = 'Arriving';
         el.style.color = 'var(--green)';
-        if (typeof el.animate === 'function') {
-          el.animate([
-            { transform: 'scale(0.96)', opacity: 0.75 },
-            { transform: 'scale(1)', opacity: 1 }
-          ], { duration: 260, easing: 'cubic-bezier(.16,1,.3,1)' });
-        }
+        animateCountdownTick(el);
         clearInterval(countdownInterval);
         countdownInterval = null;
         return;
@@ -790,12 +792,7 @@
       const m = Math.floor(diff / 60_000), sc = Math.floor((diff % 60_000) / 1000);
       el.textContent = `${pad(m)}:${pad(sc)}`;
       el.style.color = m < CFG.COUNTDOWN_WARN_MINS ? 'var(--red)' : '';
-      if (typeof el.animate === 'function') {
-        el.animate([
-          { transform: 'translateY(2px) scale(0.98)', opacity: 0.7 },
-          { transform: 'translateY(0) scale(1)', opacity: 1 }
-        ], { duration: 220, easing: 'cubic-bezier(.16,1,.3,1)' });
-      }
+      animateCountdownTick(el);
     }, 1000);
   }
 
