@@ -66,6 +66,7 @@
   let curName          = null;
   let lastRefTs        = null;
   let searchRes        = [];
+  const trainNameCache = new Map();
 
   // Use single canonical API endpoint (Sujith). Removed legacy Vercel endpoint.
   const BASE = 'https://sujith.bhargavtodimela4.workers.dev';
@@ -146,6 +147,24 @@
       return JSON.parse(s);
     } catch (e) {
       throw new ParseError('Invalid JSON from server');
+    }
+  }
+
+  async function resolveTrainName(num, fallbackName = '') {
+    const key = String(num == null ? '' : num).trim();
+    if (!key) return fallbackName || key;
+    if (fallbackName && fallbackName !== key) return fallbackName;
+    const cached = trainNameCache.get(key);
+    if (cached) return cached;
+    try {
+      const d = await fetchData('/search?q=' + encodeURIComponent(key));
+      const trains = d?.data ?? [];
+      const match = trains.find(t => String(t.number) === key) || trains[0];
+      const resolved = match?.name ? String(match.name) : (fallbackName || key);
+      trainNameCache.set(key, resolved);
+      return resolved;
+    } catch (e) {
+      return fallbackName || key;
     }
   }
 
@@ -758,6 +777,12 @@
       if (diff <= 0) {
         el.textContent = 'Arriving';
         el.style.color = 'var(--green)';
+        if (typeof el.animate === 'function') {
+          el.animate([
+            { transform: 'scale(0.96)', opacity: 0.75 },
+            { transform: 'scale(1)', opacity: 1 }
+          ], { duration: 260, easing: 'cubic-bezier(.16,1,.3,1)' });
+        }
         clearInterval(countdownInterval);
         countdownInterval = null;
         return;
@@ -765,6 +790,12 @@
       const m = Math.floor(diff / 60_000), sc = Math.floor((diff % 60_000) / 1000);
       el.textContent = `${pad(m)}:${pad(sc)}`;
       el.style.color = m < CFG.COUNTDOWN_WARN_MINS ? 'var(--red)' : '';
+      if (typeof el.animate === 'function') {
+        el.animate([
+          { transform: 'translateY(2px) scale(0.98)', opacity: 0.7 },
+          { transform: 'translateY(0) scale(1)', opacity: 1 }
+        ], { duration: 220, easing: 'cubic-bezier(.16,1,.3,1)' });
+      }
     }, 1000);
   }
 
@@ -954,42 +985,43 @@
 
   async function doLive(num, name, routeAction = 'push') {
     if (!num) return;
+    const resolvedName = await resolveTrainName(num, name);
     syncRoute(num, routeAction === 'replace');
     const cached = getCachedLive(num);
     if (cached?.data?.data) {
       DOM.searchResults.innerHTML = '';
       DOM.liveView.innerHTML      = '';
       clearInterval(countdownInterval); stopAR();
-      curNum = num; curName = name || num;
+      curNum = num; curName = resolvedName;
       DOM.refreshBtn.style.display = 'flex';
-      clearSuggest(); si.value = name || num;
+      clearSuggest(); si.value = resolvedName;
       lastRefTs = new Date(cached.ts);
-      renderLive(cached.data.data, num, name || num);
-      saveLiveCache(num, cached.data, name || num);
+      renderLive(cached.data.data, num, resolvedName);
+      saveLiveCache(num, cached.data, resolvedName);
       updateLastRef(); startAR();
       toast('Loaded instantly ⚡', 'done');
       prefetchCache.delete(num);
-      prefetchTrain(num, name);
+      prefetchTrain(num, resolvedName);
       return;
     }
     DOM.searchResults.innerHTML = '';
     DOM.liveView.innerHTML      = loader('Fetching live status for ' + num + '…');
     clearInterval(countdownInterval); stopAR();
-    curNum = num; curName = name || num;
+    curNum = num; curName = resolvedName;
     DOM.refreshBtn.style.display = 'flex';
-    clearSuggest(); si.value = name || num;
+    clearSuggest(); si.value = resolvedName;
     try {
       const d = await fetchData('/live-status?trainNo=' + encodeURIComponent(num));
       lastRefTs = new Date();
-      renderLive(d.data, num, name || num);
-      saveLiveCache(num, d, name || num);
+      renderLive(d.data, num, resolvedName);
+      saveLiveCache(num, d, resolvedName);
       updateLastRef(); startAR();
     } catch (err) {
       const cached = getPersistedLiveCache(num);
       if (cached?.data?.data) {
         lastRefTs = new Date(cached.ts);
-        renderLive(cached.data.data, num, name || num);
-        saveLiveCache(num, cached.data, name || num);
+        renderLive(cached.data.data, num, resolvedName);
+        saveLiveCache(num, cached.data, resolvedName);
         updateLastRef(); startAR();
         toast('Showing cached live data', 'info');
         return;
@@ -1327,7 +1359,7 @@
      INIT
   ══════════════════════════════════════════════ */
   const initialTrainNo = getRouteTrainNo();
-  if (initialTrainNo) doLive(initialTrainNo, initialTrainNo, 'replace');
+  if (initialTrainNo) doLive(initialTrainNo, null, 'replace');
   else showWelcome();
 
   scheduleIdle(() => {
