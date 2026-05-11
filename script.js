@@ -10,8 +10,9 @@
     PREFETCH_STAGGER_MS: 800,     // gap between background prefetches
     PREFETCH_INIT_DELAY: 2_000,   // wait before first background prefetch
     FETCH_TIMEOUT_MS   : 8_000,   // per-endpoint fetch timeout
+    SEARCH_LOADING_MIN : 420,     // minimum loading-card visibility
     RECENT_MAX         : 6,       // max recent-search entries stored
-    SEARCH_CACHE_MAX   : 8,       // max cached search queries stored
+    SEARCH_CACHE_MAX   : 24,      // max cached search queries stored
     LIVE_CACHE_MAX     : 10,      // max cached live train payloads stored
     TOAST_DURATION_MS  : 2_600,   // toast auto-dismiss
     FAV_CONFIRM_MS     : 2_200,   // fav confirmation banner duration
@@ -62,11 +63,28 @@
   let countdownInterval= null;
   let arTick           = null;
   let arSecs           = CFG.AR_INTERVAL_SECS;
+  let searchLoadingTick = null;
+  let searchLoadingPct  = 0;
+  let welcomeRevealTimer= null;
+  let liveLoadingToken  = 0;
+  let liveLoadingReady  = false;
+  let liveLoadingData   = null;
+  let liveLoadingFrame  = null;
+  let liveLoadingPct    = 0;
+  let liveLoadingStart  = 0;
+  let liveLoadingStartX = 0;
+  let liveLoadingStartY = 0;
+  let liveLoadingEndX   = 0;
+  let liveLoadingEndY   = 0;
+  let liveLoadingCanvas = null;
+  let liveLoadingCtx    = null;
+  let liveLoadingButton = null;
   let curNum           = null;
   let curName          = null;
   let lastRefTs        = null;
   let searchRes        = [];
   const trainNameCache = new Map();
+  const searchCacheMemory = new Map();
 
   // Use single canonical API endpoint (Sujith). Removed legacy Vercel endpoint.
   const BASE = 'https://sujith.bhargavtodimela4.workers.dev';
@@ -135,37 +153,26 @@
   async function parseResp(r) {
     let buf;
     try { buf = await r.arrayBuffer(); } catch (e) { throw new NetworkError('Failed to read response body'); }
-    const u8 = new Uint8Array(buf);
     let s;
     try {
-      if (u8.length > 5 && u8[0] === 0xdb) {
-        const l = (u8[1] * 16_777_216) + (u8[2] << 16) + (u8[3] << 8) + u8[4];
-        s = new TextDecoder().decode(u8.slice(5, 5 + l));
-      } else {
-        s = new TextDecoder().decode(u8);
-      }
+      s = new TextDecoder().decode(buf).trim();
+    } catch (e) {
+      throw new ParseError('Failed to decode response body');
+    }
+    if (!s) return {};
+    try {
       return JSON.parse(s);
     } catch (e) {
-      throw new ParseError('Invalid JSON from server');
+      throw new ParseError('Invalid JSON response');
     }
   }
 
   async function resolveTrainName(num, fallbackName = '') {
-    const key = String(num == null ? '' : num).trim();
-    if (!key) return fallbackName || key;
-    if (fallbackName && fallbackName !== key) return fallbackName;
-    const cached = trainNameCache.get(key);
-    if (cached) return cached;
-    try {
-      const d = await fetchData('/search?q=' + encodeURIComponent(key));
-      const trains = d?.data ?? [];
-      const match = trains.find(t => String(t.number) === key) || trains[0];
-      const resolved = match?.name ? String(match.name) : (fallbackName || key);
-      trainNameCache.set(key, resolved);
-      return resolved;
-    } catch (e) {
-      return fallbackName || key;
-    }
+    const key = String(num);
+    if (trainNameCache.has(key)) return trainNameCache.get(key);
+    const resolved = fallbackName || key;
+    trainNameCache.set(key, resolved);
+    return resolved;
   }
 
   function animateCountdownTick(el) {
@@ -296,31 +303,13 @@
       updateAR();
     }
     try {
-      const cached = getCachedLive(curNum);
-      let d;
-      if (cached?.data) {
-        d = cached.data;
-        prefetchCache.delete(curNum);
-        saveLiveCache(curNum, d, curName);
-        setTimeout(() => prefetchTrain(curNum, curName), 100);
-      } else {
-        d = await fetchData('/live-status?trainNo=' + encodeURIComponent(curNum));
-      }
+      const d = await fetchData('/live-status?trainNo=' + encodeURIComponent(curNum));
       lastRefTs = new Date();
       renderLive(d.data, curNum, curName);
-      saveLiveCache(curNum, d, curName);
       updateLastRef();
       if (!silent) toast('Refreshed!', 'done');
       else toast('Auto-refreshed', 'info');
     } catch (err) {
-      const cached = getPersistedLiveCache(curNum);
-      if (cached?.data?.data) {
-        lastRefTs = new Date(cached.ts);
-        renderLive(cached.data.data, curNum, curName);
-        updateLastRef();
-        toast('Showing cached live data', 'info');
-        return;
-      }
       const msg = friendlyError(err);
       toast(`Refresh failed: ${msg}`, 'error');
       // On repeated auto-refresh failures, slow down to save battery/data
@@ -374,25 +363,37 @@
 
   async function doSearch(q) {
     const sr = DOM.searchResults, lv = DOM.liveView;
-    sr.innerHTML = renderSkeleton(3);
     lv.innerHTML = '';
     clearInterval(countdownInterval);
     countdownInterval = null;
     stopAR();
     curNum = null; curName = null;
     DOM.refreshBtn.style.display = 'none';
+    const cached = getPersistedSearchCache(q);
+    if (cached?.data?.length) {
+      clearSearchLoading();
+      searchRes = cached.data;
+      renderSearch(cached.data, q, true);
+      return;
+    }
+    const loadStartedAt = Date.now();
+    startSearchLoading(q);
     try {
       const d     = await fetchData('/search?q=' + encodeURIComponent(q));
       const trains = d?.data ?? [];
       searchRes = trains;
       saveSearchCache(q, trains);
-      renderSearch(trains);
+      await keepSearchLoadingVisible(loadStartedAt);
+      clearSearchLoading();
+      renderSearch(trains, q);
     } catch (err) {
+      await keepSearchLoadingVisible(loadStartedAt);
+      clearSearchLoading();
       const cached = getPersistedSearchCache(q);
       if (cached?.data?.length) {
         searchRes = cached.data;
         toast('Showing cached results', 'info');
-        renderSearch(cached.data);
+        renderSearch(cached.data, q, true);
         return;
       }
       const msg  = friendlyError(err);
@@ -413,10 +414,84 @@
     return h;
   }
 
-  function renderSearch(trains) {
+  function renderSearchLoading(query, pct = 0) {
+    return `<div class="search-loading-card" aria-live="polite" aria-busy="true">
+      <div class="search-loading-top">
+        <div class="search-loading-ring">
+          <svg viewBox="0 0 44 44" aria-hidden="true">
+            <circle class="search-loading-track" cx="22" cy="22" r="18"></circle>
+            <circle class="search-loading-fill" cx="22" cy="22" r="18"></circle>
+          </svg>
+          <span class="search-loading-pct">${pct}%</span>
+        </div>
+        <div class="search-loading-copy">
+          <div class="search-loading-title">Searching trains</div>
+          <div class="search-loading-sub">Looking up ${he(query)} and preparing results from cache or network.</div>
+        </div>
+      </div>
+      <div class="search-loading-bar"><div class="search-loading-bar-fill" style="width:${pct}%"></div></div>
+      <div class="search-loading-meta">
+        <span>Cache</span>
+        <span>Match</span>
+        <span>Render</span>
+      </div>
+    </div>`;
+  }
+
+  function updateSearchLoading(query, pct) {
+    const sr = DOM.searchResults;
+    const card = sr?.querySelector('.search-loading-card');
+    if (!card) return;
+    const pctEl = card.querySelector('.search-loading-pct');
+    const fillEl = card.querySelector('.search-loading-bar-fill');
+    const subEl = card.querySelector('.search-loading-sub');
+    if (pctEl) pctEl.textContent = `${pct}%`;
+    if (fillEl) fillEl.style.width = `${pct}%`;
+    if (subEl) subEl.textContent = `Looking up ${query} and preparing results from cache or network.`;
+  }
+
+  function clearSearchLoading() {
+    if (searchLoadingTick) {
+      clearInterval(searchLoadingTick);
+      searchLoadingTick = null;
+    }
+    searchLoadingPct = 0;
+  }
+
+  function startSearchLoading(query) {
+    const sr = DOM.searchResults;
+    if (!sr) return;
+    clearSearchLoading();
+    searchLoadingPct = 8;
+    sr.innerHTML = renderSearchLoading(query, searchLoadingPct);
+    searchLoadingTick = setInterval(() => {
+      const card = sr.querySelector('.search-loading-card');
+      if (!card) {
+        clearSearchLoading();
+        return;
+      }
+      const step = searchLoadingPct < 35 ? 13 : searchLoadingPct < 70 ? 8 : 3;
+      searchLoadingPct = Math.min(92, searchLoadingPct + step);
+      updateSearchLoading(query, searchLoadingPct);
+    }, 120);
+  }
+
+  async function keepSearchLoadingVisible(startTime) {
+    const elapsed = Date.now() - startTime;
+    const waitMs = CFG.SEARCH_LOADING_MIN - elapsed;
+    if (waitMs > 0) {
+      await new Promise(resolve => setTimeout(resolve, waitMs));
+    }
+  }
+
+  function renderSearch(trains, query = '', fromCache = false) {
     const sr = DOM.searchResults;
     if (!trains?.length) { sr.innerHTML = '<div class="loader">No trains found.</div>'; return; }
+    clearSearchLoading();
     let h = `<div class="results-hdr">${trains.length} result${trains.length > 1 ? 's' : ''} found</div>`;
+    if (fromCache && query) {
+      h += `<div class="results-cache-note">Loaded from browser cache for <strong>${he(query)}</strong>.</div>`;
+    }
     const savedFavs = getFavs();
     for (let i = 0; i < trains.length; i++) {
       const t = trains[i];
@@ -430,8 +505,15 @@
         <button class="fav-btn${trainIsFav ? ' active' : ''}" data-fav-idx="${i}" title="${trainIsFav ? 'Remove from favourites' : 'Add to favourites'}">
           <span class="material-symbols-rounded" style="font-size:20px">star</span>
         </button>
-        <button class="track-btn" data-idx="${i}">
-          <span class="material-symbols-rounded" style="font-size:17px">my_location</span> Track
+        <button class="animated-button track-btn" data-idx="${i}">
+          <svg viewBox="0 0 24 24" class="arr-2" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M16.1716 10.9999L10.8076 5.63589L12.2218 4.22168L20 11.9999L12.2218 19.778L10.8076 18.3638L16.1716 12.9999H4V10.9999H16.1716Z"></path>
+          </svg>
+          <span class="text">Track</span>
+          <span class="circle"></span>
+          <svg viewBox="0 0 24 24" class="arr-1" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M16.1716 10.9999L10.8076 5.63589L12.2218 4.22168L20 11.9999L12.2218 19.778L10.8076 18.3638L16.1716 12.9999H4V10.9999H16.1716Z"></path>
+          </svg>
         </button>
       </div>`;
     }
@@ -447,7 +529,7 @@
       attachPrefetch(btn, String(t.number), t.name);
       btn.addEventListener('click', e => {
         e.stopPropagation();
-        doLive(String(t.number), t.name);
+        doLive(String(t.number), t.name, 'push', btn);
         saveRecent(String(t.number), t.name);
       });
     });
@@ -555,7 +637,7 @@
           <span class="blink"></span>${isLate ? '+' + delayMins + ' min late' : 'On Time'}
         </span>
       </div>
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+      <div class="lp-top">
         <div>
           <div class="lp-title">${he(trainName)}</div>
           <div class="lp-route"><span class="material-symbols-rounded" style="font-size:14px">train</span>${he(origin?.station_name || '—')} → ${he(dest?.station_name || '—')}</div>
@@ -754,13 +836,13 @@
 
   function renderInfoTab(trainNo, trainName, data, route, origin, dest, progress) {
     const cell = (label, val, small = false) =>
-      `<div class="meta-it" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:12px">
+      `<div class="meta-it info-card">
         <div class="mlabel">${label}</div>
         <div class="mval"${small ? ' style="font-size:12px"' : ''}>${val}</div>
       </div>`;
     return `<div id="tab-info" class="tab-content"><div style="padding:16px 20px;background:var(--surface)">
       <div class="sec-title">Train Details</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="info-grid">
         ${cell('Train Number', he(trainNo))}
         ${cell('Data Source', he(data.dataSource || '—'), true)}
         ${cell('Stops', route.length)}
@@ -945,14 +1027,10 @@
 
   async function prefetchTrain(num, name) {
     if (!num) return;
-    const cached = prefetchCache.get(num);
-    if (cached && (Date.now() - cached.ts) < CFG.PREFETCH_TTL_MS) return;
     if (prefetchInFlight.has(num)) return;
     prefetchInFlight.add(num);
     try {
-      const d = await fetchData('/live-status?trainNo=' + encodeURIComponent(num));
-      prefetchCache.set(num, { data: d, ts: Date.now(), name: name || num });
-      saveLiveCache(num, d, name || num);
+      await fetchData('/live-status?trainNo=' + encodeURIComponent(num));
       // Older browsers may not support CSS.escape or complex selectors —
       // fall back to filtering all nodes with the attribute.
       document.querySelectorAll('[data-prefetch-num]').forEach(el => {
@@ -965,11 +1043,6 @@
     finally { prefetchInFlight.delete(num); }
   }
 
-  function getCachedLive(num) {
-    const c = prefetchCache.get(num);
-    return (c && (Date.now() - c.ts) < CFG.PREFETCH_TTL_MS) ? c : null;
-  }
-
   function attachPrefetch(el, num, name) {
     if (!el || !num || el._pfAttached) return;
     el._pfAttached = true;
@@ -980,49 +1053,29 @@
     el.addEventListener('focus',       trigger, { passive: true });
   }
 
-  async function doLive(num, name, routeAction = 'push') {
+  async function doLive(num, name, routeAction = 'push', triggerEl = null) {
     if (!num) return;
     const resolvedName = await resolveTrainName(num, name);
     syncRoute(num, routeAction === 'replace');
-    const cached = getCachedLive(num);
-    if (cached?.data?.data) {
-      DOM.searchResults.innerHTML = '';
-      DOM.liveView.innerHTML      = '';
-      clearInterval(countdownInterval); stopAR();
-      curNum = num; curName = resolvedName;
-      DOM.refreshBtn.style.display = 'flex';
-      clearSuggest(); si.value = resolvedName;
-      lastRefTs = new Date(cached.ts);
-      renderLive(cached.data.data, num, resolvedName);
-      saveLiveCache(num, cached.data, resolvedName);
-      updateLastRef(); startAR();
-      toast('Loaded instantly ⚡', 'done');
-      prefetchCache.delete(num);
-      prefetchTrain(num, resolvedName);
-      return;
-    }
     DOM.searchResults.innerHTML = '';
-    DOM.liveView.innerHTML      = loader('Fetching live status for ' + num + '…');
     clearInterval(countdownInterval); stopAR();
     curNum = num; curName = resolvedName;
     DOM.refreshBtn.style.display = 'flex';
-    clearSuggest(); si.value = resolvedName;
+    clearSuggest(); si.value = '';
+    const token = startLiveLoading(num, resolvedName, triggerEl);
     try {
       const d = await fetchData('/live-status?trainNo=' + encodeURIComponent(num));
-      lastRefTs = new Date();
-      renderLive(d.data, num, resolvedName);
-      saveLiveCache(num, d, resolvedName);
-      updateLastRef(); startAR();
-    } catch (err) {
-      const cached = getPersistedLiveCache(num);
-      if (cached?.data?.data) {
-        lastRefTs = new Date(cached.ts);
-        renderLive(cached.data.data, num, resolvedName);
-        saveLiveCache(num, cached.data, resolvedName);
-        updateLastRef(); startAR();
-        toast('Showing cached live data', 'info');
-        return;
+      if (token !== liveLoadingToken) return;
+      liveLoadingData = d.data;
+      liveLoadingReady = true;
+      // Render immediately if animation is already done, otherwise tick loop will handle it
+      if (liveLoadingPct >= 100) {
+        lastRefTs = new Date();
+        finishLiveLoading(token);
       }
+    } catch (err) {
+      if (token !== liveLoadingToken) return;
+      clearLiveLoading();
       const msg  = friendlyError(err);
       const hint = errorHint(err);
       DOM.liveView.innerHTML = renderError(`Failed to load: ${msg}`, hint);
@@ -1053,8 +1106,12 @@
   function getPersistedSearchCache(query) {
     const key = normalizeCacheKey(query);
     if (!key) return null;
+    const memoryHit = searchCacheMemory.get(key);
+    if (memoryHit) return memoryHit;
     const cache = readJson(SEARCH_CACHE_KEY, []);
-    return cache.find(item => item.q === key) || null;
+    const hit = cache.find(item => item.q === key) || null;
+    if (hit) searchCacheMemory.set(key, hit);
+    return hit;
   }
 
   function saveSearchCache(query, trains) {
@@ -1062,9 +1119,11 @@
     if (!key) return;
     let cache = readJson(SEARCH_CACHE_KEY, []);
     cache = cache.filter(item => item.q !== key);
-    cache.unshift({ q: key, label: String(query).trim(), ts: Date.now(), data: trains });
+    const entry = { q: key, label: String(query).trim(), ts: Date.now(), data: trains };
+    cache.unshift(entry);
     if (cache.length > CFG.SEARCH_CACHE_MAX) cache = cache.slice(0, CFG.SEARCH_CACHE_MAX);
     writeJson(SEARCH_CACHE_KEY, cache);
+    searchCacheMemory.set(key, entry);
   }
 
   function getPersistedLiveCache(num) {
@@ -1109,8 +1168,36 @@
           <line x1="8" y1="17" x2="16" y2="17" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
       </div>
-      <div class="welcome-title">Track any Indian train, <span>live.</span></div>
+      <div class="welcome-title">
+        Track any train
+        <span class="welcome-word-card card">
+          <span class="loader welcome-word-loader">
+            <span class="words">
+              <span class="word">live</span>
+              <span class="word">status</span>
+              <span class="word">routes</span>
+              <span class="word">arrivals</span>
+              <span class="word">departures</span>
+              <span class="word">delays</span>
+              <span class="word">platforms</span>
+              <span class="word">coaches</span>
+              <span class="word">maps</span>
+              <span class="word">schedule</span>
+            </span>
+          </span>
+        </span>
+      </div>
       <div class="welcome-sub">Type a train number or name above to get started. Press <kbd style="font-size:11px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:1px 5px">/</kbd> to focus search.</div>
+      <div class="welcome-badges">
+        <span class="welcome-badge"><span class="blink"></span>Live updates</span>
+        <span class="welcome-badge"><span class="material-symbols-rounded" style="font-size:14px">route</span>Route insight</span>
+        <span class="welcome-badge"><span class="material-symbols-rounded" style="font-size:14px">schedule</span>Auto refresh</span>
+      </div>
+      <div class="welcome-metrics">
+        <div class="welcome-metric"><div class="wm-label">Track</div><div class="wm-value">Realtime arrivals</div></div>
+        <div class="welcome-metric"><div class="wm-label">Save</div><div class="wm-value">Favorites + recents</div></div>
+        <div class="welcome-metric"><div class="wm-label">Map</div><div class="wm-value">Live position view</div></div>
+      </div>
     </div>`;
     if (!navigator.onLine && (recent.length || favs.length)) {
       h += `<div style="margin:0 4px 18px;padding:10px 12px;border:1px solid var(--border2);border-radius:var(--r2);background:var(--yellow-bg);color:var(--yellow);font-size:12px;line-height:1.5">Offline mode: saved recent searches and favourites still open from cache.</div>`;
@@ -1133,6 +1220,7 @@
     </div></div></div>`;
     DOM.searchResults.innerHTML = h;
     DOM.liveView.innerHTML      = '';
+    revealWelcomeAfterDelay();
     $('clearRecentBtn')?.addEventListener('click', clearRecent);
     $('manageFavsBtn')?.addEventListener('click', openFavModal);
     document.querySelectorAll('[data-recent-i]').forEach(c => {
@@ -1143,6 +1231,204 @@
       const f = favs[+c.dataset.favI];
       if (f) { attachPrefetch(c, f.num, f.name); c.addEventListener('click', () => { doLive(f.num, f.name); saveRecent(f.num, f.name); }); }
     });
+  }
+
+  function revealWelcomeAfterDelay() {
+    if (welcomeRevealTimer) clearTimeout(welcomeRevealTimer);
+    const welcome = DOM.searchResults.querySelector('.welcome');
+    if (!welcome) return;
+    welcome.classList.remove('is-visible');
+    welcomeRevealTimer = setTimeout(() => welcome.classList.add('is-visible'), 240);
+  }
+
+  function renderLiveLoading(num, name, pct = 0) {
+    return `<div class="travel-canvas live-loading-overlay" aria-busy="true" aria-live="polite">
+      <canvas id="liveArrowCanvas"></canvas>
+      <div class="live-loading-panel">
+        <div class="live-loading-orbit">
+          <span class="material-symbols-rounded live-loading-arrow">arrow_forward</span>
+          <span class="live-loading-pct">${pct}%</span>
+        </div>
+        <div class="live-loading-copy">
+          <div class="live-loading-title">Loading live status</div>
+          <div class="live-loading-sub">${he(name || num)} is being prepared in full.</div>
+        </div>
+        <div class="live-loading-track"><div class="live-loading-fill" style="width:${pct}%"></div></div>
+      </div>
+    </div>`;
+  }
+
+  function clearLiveLoading() {
+    if (liveLoadingFrame) {
+      cancelAnimationFrame(liveLoadingFrame);
+      liveLoadingFrame = null;
+    }
+    liveLoadingPct = 0;
+    liveLoadingReady = false;
+    liveLoadingData = null;
+    liveLoadingCanvas = null;
+    liveLoadingCtx = null;
+    liveLoadingButton = null;
+  }
+
+  function finishLiveLoading(token) {
+    if (token !== liveLoadingToken || !liveLoadingReady || !liveLoadingData) return;
+    const data = liveLoadingData;
+    const trainNo = curNum;
+    const trainName = curName;
+    clearLiveLoading();
+    renderLive(data, trainNo, trainName);
+    updateLastRef();
+    startAR();
+  }
+
+  function drawLiveLoadingFrame(progress, name, num) {
+    if (!liveLoadingCanvas || !liveLoadingCtx) return;
+    const canvas = liveLoadingCanvas;
+    const ctx = liveLoadingCtx;
+    const w = canvas.width;
+    const h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    const currentX = liveLoadingStartX + (liveLoadingEndX - liveLoadingStartX) * progress;
+    const currentY = liveLoadingStartY;
+    const barWidth = w * 0.7;
+    const barHeight = 8;
+    const barX = (w - barWidth) / 2;
+    const barY = h - 45;
+    ctx.fillStyle = 'rgba(30, 40, 55, 0.7)';
+    ctx.fillRect(barX, barY, barWidth, barHeight);
+    const fillWidth = barWidth * progress;
+    const gradient = ctx.createLinearGradient(barX, barY, barX + Math.max(fillWidth, 1), barY);
+    gradient.addColorStop(0, '#aaff33');
+    gradient.addColorStop(1, '#b5ff4f');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(barX, barY, fillWidth, barHeight);
+    ctx.font = "bold 18px 'Segoe UI', 'Inter', monospace";
+    ctx.fillStyle = '#d0ff90';
+    ctx.shadowBlur = 4;
+    ctx.shadowColor = '#aaff33aa';
+    ctx.fillText(`${Math.floor(progress * 100)}%`, barX + Math.max(fillWidth - 28, 0), barY - 8);
+    ctx.fillStyle = '#c0ff80';
+    ctx.font = '12px monospace';
+    ctx.fillText('LOADING PROGRESS', barX, barY - 12);
+    ctx.save();
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = '#aaff66';
+    const tipX = currentX;
+    const tipY = Math.min(Math.max(currentY, 35), h - 35);
+    ctx.beginPath();
+    ctx.moveTo(tipX, tipY);
+    ctx.lineTo(tipX - 18, tipY - 12);
+    ctx.lineTo(tipX - 8, tipY - 4);
+    ctx.lineTo(tipX - 8, tipY - 9);
+    ctx.lineTo(tipX - 2, tipY - 2);
+    ctx.lineTo(tipX - 8, tipY + 5);
+    ctx.lineTo(tipX - 8, tipY + 0);
+    ctx.lineTo(tipX - 18, tipY + 12);
+    ctx.closePath();
+    ctx.fillStyle = '#d9ff66';
+    ctx.fill();
+    ctx.strokeStyle = '#bdff33';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(tipX - 2, tipY, 5, 0, Math.PI * 2);
+    ctx.fillStyle = 'gold';
+    ctx.shadowBlur = 12;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(tipX - 2, tipY, 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = 'white';
+    ctx.fill();
+    for (let i = 0; i < 3; i++) {
+      const trailOffset = -12 - i * 9;
+      const trailAlpha = 0.5 - i * 0.15;
+      ctx.beginPath();
+      ctx.arc(currentX + trailOffset, tipY + (Math.sin(Date.now() * 0.01 + i) * 2), 4 - i, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(180, 255, 100, ${trailAlpha * (1 - progress * 0.4)})`;
+      ctx.fill();
+    }
+    ctx.beginPath();
+    ctx.moveTo(liveLoadingStartX, tipY);
+    ctx.lineTo(currentX - 5, tipY);
+    ctx.strokeStyle = '#aaff8844';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 6]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    if (progress > 0.02) {
+      ctx.beginPath();
+      ctx.arc(liveLoadingStartX, tipY, 6 * (1 - progress), 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(210, 255, 100, ${0.5 * (1 - progress)})`;
+      ctx.fill();
+    }
+    if (progress > 0.85) {
+      ctx.beginPath();
+      ctx.arc(liveLoadingEndX, tipY, 12 + Math.sin(Date.now() * 0.015) * 3, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(170, 255, 80, ${0.5 * (progress - 0.85) / 0.15})`;
+      ctx.fill();
+    }
+    if (progress >= 0.995) {
+      ctx.save();
+      ctx.globalAlpha = 0.6;
+      ctx.beginPath();
+      ctx.arc(liveLoadingEndX, tipY, 22, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffaa';
+      ctx.shadowBlur = 20;
+      ctx.fill();
+      ctx.restore();
+    }
+    ctx.restore();
+    const pctEl = DOM.liveView.querySelector('.live-loading-pct');
+    const fillEl = DOM.liveView.querySelector('.live-loading-fill');
+    if (pctEl) pctEl.textContent = `${Math.floor(progress * 100)}%`;
+    if (fillEl) fillEl.style.width = `${Math.floor(progress * 100)}%`;
+  }
+
+  function resizeLiveLoadingCanvas() {
+    if (!liveLoadingCanvas) return;
+    const rect = liveLoadingCanvas.getBoundingClientRect();
+    liveLoadingCanvas.width = Math.max(1, Math.floor(rect.width));
+    liveLoadingCanvas.height = Math.max(1, Math.floor(rect.height));
+  }
+
+  function startLiveLoading(num, name, triggerEl = null) {
+    const token = ++liveLoadingToken;
+    clearLiveLoading();
+    DOM.liveView.innerHTML = renderLiveLoading(num, name, 0);
+    liveLoadingCanvas = DOM.liveView.querySelector('#liveArrowCanvas');
+    liveLoadingCtx = liveLoadingCanvas?.getContext('2d') || null;
+    liveLoadingButton = triggerEl || null;
+    resizeLiveLoadingCanvas();
+    const overlay = DOM.liveView.querySelector('.live-loading-overlay');
+    const btnRect = liveLoadingButton?.getBoundingClientRect?.();
+    const overlayRect = overlay?.getBoundingClientRect?.() || { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
+    const startX = btnRect ? (btnRect.left + btnRect.width / 2) - overlayRect.left : overlayRect.width * 0.35;
+    const startY = btnRect ? (btnRect.top + btnRect.height / 2) - overlayRect.top : overlayRect.height * 0.45;
+    liveLoadingStartX = Math.min(Math.max(startX, 20), overlayRect.width - 20);
+    liveLoadingStartY = Math.min(Math.max(startY, 35), overlayRect.height - 35);
+    liveLoadingEndX = Math.max(liveLoadingStartX + 120, overlayRect.width - 70);
+    liveLoadingStart = performance.now();
+    liveLoadingPct = 0;
+    let completed = false;
+    const tick = now => {
+      if (token !== liveLoadingToken) return;
+      const elapsed = now - liveLoadingStart;
+      const raw = Math.min(1, elapsed / 1800);
+      const eased = 1 - Math.pow(1 - raw, 1.6);
+      liveLoadingPct = Math.floor(eased * 100);
+      drawLiveLoadingFrame(eased, name, num);
+      if (raw >= 1) completed = true;
+      // Render immediately once animation is done AND data is ready (no frame delay)
+      if (completed && liveLoadingReady && liveLoadingData) {
+        lastRefTs = new Date();
+        finishLiveLoading(token);
+        return;
+      }
+      liveLoadingFrame = requestAnimationFrame(tick);
+    };
+    liveLoadingFrame = requestAnimationFrame(tick);
+    return token;
   }
 
   /* ══════════════════════════════════════════════
